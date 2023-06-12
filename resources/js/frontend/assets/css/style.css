@@ -1,0 +1,67 @@
+@import "rsuite/dist/rsuite.css";
+
+.login-div {
+  width: 50%;
+  height: 100vh;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(245, 232, 232);
+  padding: 0 20px;
+  background-image: url("https://images.unsplash.com/photo-1553095066-5014bc7b7f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8d2FsbCUyMGJhY2tncm91bmR8ZW58MHx8MHx8&w=1000&q=80");
+}
+
+.variants-secton .Polaris-Icon{
+  margin: 0;
+  margin-right: 20px;
+  color:var(--p-color-text-interactive);
+}
+
+.Polaris-Connected{
+  align-items: center;
+}
+
+.variants-secton .Polaris-Icon--colorBase svg{
+  fill: rgb(20, 87, 175);
+}
+
+.Polaris-Link{
+  text-decoration: none !important;
+}
+
+
+.div-padding .Polaris-Page .Polaris-Page__Content {
+  padding: 0 0 !important;
+  margin: 0 0 !important;
+}
+
+
+.div-padding .Polaris-Page{
+  padding: 0 0 !important;
+  margin: 0 0 !important;
+}
+
+.margin-top{
+  margin-top: 10px;
+}
+.margin-bottom{
+  margin-bottom: 10px;
+}
+.margin-left{
+  margin-left: 10px;
+}
+.margin-right{
+  margin-right: 10px;
+}
+.Polaris-Table .Polaris-Card__Section{
+  padding: 0
+}
+
+.ck-content{
+  min-height: 100px;
+}
+
+
+
+
