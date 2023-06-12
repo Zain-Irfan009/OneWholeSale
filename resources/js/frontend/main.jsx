@@ -7,7 +7,7 @@ import { AuthProvider } from "./assets/AuthProvider";
 ReactDOM.createRoot(document.getElementById("root")).render(
     <PolarisProvider>
         <BrowserRouter>
-            <AuthProvider apiUrl="https://workingproject.test/api/">
+            <AuthProvider apiUrl="https://phpstack-1018470-3598964.cloudwaysapps.com/api/">
                 <App />
             </AuthProvider>
         </BrowserRouter>
