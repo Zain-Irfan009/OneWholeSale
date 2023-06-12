@@ -456,7 +456,7 @@ export function SellerCommissionSetting() {
 
                                 <IndexTable
                                     resourceName={resourceName}
-                                    itemCount={sellerCommission.length}
+                                    itemCount={sellerCommission?.length}
                                     hasMoreItems
                                     selectable={true}
                                     selectedItemsCount={

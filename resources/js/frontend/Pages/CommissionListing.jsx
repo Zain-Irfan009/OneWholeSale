@@ -292,7 +292,7 @@ export function CommissionListing() {
 
     const emptyStateMarkup = (
         <EmptySearchResult
-            title={'No Customers Found'}
+            title={'No Commission  Found'}
             withIllustration
         />
     );
