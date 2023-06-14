@@ -75,10 +75,11 @@ export function AddProduct() {
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
     const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
-    const [status, setStatus] = useState(true);
+    const [status, setStatus] = useState('active');
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
+    const [sellerEmail, setSellerEmail] = useState("");
 
     const CollectionsOptionsData = useMemo(
         () => [
@@ -89,7 +90,7 @@ export function AddProduct() {
     );
 
     const [collectionOptions, setCollectionOptions] = useState(
-        CollectionsOptionsData
+        []
     );
 
     const [collectionOptionsSelected, setCollectionOptionsSelected] =
@@ -162,7 +163,7 @@ export function AddProduct() {
     const [descriptioncontent, setDescriptionContent] = useState("");
     const [costPerItem, setCostPerItem] = useState();
     const [unit, setUnit] = useState("");
-    const [weight, setWeight] = useState();
+    const [weight, setWeight] = useState('');
     const [pageTitle, setPageTitle] = useState("");
     const [pageDescription, setPageDescription] = useState("");
     const [newTags, setNewTags] = useState([]);
@@ -184,38 +185,49 @@ export function AddProduct() {
 
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
+
+
+
+
+
+
     const inputHandleChange = (index, val) => {
 
         let totalLength = inputFields.length;
         const newInputFields = [...inputFields];
         newInputFields[index].value = val;
         setInputFields(newInputFields);
+
+
+
         if (totalLength - 1 == index && val.length == 1) {
             handleAddField();
         }
     };
 
 
-//     useEffect(() => {
-//      let variantnames=[variantOptions,variantOptions2,variantOptions3];
-//      let values = []
-//         inputFields.map(({value})=> {
-//             values.push(value)
-//         },[])
-//         let values2 = []
-//         inputFields2.map(({value})=> {
-//             values2.push(value)
-//         },[])
-//         let values3 = []
-//         inputField3.map(({value})=> {
-//             values3.push(value)
-//         },[])
-// let options = [
-//
-// ]
-//
-//
-//     }, [inputFields,inputFields2,inputFields3,]);
+
+    const data_option = [
+        {
+            name: variantOptions,
+            value: inputFields,
+        },
+        {
+            name: variantOptions2,
+            value:inputFields2,
+        },
+        {
+            name: variantOptions3,
+            value: inputFields3,
+        },
+    ];
+
+    const transformedFormat = data_option.map(item => {
+        return {
+            ...item,
+            value: item.value.map(valueObj => valueObj.value)
+        };
+    });
 
 
 
@@ -257,7 +269,7 @@ export function AddProduct() {
     };
 
     useEffect(() => {
-        console.log(inputFields);
+        console.log('varinat',inputFields);
     }, [inputFields]);
 
     const handleRemoveField = (index) => {
@@ -306,9 +318,42 @@ export function AddProduct() {
         setInputFields3(newInputFields);
     };
 
+
+    const getCollectionData = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/collections`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            let arr = response?.data.map(({title})=> ({value: title, label: title}))
+            setCollectionOptions(arr)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
     useEffect(() => {
-        console.log("qwrtys",inputFields);
-    }, [inputFields]);
+        getCollectionData();
+
+    }, []);
+
+
+
 
     const tagString = newTags.join(",");
 
@@ -320,6 +365,8 @@ export function AddProduct() {
         }
 
         setPendingTag(value);
+
+
     };
     const addNewTag = (tag) => {
         const tagsSet = new Set(newTags);
@@ -433,7 +480,7 @@ export function AddProduct() {
         setVariantsInputFileds(arr);
     };
     useEffect(() => {
-        console.log(variantsInputFileds);
+        console.log('input',variantsInputFileds);
     }, [variantsInputFileds]);
     useEffect(() => {
         console.log(inputFields.length);
@@ -451,14 +498,27 @@ export function AddProduct() {
             let globalIndex = -1;
             let newMarkup = [];
 
-            const createRow = (text, priceIndex, skuIndex) => (
+            const createRow = (text, priceIndex, skuIndex) =>    {
+                console.log("updatedState", variantsInputFileds);
+                setVariantsInputFileds((prevState) => {
+                    const updatedState = [...prevState];
+
+
+                    const updatedObject = { ...updatedState[skuIndex] };
+                    updatedObject.name = text;
+                    updatedObject.price = price;
+
+
+
+                    updatedState[skuIndex] = updatedObject;
+
+
+                    return updatedState;
+                });
+
+                return(
                 <>
-                    {console.log(
-                        "text, priceIndex, skuIndex",
-                        text,
-                        priceIndex,
-                        skuIndex
-                    )}
+
                     <IndexTable.Row key={globalIndex} position={globalIndex}>
                         <IndexTable.Cell>
                             <Text variant="bodyMd" fontWeight="bold" as="span">
@@ -468,7 +528,7 @@ export function AddProduct() {
                         <IndexTable.Cell>
                             <InputField
                                 type="text"
-                                // value={variantsInputFileds[priceIndex]?.price}
+
                                 onChange={(e) =>
                                     variantsInputFiledsHandler(
                                         e,
@@ -532,7 +592,7 @@ export function AddProduct() {
                         </IndexTable.Cell>
                     </IndexTable.Row>
                 </>
-            );
+            ); }
 
             if (
                 (variants === 1 || inputFields2[0].value.length === 0) &&
@@ -748,6 +808,7 @@ export function AddProduct() {
 
     const handleSku = (e) => setSku(e.target.value);
     const handleBarcode = (e) => setBarcode(e.target.value);
+    const handleWeight = (e) => setWeight(e.target.value);
 
     const handleQuantity = (e) => setQuantity(e.target.value);
 
@@ -1117,29 +1178,37 @@ export function AddProduct() {
     const addProduct = async () => {
         setBtnLoading(true)
         const sessionToken = getAccessToken();
+        let formData = new FormData();
 
-        let data = {
-            product_name:productName,
-            description:descriptioncontent,
-            product_price:price,
-            product_compare_at_price:compareatPrice,
-            taxable:chargeTaxChecked,
-            inventory_management:trackQuantityIsChecked,
-            product_quantity:quantity,
-            inventory_policy:allowCustomer,
-            product_sku:sku,
-            barcode:barcode,
-            weight:weight,
-            weight_unit:unit,
-            search_engine_title:pageTitle,
-            search_engine_meta_description:pageDescription,
+        formData.append('product_name',productName);
+        formData.append('description',descriptioncontent);
+        formData.append('product_price',price);
+        formData.append('product_compare_at_price',compareatPrice);
+        formData.append('taxable',chargeTaxChecked);
+        formData.append('inventory_management',trackQuantityIsChecked);
+        formData.append('product_quantity',quantity);
+        formData.append('inventory_policy',allowCustomer);
+        mediaFiles.forEach((item, index) => {
+            formData.append(`images[${index}]`, item);
+        });
+        formData.append('product_sku',sku);
+        formData.append('barcode',barcode);
+        formData.append('weight',weight);
+        formData.append('weight_unit',unit);
+        formData.append('search_engine_title',pageTitle);
+        formData.append('search_engine_meta_description',pageDescription);
+        formData.append('options',JSON.stringify(transformedFormat));
+        formData.append('status',status);
+        formData.append('variants',JSON.stringify(variantsInputFileds));
+        formData.append('seller_email',sellerEmail);
+        formData.append('tags',newTags);
+        formData.append('product_type',productHandle);
+        formData.append('vendor',vendor);
+        formData.append('collections',collectionOptionsSelected);
 
-
-
-        };
 
         try {
-            const response = await axios.post(`${apiUrl}/add-product`,data,
+            const response = await axios.post(`${apiUrl}/add-product`,formData,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -1231,7 +1300,7 @@ export function AddProduct() {
 
                     <Layout>
                         <Layout.Section>
-                            <Form onSubmit>
+                            <Form >
                                 <FormLayout>
                                     <span className="VisuallyHidden">
                                         <Button submit id="createDiscountBtn">
@@ -1481,11 +1550,7 @@ export function AddProduct() {
                                                     required
                                                     marginTop
                                                     value={weight}
-                                                    onChange={(e) =>
-                                                        setWeight(
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(value) => setWeight(value)}
                                                 />
                                             </FormLayout>
                                         </div>
@@ -1792,12 +1857,12 @@ export function AddProduct() {
                                             options={[
                                                 {
                                                     label: "Draft",
-                                                    value: 0,
+                                                    value: 'draft',
                                                 },
-                                                { label: "Active", value: 1 },
+                                                { label: "Active", value: 'active' },
                                             ]}
                                             onChange={() => setStatus(!status)}
-                                            value={status ? 1 : 0}
+                                            value={status ? 'active' : 'draft'}
                                         />
                                     </div>
                                 </Card>
@@ -1813,8 +1878,9 @@ export function AddProduct() {
                                                 type="text"
                                                 marginTop
                                                 name="email"
-                                                value={discount.email}
-                                                onChange={handleDiscount}
+                                                value={sellerEmail}
+                                                onChange={(e) => setSellerEmail(e.target.value)}
+
                                             />
                                         </div>
                                     </div>
@@ -1928,7 +1994,7 @@ export function AddProduct() {
                         <PageActions
                             primaryAction={{
                                 content: "Save Changes",
-                                onAction: handleCreateDiscount,
+                                onAction: addProduct,
                                 loading: btnLoading[1],
                             }}
                             secondaryActions={[

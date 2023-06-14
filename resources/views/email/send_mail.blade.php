@@ -7,10 +7,34 @@
     <link rel="stylesheet" href="">
 </head>
 <body>
-<h2 style="text-align: center;">OneWholesale</h2>
-{{--<p>Hello!{!! $details['name'] !!}</p>--}}
-<p>This Message is Send by Admin</p>
+{{--<h2 style="text-align: center;">{!! $details['subject'] !!}</h2>--}}
+
+<?php
+
+$mail_configuration=\App\Models\MailConfiguration::where('shop_id',$details['shop_id'])->first();
+$message='Product details
+
+{$product_details}
+Regards
+
+{$shop}';
+$body_msg = str_replace($message, "" , $mail_configuration->mail_content);
+
+$body = str_replace('{$seller_name}', $details['name'] ,$body_msg);
+
+?>
+
+<p> {!! $body !!} </p>
 <br>
-<p>{!! $details['message'] !!}</p>
+<h4>Product Details</h4>
+<br>
+
+<p>{!! $details['product_name'] !!} Has been Assigned to you</p>
+
+<h5>Regards</h5>
+<br>
+<h5>{!! $details['shop_name'] !!}</h5>
+<br>
+
 </body>
 </html>

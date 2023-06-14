@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SendMail;
+use App\Models\MailSmtpSetting;
 use App\Models\Option;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -10,6 +12,7 @@ use App\Models\Session;
 use App\Models\User;
 use App\Models\Variant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Shopify\Clients\Rest;
 
 class ProductController extends Controller
@@ -28,58 +31,73 @@ class ProductController extends Controller
 
     public function AddProduct(Request $request){
 
-        $session=Session::where('shop',$request->shop)->first();
+//dd($request->all());
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
 
         $client = new Rest($session->shop, $session->access_token);
 
         $options_array = [];
 
-        if (isset($request->options) && count($request->options) > 0) {
 
-            foreach ($request->options  as $index=> $option) {
-                $temp = [];
+        if (isset($request->options)) {
+
+            $options=json_decode($request->options);
+            if (count($options) > 0) {
+                foreach ($options as $index => $option) {
+
+                    $temp = [];
 
 
-                array_push($options_array, [
-                    'name' => $option['name'],
-                    'position' => $index+1,
-                    'values' => $option['value']
-                ]);
+                    if ($option->name != null) {
+                        $option_values = array_filter($option->value);
+                        array_push($options_array, [
+                            'name' => $option->name,
+                            'position' => $index + 1,
+                            'values' => $option_values
+                        ]);
+                    }
+                }
             }
         }
-//dd($options_array);
+
         $variants_array = [];
 
-if(isset($request->variants) && count($request->variants) > 0) {
-    foreach ($request->variants as $index => $variant) {
-        $variant=json_decode(json_encode($variant));
-        $title=explode("/",$variant->title);
+if(isset($request->variants) ) {
+    $variants=json_decode($request->variants);
+    if( count($variants) > 0){
+    foreach ($variants as $index => $variant) {
 
-        $variant_option1=(isset($title[0])) ? $title[0] : null;
-        $variant_option2=(isset($title[1])) ? $title[1] : null;
-        $variant_option3=(isset($title[2])) ? $title[2] : null;
-        array_push($variants_array, [
-            'title' => $variant->title,
-            'sku' => $variant->sku,
-            'option1' =>$variant_option1,
-            'option2' => $variant_option2,
-            'option3' => $variant_option3,
-            'inventory_quantity' => $variant->quantity,
+        $title = explode("/", $variant->name);
+
+        $variant_option1 = (isset($title[0])) ? $title[0] : null;
+        $variant_option2 = (isset($title[1])) ? $title[1] : null;
+        $variant_option3 = (isset($title[2])) ? $title[2] : null;
+
+        if ($variant->name != null) {
+            array_push($variants_array, [
+                'title' => $variant->name,
+                'sku' => $variant->sku,
+                'option1' => $variant_option1,
+                'option2' => $variant_option2,
+                'option3' => $variant_option3,
+                'inventory_quantity' => $variant->quantity,
 //                "fulfillment_service" => common::getInventoryManager(),
 //                'inventory_management' => common::getInventoryManager(),
-            'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
-            'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
-            'weight_unit' => $request->weight_unit,
-            'barcode' => $request->barcode,
-            'taxable' => $request->taxable,
-            'price' => number_format($variant->price, 2),
-            'compare_at_price' => number_format($variant->compare_at_price, 2),
-            'inventory_management'=>(($request->inventory_management==1)) ? 'shopify' : null,
-            'inventory_policy'=>(($request->inventory_policy==1)) ? 'continue' : 'deny',
+                'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+                'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+                'weight_unit' => $request->weight_unit,
+                'barcode' => $request->barcode,
+                'taxable' => $request->taxable,
+                'price' => number_format($variant->price, 2),
+                'compare_at_price' => number_format($variant->compareat, 2),
+                'inventory_management' => (($request->inventory_management == true)) ? 'shopify' : null,
+                'inventory_policy' => (($request->inventory_policy == true)) ? 'continue' : 'deny',
 
-        ]);
+            ]);
+        }
     }
-}
+}}
 
 else{
     array_push($variants_array, [
@@ -92,29 +110,51 @@ else{
         'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
         'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
         'weight_unit' => $request->weight_unit,
-        'inventory_management'=>(($request->inventory_management==1)) ? 'shopify' : null,
-        'inventory_policy'=>(($request->inventory_policy==1)) ? 'continue' : 'deny',
+        'inventory_management'=>(($request->inventory_management==true)) ? 'shopify' : null,
+        'inventory_policy'=>(($request->inventory_policy==true)) ? 'continue' : 'deny',
     ]);
 }
 
         $images_array = array();
 if(isset($request->images)) {
+
     foreach ($request->images as $index => $image) {
+
+        $destinationPath = 'productimages/';
+        $filename = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', $image->getClientOriginalName());
+        $image->move($destinationPath, $filename);
+        $filename = (asset('productimages/' . $filename));
+
 
         array_push($images_array, [
             'alt' => $request->product_name . '_' . $index,
             'position' => $index + 1,
-            'src' => $image,
+            'src' => $filename,
         ]);
     }
 
 }
-        $tags=$request->tags;
-        $tags = implode(',', $tags);
 
-        $collections=$request->collections;
-        $collections = implode(',', $collections);
+            if($request->tags) {
+                $tags = $request->tags;
+            }else{
+                $tags='';
+            }
 
+
+            if($request->collections) {
+
+            $collections = $request->collections;
+//            $collections = implode(',', $collections);
+        }else{
+            $collections='';
+        }
+
+        if($request->status==true){
+            $status='active';
+        }else{
+            $status='draft';
+        }
         $productdata = [
             "product" => [
                 "title" => $request->product_name,
@@ -127,7 +167,7 @@ if(isset($request->images)) {
                 "options" => $options_array,
                 "images" => $images_array,
 //                "published"=>  $published,
-                "status"=>  $request->status
+                "status"=>  $status
             ]
         ];
 
@@ -215,7 +255,7 @@ if(isset($request->images)) {
         }
 
 //        foreach ($request->images as $index => $image) {
-//
+//dd($image);
 //            $productImagesJson = [
 //                'alt' => $request->title . '_' . $index,
 //                'position' => $index + 1,
@@ -311,6 +351,11 @@ if(isset($request->images)) {
                     if(!isset($product_status_update['errors'])){
                         $product->product_status=$request->product_status;
                         $product->save();
+
+
+                        $this->SendMail($product);
+
+
                         $data = [
                             'message' => 'Status Changed Successfully',
                         ];
@@ -430,5 +475,22 @@ if(isset($request->images)) {
             'message' => 'Status Changed Successfully',
         ];
         return response()->json($data);
+    }
+
+    public function SendMail($product){
+
+        $user=User::find($product->user_id);
+        $shop=Session::find($product->shop_id);
+
+        $Setting = MailSmtpSetting::where('shop_id',$shop->id)->first();
+        $details['subject'] ='Product Approved';
+        $details['name'] =$user->name;
+        $details['body'] = 'This is for testing email using smtp.';
+        $details['shop_id'] = $product->shop_id;
+        $details['product_name'] = $product->product_name;
+        $details['shop_name'] = $shop->shop;
+
+        Mail::to($user->email)->send(new SendMail($details,$Setting));
+
     }
 }

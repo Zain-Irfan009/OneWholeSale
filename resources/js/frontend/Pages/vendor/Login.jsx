@@ -59,6 +59,9 @@ export function Login(props) {
             setAccessToken(res?.data?.data?.token);
             navigate("/dashboard");
         } catch (e) {
+
+            setToastMsg(e?.response?.data?.message)
+            setErrorToast(true);
             navigate("/login");
             console.log(e);
         }
@@ -106,7 +109,7 @@ export function Login(props) {
         try {
             const response = await axios.post(`${apiUrl}login`, data);
 
-            // console.log('Login response: ', response.data);
+            console.log('wewewewe');
             setBtnLoading(false);
             if (!response.data.errors) {
                 clearFormValues();
@@ -389,8 +392,10 @@ export function Login(props) {
             </Form>
           </div>
         </Card> */}
+
                 {toastErrorMsg}
                 {toastSuccessMsg}
+
             </Page>
         </div>
     );

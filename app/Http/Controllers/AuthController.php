@@ -54,15 +54,24 @@ class AuthController extends BaseController
             ], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
-        $token = $user->createToken('authToken')->plainTextToken;
 
-        $success['token'] = $token;
-        $success['user'] = $user;
-        $success['message'] = 'User login successfully!';
+        $check_role=User::where('email',$request['email'])->where('status',1)->first();
 
-        return $this->sendResponse($success, 'User login successfully.');
-    }
+     if($check_role!=null) {
+         $user = User::where('email', $request['email'])->firstOrFail();
+         $token = $user->createToken('authToken')->plainTextToken;
+
+         $success['token'] = $token;
+         $success['user'] = $user;
+         $success['message'] = 'User login successfully!';
+
+         return $this->sendResponse($success, 'User login successfully.');
+     }else{
+         return response()->json([
+             'message' => 'Your Account is Disabled',
+         ],422);
+     }
+     }
 
     public function profile(){
         $user = auth()->user();
