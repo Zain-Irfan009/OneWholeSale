@@ -42,7 +42,7 @@ import {
     Divider,
     ContextualSaveBar,
     Link,
-    IndexTable,
+    IndexTable, SkeletonBodyText,
 } from "@shopify/polaris";
 import {
     SearchMinor,
@@ -99,12 +99,12 @@ export function AddProduct() {
     const [collectionInputValue, setCollectionInputValue] = useState("");
     const [optionsLoading, setOptionsLoading] = useState(false);
     const [price, setPrice] = useState("");
-    const [compareatPrice, setCompareatPrice] = useState();
+    const [compareatPrice, setCompareatPrice] = useState("");
     const [chargeTaxChecked, setChargeTaxChecked] = useState(false);
     const [allowCustomer, setAllowCustomer] = useState(false);
     const [sku, setSku] = useState("");
     const [barcode, setBarcode] = useState("");
-    const [quantity, setQuantity] = useState();
+    const [quantity, setQuantity] = useState("");
     const [openFileDialog, setOpenFileDialog] = useState(false);
     const [mediaFiles, setImageFiles] = useState([]);
     const [rejectedFiles, setRejectedFiles] = useState([]);
@@ -1176,6 +1176,7 @@ export function AddProduct() {
 
     //SUbmit Data
     const addProduct = async () => {
+
         setBtnLoading(true)
         const sessionToken = getAccessToken();
         let formData = new FormData();
@@ -1214,13 +1215,14 @@ export function AddProduct() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+        console.log('res',response?.data?.message)
             setBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            setSkeleton(false)
+            // setSkeleton(false)
 
         } catch (error) {
+            console.log(error);
             setBtnLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
@@ -1309,6 +1311,7 @@ export function AddProduct() {
                                     </span>
 
                                     <Card sectioned title="Product Details">
+
                                         {/* <Text variant="bodyMd" as="p" fontWeight="regular">
                       {`Add product details here `}
                     </Text> */}
@@ -1360,6 +1363,7 @@ export function AddProduct() {
                         {listboxMarkup}
                       </Combobox>
                     </div> */}
+
                                     </Card>
 
                                     <Card
@@ -1373,6 +1377,7 @@ export function AddProduct() {
                                     >
                                         {dropZone}
                                         {uploadedFiles}
+
                                     </Card>
                                     {/*
                   <Card sectioned title="Shipping Details">
@@ -1995,7 +2000,7 @@ export function AddProduct() {
                             primaryAction={{
                                 content: "Save Changes",
                                 onAction: addProduct,
-                                loading: btnLoading[1],
+                                loading: btnLoading,
                             }}
                             secondaryActions={[
                                 {

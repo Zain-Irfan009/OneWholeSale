@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Product
     Route::get('products',[\App\Http\Controllers\Admin\ProductController::class,'Products']);
+    Route::get('product-view/{id}',[\App\Http\Controllers\Admin\ProductController::class,'ProductView']);
     Route::post('add-product',[\App\Http\Controllers\Admin\ProductController::class,'AddProduct']);
     Route::get('update-product-status',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatus']);
     Route::post('reassign-seller',[\App\Http\Controllers\Admin\ProductController::class,'ReassignSeller']);

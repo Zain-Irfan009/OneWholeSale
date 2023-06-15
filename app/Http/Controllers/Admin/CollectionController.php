@@ -20,7 +20,8 @@ class CollectionController extends Controller
     public function SyncCollection(Request $request, $next = null){
 //        $user = auth()->user();
 //        $session = Session::where('shop', $user->name)->first();
-        $session = Session::where('shop', 'tlx-new-brand.myshopify.com')->first();
+        $session = Session::where('shop', 'onewholesalelive.myshopify.com')->first();
+//        $session = Session::where('shop', 'tlx-new-brand.myshopify.com')->first();
         $shop = new Rest($session->shop, $session->access_token);
         $result = $shop->get('custom_collections', [], ['limit' => 250]);
         $collections = $result->getDecodedBody();

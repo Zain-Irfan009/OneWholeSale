@@ -29,9 +29,29 @@ class ProductController extends Controller
         }
     }
 
+
+    public function ProductView(Request $request,$id){
+
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        $product=Product::where('id',$id)->first();
+        $variants=Variant::where('shopify_product_id',$product->shopify_id)->get();
+        $options=Option::where('shopify_product_id',$product->shopify_id)->get();
+
+
+        $data = [
+            'product'=>$product,
+            'variants'=>$variants,
+            'options'=>$options,
+
+        ];
+        return response()->json($data);
+
+    }
+
     public function AddProduct(Request $request){
 
-//dd($request->all());
+
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
 
@@ -91,29 +111,32 @@ if(isset($request->variants) ) {
                 'taxable' => $request->taxable,
                 'price' => number_format($variant->price, 2),
                 'compare_at_price' => number_format($variant->compareat, 2),
-                'inventory_management' => (($request->inventory_management == true)) ? 'shopify' : null,
-                'inventory_policy' => (($request->inventory_policy == true)) ? 'continue' : 'deny',
+                'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
+                'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
 
             ]);
         }
     }
-}}
-
-else{
-    array_push($variants_array, [
-        'price' => $request->product_price,
-        'inventory_quantity' => $request->product_quantity,
-        'compare_at_price' => $request->product_compare_at_price,
-        'sku' => $request->product_sku,
-        'barcode' => $request->barcode,
-        'taxable' => $request->taxable,
-        'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
-        'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
-        'weight_unit' => $request->weight_unit,
-        'inventory_management'=>(($request->inventory_management==true)) ? 'shopify' : null,
-        'inventory_policy'=>(($request->inventory_policy==true)) ? 'continue' : 'deny',
-    ]);
 }
+    else{
+
+        array_push($variants_array, [
+            'price' => $request->product_price,
+            'inventory_quantity' => $request->product_quantity,
+            'compare_at_price' => $request->product_compare_at_price,
+            'sku' => $request->product_sku,
+            'barcode' => $request->barcode,
+            'taxable' => $request->taxable,
+            'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+            'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+            'weight_unit' => $request->weight_unit,
+            'inventory_management'=>(($request->inventory_management=="true")) ? 'shopify' : null,
+            'inventory_policy'=>(($request->inventory_policy=="true")) ? 'continue' : 'deny',
+        ]);
+    }
+}
+
+
 
         $images_array = array();
 if(isset($request->images)) {
@@ -131,6 +154,8 @@ if(isset($request->images)) {
             'position' => $index + 1,
             'src' => $filename,
         ]);
+
+
     }
 
 }
@@ -180,9 +205,11 @@ if(isset($request->images)) {
         }
         $response=$response->getDecodedBody();
 
+
         $response=$response['product'];
 
         $response=json_decode(json_encode($response));
+
 
         if(isset($request->product_id)){
             $product=Product::find($request->product_id);
@@ -251,23 +278,21 @@ if(isset($request->images)) {
             $option->position=$product_option->position;
             $option->values=implode(',',$product_option->values);
             $option->save();
-
         }
 
-//        foreach ($request->images as $index => $image) {
-//dd($image);
-//            $productImagesJson = [
-//                'alt' => $request->title . '_' . $index,
-//                'position' => $index + 1,
-//                'src' => $image,
-//            ];
-//
-//
-//            $assignImagetoProducts = $shop->api()->rest('POST', '/admin/api/2021-10/products/' . $response->body->product->id . '/images.json', [
-//                'image' => $productImagesJson
-//            ]);
-//
-//        }
+        foreach ($response->images as $image){
+            $product_image=new ProductImage();
+            $product_image->shop_id=$session->id;
+            $product_image->shopify_product_id=$image->product_id;
+            $product_image->position=$image->position;
+            $product_image->src=$image->src;
+            $product_image->save();
+        }
+
+
+
+
+
         $user=User::where('email',$request->seller_email)->first();
         if($user) {
             $collect_product = $client->post('/collects.json', [
