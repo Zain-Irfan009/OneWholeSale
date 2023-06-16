@@ -220,7 +220,8 @@ export function EditProduct() {
             setPageTitle(response?.data?.product?.search_engine_title)
             setPageDescription(response?.data?.product?.search_engine_meta_description)
             setStatus(response?.data?.product?.status)
-            setPendingTag(response?.data?.product?.tags)
+            setNewTags(response?.data?.product?.tags.split(','))
+            setCollectionOptionsSelected(response?.data?.product?.collections.split(','))
             setVendor(response?.data?.product?.vendor)
             setMediaFilesUrl(response?.data?.product_images)
             setVariantOptions(response?.data?.options?.[0]?.name)
@@ -880,6 +881,8 @@ value={variantsInputFileds[priceIndex]?.price}
             const collectionOptions = [...collectionOptionsSelected];
             collectionOptions.splice(collectionOptions.indexOf(collection), 1);
             setCollectionOptionsSelected(collectionOptions);
+
+
         },
         [collectionOptionsSelected]
     );
