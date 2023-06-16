@@ -184,6 +184,9 @@ export function EditProduct() {
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
 
+    const [mediaFilesUrl, setMediaFilesUrl] = useState([]);
+
+    const [fileUrl, setFileUrl] = useState();
 
     const getProductData = async (id) => {
 
@@ -219,6 +222,75 @@ export function EditProduct() {
             setStatus(response?.data?.product?.status)
             setPendingTag(response?.data?.product?.tags)
             setVendor(response?.data?.product?.vendor)
+            setMediaFilesUrl(response?.data?.product_images)
+            setVariantOptions(response?.data?.options?.[0]?.name)
+            setVariantOptions2(response?.data?.options?.[1]?.name)
+            setVariantOptions3(response?.data?.options?.[2]?.name)
+            setVariantsInputFileds(response?.data?.variants)
+            setQuantity(response?.data?.variants?.[0].quantity)
+
+            if(response?.data?.variants?.[0]?.inventory_management=='shopify'){
+                setTrackQuantityIsChecked(true)
+            }else{
+                setTrackQuantityIsChecked(false)
+            }
+
+            if(response?.data?.variants?.[0]?.inventory_policy=='continue'){
+                setAllowCustomer(true)
+            }else{
+                setAllowCustomer(false)
+            }
+            if(response?.data?.options?.[0]?.name){
+                setVariants(1)
+            }
+            if(response?.data?.options?.[1]?.name){
+                setVariants(2)
+            }
+            if(response?.data?.options?.[2]?.name){
+                setVariants(3)
+            }
+
+            let option1_data=response?.data?.options?.[0]?.values.split(',');
+            if (option1_data && option1_data.length > 0) {
+                let savedArr = option1_data.map((item, index) => {
+                    let obj = {}
+                    obj.value = item
+                    return obj
+
+                }, [])
+                savedArr[savedArr.length] = {value: ""}
+
+                setInputFields(savedArr);
+            }
+            let option2_data=response?.data?.options?.[1]?.values.split(',');
+            if (option2_data && option2_data.length > 0) {
+                let savedArr2 = option2_data.map((item, index) => {
+                    let obj = {}
+                    obj.value = item
+                    return obj
+
+                }, [])
+                savedArr2[savedArr2.length] = {value: ""}
+
+                setInputFields2(savedArr2);
+            }
+            let option3_data=response?.data?.options?.[2]?.values.split(',');
+            if (option3_data && option3_data.length > 0) {
+                let savedArr3 = option3_data.map((item, index) => {
+                    let obj = {}
+                    obj.value = item
+                    return obj
+
+                }, [])
+                savedArr3[savedArr3.length] = {value: ""}
+
+                setInputFields3(savedArr3);
+            }
+
+
+
+
+
             setSkeleton(false)
 
         } catch (error) {
@@ -234,11 +306,11 @@ export function EditProduct() {
         getProductData(params.edit_product_id);
     }, []);
     const inputHandleChange = (index, val) => {
-
         let totalLength = inputFields.length;
         const newInputFields = [...inputFields];
         newInputFields[index].value = val;
         setInputFields(newInputFields);
+
 
 
         if (totalLength - 1 == index && val.length == 1) {
@@ -291,8 +363,8 @@ export function EditProduct() {
                     updatedObject.quantity = value;
                     break;
 
-                case "compareat":
-                    updatedObject.compareat = value;
+                case "compare_at_price":
+                    updatedObject.compare_at_price = value;
                     break;
             }
             updatedState[index] = updatedObject;
@@ -510,7 +582,7 @@ export function EditProduct() {
                 sku: "",
                 price: "",
                 quantity: "",
-                compareat: "",
+                compare_at_price: "",
             });
         }
 
@@ -563,7 +635,7 @@ export function EditProduct() {
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-
+value={variantsInputFileds[priceIndex]?.price}
                                     onChange={(e) =>
                                         variantsInputFiledsHandler(
                                             e,
@@ -579,6 +651,7 @@ export function EditProduct() {
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
+                                    value={variantsInputFileds[priceIndex]?.quantity}
                                     // value={variantsInputFileds[skuIndex]?.sku}
                                     onChange={(value) =>
                                         variantsInputFiledsHandler(
@@ -595,6 +668,7 @@ export function EditProduct() {
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
+                                    value={variantsInputFileds[priceIndex]?.sku}
                                     // value={variantsInputFileds[skuIndex]?.sku}
                                     onChange={(value) =>
                                         variantsInputFiledsHandler(
@@ -613,11 +687,12 @@ export function EditProduct() {
                                 <InputField
                                     type="text"
                                     // value={variantsInputFileds[skuIndex]?.sku}
+                                    value={variantsInputFileds[priceIndex]?.compare_at_price}
                                     onChange={(value) =>
                                         variantsInputFiledsHandler(
                                             value,
                                             skuIndex,
-                                            "compareat",
+                                            "compare_at_price",
                                             text
                                         )
                                     }
@@ -914,6 +989,11 @@ export function EditProduct() {
         setImageFiles(temp_array);
     };
 
+
+    const handleRemoveMediaApi = (index) => {
+
+    };
+
     const validImageTypes = [
         "image/gif",
         "image/jpeg",
@@ -921,45 +1001,7 @@ export function EditProduct() {
         "image/jpg",
         "image/svg",
     ];
-    const uploadedFiles = mediaFiles.length > 0 && (
-        <Stack id="jjj">
-            {mediaFiles.map((file, index) => (
-                <Stack alignment="center" key={index}>
-                    <div className="Polaris-Product-Gallery">
-                        <Thumbnail
-                            size="large"
-                            alt={file.name}
-                            source={
-                                validImageTypes.indexOf(file.type) > -1
-                                    ? window.URL.createObjectURL(file)
-                                    : NoteMinor
-                            }
-                        />
-                        <span
-                            className="media_hover"
-                            onClick={() => handleRemoveMedia(index)}
-                        >
-                            <Icon source={DeleteMinor}> </Icon>
-                        </span>
-                    </div>
-                </Stack>
-            ))}
 
-            <div className="Polaris-Product-DropZone">
-                <Stack alignment="center">
-                    <DropZone
-                        accept="image/*, video/*"
-                        type="image,video"
-                        openFileDialog={openFileDialog}
-                        onDrop={handleDropZoneDrop}
-                        onFileDialogClose={toggleOpenFileDialog}
-                    >
-                        <DropZone.FileUpload actionTitle={"Add files"}/>
-                    </DropZone>
-                </Stack>
-            </div>
-        </Stack>
-    );
 
     const handleProductHandle = (e) => {
         setProductHandle(e.target.value);
@@ -1215,8 +1257,9 @@ export function EditProduct() {
 
         setBtnLoading(true)
         const sessionToken = getAccessToken();
-        let formData = new FormData();
 
+        let formData = new FormData();
+        formData.append('product_id',params.edit_product_id)
         formData.append('product_name', productName);
         formData.append('description', descriptioncontent);
         formData.append('product_price', price);
@@ -1410,10 +1453,73 @@ export function EditProduct() {
                                             },
                                         ]}
                                     >
-                                        {dropZone}
-                                        {uploadedFiles}
+
+                                        <Stack id="jjj">
+                                            {mediaFilesUrl.map(({id , src}, index) => (
+
+                                                <Stack alignment="center" >
+                                                    <div className="Polaris-Product-Gallery">
+                                                        <Thumbnail
+                                                            size="large"
+                                                            alt={'header-img'}
+                                                            source={src}
+                                                        />
+                                                        <span
+                                                            className="media_hover"
+                                                            onClick={() => handleRemoveMediaApi(index)}
+                                                        >
+                            <Icon source={DeleteMinor}> </Icon>
+                        </span>
+                                                    </div>
+                                                </Stack>
+                                            ))}
+
+                                            mediaFiles.length > 0 && (
+                                            <Stack id="jjj">
+                                                {mediaFiles.map((file, index) => (
+                                                    <Stack alignment="center" key={index}>
+                                                        <div className="Polaris-Product-Gallery">
+                                                            <Thumbnail
+                                                                size="large"
+                                                                alt={file.name}
+                                                                source={
+                                                                    validImageTypes.indexOf(file.type) > -1
+                                                                        ? window.URL.createObjectURL(file)
+                                                                        : NoteMinor
+                                                                }
+                                                            />
+                                                            <span
+                                                                className="media_hover"
+                                                                onClick={() => handleRemoveMedia(index)}
+                                                            >
+                            <Icon source={DeleteMinor}> </Icon>
+                        </span>
+                                                        </div>
+                                                    </Stack>
+                                                ))}
+
+                                                <div className="Polaris-Product-DropZone">
+                                                    <Stack alignment="center">
+                                                        <DropZone
+                                                            accept="image/*, video/*"
+                                                            type="image,video"
+                                                            openFileDialog={openFileDialog}
+                                                            onDrop={handleDropZoneDrop}
+                                                            onFileDialogClose={toggleOpenFileDialog}
+                                                        >
+                                                            <DropZone.FileUpload actionTitle={"Add files"}/>
+                                                        </DropZone>
+                                                    </Stack>
+                                                </div>
+                                            </Stack>
+                                            );
+                                        </Stack>
+
+
+
 
                                     </Card>
+
                                     {/*
                   <Card sectioned title="Shipping Details">
                     <div className="Type-Section">

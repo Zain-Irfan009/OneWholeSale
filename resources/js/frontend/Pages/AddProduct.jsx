@@ -252,8 +252,8 @@ export function AddProduct() {
                     updatedObject.quantity = value;
                     break;
 
-                case "compareat":
-                    updatedObject.compareat = value;
+                case "compare_at_price":
+                    updatedObject.compare_at_price = value;
                     break;
             }
             updatedState[index] = updatedObject;
@@ -473,7 +473,7 @@ export function AddProduct() {
                 sku: "",
                 price: "",
                 quantity: "",
-                compareat: "",
+                compare_at_price: "",
             });
         }
 
@@ -582,7 +582,7 @@ export function AddProduct() {
                                     variantsInputFiledsHandler(
                                         value,
                                         skuIndex,
-                                        "compareat",
+                                        "compare_at_price",
                                         text
                                     )
                                 }

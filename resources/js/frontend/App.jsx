@@ -42,8 +42,8 @@ import { useAuthState, useAuthDispatch } from "./assets/AuthProvider";
 import { getAccessToken, setAccessToken } from "./assets/cookies";
 
 export default function App() {
-    const apiUrl = "https://phpstack-1018470-3598964.cloudwaysapps.com/api";
-    // const apiUrl = "https://workingproject.test/api";
+    // const apiUrl = "https://phpstack-1018470-3598964.cloudwaysapps.com/api";
+    const apiUrl = "https://workingproject.test/api";
     const [locationChange, setLocationChange] = useState(location.pathname);
 
     const { userRole, isLoggedIn, name } = useAuthState();

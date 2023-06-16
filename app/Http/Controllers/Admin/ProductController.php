@@ -35,14 +35,15 @@ class ProductController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         $product=Product::where('id',$id)->first();
-        $variants=Variant::where('shopify_product_id',$product->shopify_id)->get();
+        $variants = Variant::where('shopify_product_id', $product->shopify_id)->get();
         $options=Option::where('shopify_product_id',$product->shopify_id)->get();
-
+        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
 
         $data = [
             'product'=>$product,
             'variants'=>$variants,
             'options'=>$options,
+            'product_images'=>$product_images,
 
         ];
         return response()->json($data);
@@ -50,7 +51,6 @@ class ProductController extends Controller
     }
 
     public function AddProduct(Request $request){
-
 
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
@@ -63,13 +63,13 @@ class ProductController extends Controller
         if (isset($request->options)) {
 
             $options=json_decode($request->options);
+
             if (count($options) > 0) {
                 foreach ($options as $index => $option) {
-
                     $temp = [];
 
 
-                    if ($option->name != null) {
+                    if (isset($option->name) && $option->name != null) {
                         $option_values = array_filter($option->value);
                         array_push($options_array, [
                             'name' => $option->name,
@@ -95,6 +95,7 @@ if(isset($request->variants) ) {
         $variant_option3 = (isset($title[2])) ? $title[2] : null;
 
         if ($variant->name != null) {
+
             array_push($variants_array, [
                 'title' => $variant->name,
                 'sku' => $variant->sku,
@@ -110,7 +111,7 @@ if(isset($request->variants) ) {
                 'barcode' => $request->barcode,
                 'taxable' => $request->taxable,
                 'price' => number_format($variant->price, 2),
-                'compare_at_price' => number_format($variant->compareat, 2),
+                'compare_at_price' => number_format($variant->compare_at_price, 2),
                 'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
                 'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
 
