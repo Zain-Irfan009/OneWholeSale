@@ -546,11 +546,9 @@ export function ProductsListing() {
 
   const [itemStrings, setItemStrings] = useState([
     "All",
+    "Approval Pending",
     "Approved",
-    "Disapproved",
-    "Pending ",
-    "Approval",
-    "Disable",
+    "Disabled",
   ]);
   const { mode, setMode } = useSetIndexFiltersMode();
   const [accountStatus, setAccountStatus] = useState(undefined);
@@ -828,8 +826,33 @@ export function ProductsListing() {
 
     }
 
+    const handleProductFilter =async (value) =>  {
+        setSelected(value)
+        const sessionToken = getAccessToken();
+        try {
 
-  return (
+            const response = await axios.get(`${apiUrl}/product-filter?status=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setProducts(response?.data?.products)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
+    return (
     <div className="Products-Page IndexTable-Page Orders-page">
       <Modal
         open={modalReassign}
@@ -990,12 +1013,12 @@ export function ProductsListing() {
               <Card.Section fullWidth subdued hasPaddingTop={false}>
 
                 <IndexFilters
-                  sortOptions={sortOptions}
-                  sortSelected={sortSelected}
-                  queryValue={queryValue}
-                  queryPlaceholder="Searching in all"
-                  onQueryChange={handleFiltersQueryChange}
-                  onQueryClear={() => {}}
+                  // sortOptions={sortOptions}
+                  // sortSelected={sortSelected}
+                  // queryValue={queryValue}
+                  // queryPlaceholder="Searching in all"
+                  // onQueryChange={handleFiltersQueryChange}
+                  // onQueryClear={() => {}}
                   onSort={setSortSelected}
                   primaryAction={primaryAction}
                   cancelAction={{
@@ -1005,14 +1028,14 @@ export function ProductsListing() {
                   }}
                   tabs={tabs}
                   selected={selected}
-                  onSelect={setSelected}
+                  onSelect={handleProductFilter}
                   canCreateNewView
                   onCreateNewView={onCreateNewView}
                   filters={filters}
-                  appliedFilters={appliedFilters}
-                  onClearAll={handleFiltersClearAll}
+                  // appliedFilters={appliedFilters}
+                  // onClearAll={handleFiltersClearAll}
                   mode={mode}
-                  setMode={setMode}
+                  // setMode={setMode}
                 />
                 <IndexTable
                   resourceName={resourceName}

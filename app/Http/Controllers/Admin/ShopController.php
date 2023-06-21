@@ -110,7 +110,6 @@ class ShopController extends Controller
         $shop_setting['feedback_summary_label']=$shop_page_setting->feedback_summary_label;
 
         if($shop_page_setting->metafield_id==null) {
-
             $shop_metafield = $client->post('/metafields.json', [
                 "metafield" => array(
                     "key" => 'setting',
@@ -131,6 +130,7 @@ class ShopController extends Controller
                     "value" => json_encode($shop_setting)
                 ]
             ]);
+
             $res = $shop_metafield->getDecodedBody();
             $shop_page_setting->metafield_id=$res['metafield']['id'];
             $shop_page_setting->save();

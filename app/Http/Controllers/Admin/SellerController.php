@@ -284,7 +284,6 @@ class SellerController extends Controller
     }
 
     public function DeleteSeller(Request $request){
-     ;
      $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         $client = new Rest($shop->shop, $shop->access_token);
@@ -320,16 +319,21 @@ class SellerController extends Controller
 
     public function SellersFilter(Request $request){
 
-        $shop=Session::where('shop',$request->shop)->first();
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
         if($shop){
-            if($request->status=='active'){
+            if($request->status==1){
                 $status=1;
-            }else if($request->status=='disabled'){
-                $status=0;
+                $sellers=User::where('status',$status)->where('role','seller')->where('shop_id',$shop->id)->get();
             }
-
-            $sellers=User::where('status',$status)->where('role','seller')->get();
-
+            else if($request->status==2) {
+                $status = 0;
+                $sellers = User::where('status', $status)->where('role', 'seller')->where('shop_id', $shop->id)->get();
+            }
+                else{
+                    $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
+                }
+            }
             if(count($sellers) > 0){
                 $data = [
                     'seller'=>$sellers
@@ -338,7 +342,7 @@ class SellerController extends Controller
             }
 
         }
-    }
+
 
     public function SendMessage(Request $request){
         $user=auth()->user();

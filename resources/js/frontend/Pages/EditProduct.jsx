@@ -180,6 +180,7 @@ export function EditProduct() {
     const [variantOptions3, setVariantOptions3] = useState("");
     const [variantsInputFileds, setVariantsInputFileds] = useState([]);
     const [refresh, setRefresh] = useState(false);
+    console.log("variantsInputFileds",variantsInputFileds)
 
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
@@ -227,8 +228,11 @@ export function EditProduct() {
             setVariantOptions(response?.data?.options?.[0]?.name)
             setVariantOptions2(response?.data?.options?.[1]?.name)
             setVariantOptions3(response?.data?.options?.[2]?.name)
-            setVariantsInputFileds(response?.data?.variants)
+            setVariantsInputFileds(response?.data?.selected_variant)
+console.log("response?.data?.variants", response?.data?.selected_variant)
+
             setQuantity(response?.data?.variants?.[0].quantity)
+
 
             if(response?.data?.variants?.[0]?.inventory_management=='shopify'){
                 setTrackQuantityIsChecked(true)
@@ -306,6 +310,9 @@ export function EditProduct() {
     useEffect(() => {
         getProductData(params.edit_product_id);
     }, []);
+
+
+
     const inputHandleChange = (index, val) => {
         let totalLength = inputFields.length;
         const newInputFields = [...inputFields];
@@ -342,17 +349,17 @@ export function EditProduct() {
         };
     });
 
-
     const variantsInputFiledsHandler = (e, index, type, name) => {
         const {value} = e.target;
-        console.log("value, index, type", value, index, type);
+        console.log("value, index, type", value, index, type,name);
 
         setVariantsInputFileds((prevState) => {
             const updatedState = [...prevState];
-            console.log("updatedState", updatedState);
+
 
             const updatedObject = {...updatedState[index]};
             updatedObject.name = name;
+            console.log("updatedObject", updatedObject);
             switch (type) {
                 case "price":
                     updatedObject.price = value;
@@ -430,7 +437,9 @@ export function EditProduct() {
         setInputFields3(newInputFields);
     };
 
-
+    useEffect(() => {
+        console.log('ds',variantsInputFileds)
+    }, [variantsInputFileds]);
     const getCollectionData = async () => {
 
         const sessionToken = getAccessToken();
@@ -587,11 +596,9 @@ export function EditProduct() {
             });
         }
 
-        setVariantsInputFileds(arr);
+        // setVariantsInputFileds(arr);
     };
-    useEffect(() => {
-        console.log('input', variantsInputFileds);
-    }, [variantsInputFileds]);
+
     useEffect(() => {
         console.log(inputFields.length);
     }, [inputFields]);
@@ -615,9 +622,7 @@ export function EditProduct() {
 
                     const updatedObject = {...updatedState[skuIndex]};
                     updatedObject.name = text;
-                    updatedObject.price = price;
-
-
+                    // updatedObject.price = price;
                     updatedState[skuIndex] = updatedObject;
 
 
@@ -627,16 +632,19 @@ export function EditProduct() {
                 return (
                     <>
 
+
                         <IndexTable.Row key={globalIndex} position={globalIndex}>
+                            {console.log("globalIndex", globalIndex)}
                             <IndexTable.Cell>
                                 <Text variant="bodyMd" fontWeight="bold" as="span">
                                     {text}
                                 </Text>
                             </IndexTable.Cell>
+                            {console.log("variantsInputFileds[globalIndex+1]?.price",variantsInputFileds[globalIndex+1]?.price)}
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-value={variantsInputFileds[priceIndex]?.price}
+                                value={variantsInputFileds[globalIndex]?.price}
                                     onChange={(e) =>
                                         variantsInputFiledsHandler(
                                             e,
@@ -652,7 +660,7 @@ value={variantsInputFileds[priceIndex]?.price}
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-                                    value={variantsInputFileds[priceIndex]?.quantity}
+                                    value={variantsInputFileds[globalIndex]?.quantity}
                                     // value={variantsInputFileds[skuIndex]?.sku}
                                     onChange={(value) =>
                                         variantsInputFiledsHandler(
@@ -669,7 +677,7 @@ value={variantsInputFileds[priceIndex]?.price}
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-                                    value={variantsInputFileds[priceIndex]?.sku}
+                                    value={variantsInputFileds[globalIndex]?.sku}
                                     // value={variantsInputFileds[skuIndex]?.sku}
                                     onChange={(value) =>
                                         variantsInputFiledsHandler(
@@ -688,7 +696,7 @@ value={variantsInputFileds[priceIndex]?.price}
                                 <InputField
                                     type="text"
                                     // value={variantsInputFileds[skuIndex]?.sku}
-                                    value={variantsInputFileds[priceIndex]?.compare_at_price}
+                                    value={variantsInputFileds[globalIndex]?.compare_at_price}
                                     onChange={(value) =>
                                         variantsInputFiledsHandler(
                                             value,

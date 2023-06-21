@@ -36,6 +36,7 @@ class ProductController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $product=Product::where('id',$id)->first();
         $variants = Variant::where('shopify_product_id', $product->shopify_id)->get();
+        $selected_variant=Variant::select('price','quantity','sku','compare_at_price')->where('shopify_product_id', $product->shopify_id)->get();
         $options=Option::where('shopify_product_id',$product->shopify_id)->get();
         $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
 
@@ -44,6 +45,7 @@ class ProductController extends Controller
             'variants'=>$variants,
             'options'=>$options,
             'product_images'=>$product_images,
+            'selected_variant'=>$selected_variant,
 
         ];
         return response()->json($data);
@@ -86,6 +88,7 @@ class ProductController extends Controller
 if(isset($request->variants) ) {
     $variants=json_decode($request->variants);
     if( count($variants) > 0){
+  dd($variants);
     foreach ($variants as $index => $variant) {
 
         $title = explode("/", $variant->name);
@@ -137,7 +140,7 @@ if(isset($request->variants) ) {
     }
 }
 
-
+dd($variants_array);
 
         $images_array = array();
 if(isset($request->images)) {
@@ -472,9 +475,23 @@ if(isset($request->images)) {
     }
 
     public function ProductFilter(Request $request){
-        $shop=Session::where('shop',$request->shop)->first();
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
         if($shop){
-            $products=Product::where('product_status',$request->status)->get();
+            if($request->status==0){
+                $products=Product::where('shop_id',$shop->id)->get();
+            }else if($request->status==1){
+                $status='Approval Pending';
+                $products=Product::where('product_status',$status)->where('shop_id',$shop->id)->get();
+            }
+            else if($request->status==2){
+                $status='Approved';
+                $products=Product::where('product_status',$status)->where('shop_id',$shop->id)->get();
+            }
+            else if($request->status==3){
+                $status='Disabled';
+                $products=Product::where('product_status',$status)->where('shop_id',$shop->id)->get();
+            }
             if(count($products) > 0){
                 $data = [
                     'products'=>$products
@@ -506,6 +523,7 @@ if(isset($request->images)) {
     public function SendMail($product){
 
         $user=User::find($product->user_id);
+
         $shop=Session::find($product->shop_id);
 
         $Setting = MailSmtpSetting::where('shop_id',$shop->id)->first();

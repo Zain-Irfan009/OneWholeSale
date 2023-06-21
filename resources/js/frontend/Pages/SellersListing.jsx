@@ -105,6 +105,32 @@ export function SellersListing() {
     { label: "Old", value: "old" },
   ];
 
+  const handleSellerFilter =async (value) =>  {
+      setSelected(value)
+      const sessionToken = getAccessToken();
+      try {
+
+          const response = await axios.get(`${apiUrl}/sellers-filter?status=${value}`,
+              {
+                  headers: {
+                      Authorization: "Bearer " + sessionToken
+                  }
+              })
+          console.log(response?.data?.seller,'res')
+          setCustomers(response?.data?.seller)
+
+          // setBtnLoading(false)
+          // setToastMsg(response?.data?.message)
+          // setSucessToast(true)
+
+
+      } catch (error) {
+
+          setToastMsg(error?.response?.data?.message)
+          setErrorToast(true)
+      }
+  }
+
 
     const getData = async () => {
 
@@ -671,64 +697,7 @@ export function SellersListing() {
 
   // ---------------------Api Code starts Here----------------------
 
-  const getCustomers = async () => {
-    setCustomersLoading(true);
-    try {
-      const response = await axios.get(
-        `${apiUrl}/api/shopify/customers?title=${queryValue}&${pageCursor}=${pageCursorValue}`,
-        {
-          headers: { Authorization: `Bearer ${getAccessToken()}` },
-        }
-      );
 
-      // console.log('getCustomers response: ', response.data);
-      if (response.data.errors) {
-        setToastMsg(response.data.message);
-        setErrorToast(true);
-      } else {
-        let customers = response.data.data.body?.data?.customers;
-        let customersArray = [];
-        let nextValue = "";
-
-        if (customers?.edges?.length > 0) {
-          let previousValue = customers.edges[0]?.cursor;
-          customers?.edges?.map((item) => {
-            nextValue = item.cursor;
-            customersArray.push({
-              id: item.node.id.replace("gid://shopify/Customer/", ""),
-              name: item.node.displayName,
-              email: item.node.email,
-              ordersCount: item.node.ordersCount,
-              totalSpent: item.node.totalSpent,
-              address: item.node.defaultAddress?.formattedArea,
-            });
-          });
-
-          setCustomers(customersArray);
-          setPageCursorValue("");
-          setNextPageCursor(nextValue);
-          setPreviousPageCursor(previousValue);
-          setHasNextPage(customers.pageInfo?.hasNextPage);
-          setHasPreviousPage(customers.pageInfo?.hasPreviousPage);
-        } else {
-          handleClearStates();
-        }
-        setStoreUrl(response.data.user?.shopifyShopDomainName);
-      }
-
-      setLoading(false);
-      setCustomersLoading(false);
-      setToggleLoadData(false);
-    } catch (error) {
-      console.warn("getCustomers Api Error", error.response);
-      setLoading(false);
-      // setCustomersLoading(false)
-      setToastMsg("Server Error");
-      setToggleLoadData(false);
-      setErrorToast(true);
-      handleClearStates();
-    }
-  };
 
   const closeDisableModal = () => {
     setDisableModal(false)
@@ -1086,12 +1055,12 @@ export function SellersListing() {
                 </div> */}
 
                 <IndexFilters
-                  sortOptions={sortOptions}
-                  sortSelected={sortSelected}
-                  queryValue={queryValue}
-                  queryPlaceholder="Searching in all"
-                  onQueryChange={handleFiltersQueryChange}
-                  onQueryClear={() => {}}
+                  // sortOptions={sortOptions}
+                  // sortSelected={sortSelected}
+                  // queryValue={queryValue}
+                  // queryPlaceholder="Searching in all"
+                  // onQueryChange={handleFiltersQueryChange}
+                  // onQueryClear={() => {}}
                   onSort={setSortSelected}
                   primaryAction={primaryAction}
                   cancelAction={{
@@ -1101,14 +1070,14 @@ export function SellersListing() {
                   }}
                   tabs={tabs}
                   selected={selected}
-                  onSelect={setSelected}
+                  onSelect={handleSellerFilter}
                   canCreateNewView
                   onCreateNewView={onCreateNewView}
                   filters={filters}
-                  appliedFilters={appliedFilters}
-                  onClearAll={handleFiltersClearAll}
+                  // appliedFilters={appliedFilters}
+                  // onClearAll={handleFiltersClearAll}
                   mode={mode}
-                  setMode={setMode}
+                  // setMode={setMode}
                 />
                 <IndexTable
                   resourceName={resourceName}
