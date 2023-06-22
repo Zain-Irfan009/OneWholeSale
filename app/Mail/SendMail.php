@@ -52,21 +52,21 @@ class SendMail extends Mailable
     public function content()
     {
 
-        $smtpHost = $this->emailSettings->smtp_host;
-        $smtpPort = $this->emailSettings->smtp_port;
-        $smtpUsername = $this->emailSettings->smtp_username;
-        $smtpPassword = $this->emailSettings->smtp_password;
-
-        $stream = new  Symfony\Component\Mailer\Transport\Smtp\Stream();
-        $transport = new SmtpTransport($stream);
-        $transport->setHost($smtpHost);
-        $transport->setPort($smtpPort);
-        $transport->setUsername($smtpUsername);
-        $transport->setPassword($smtpPassword);
-
-// Configure the SMTP transport using the Mail facade
-        $mailer = new Mailer($transport);
-dd($mailer);
+//        $smtpHost = $this->emailSettings->smtp_host;
+//        $smtpPort = $this->emailSettings->smtp_port;
+//        $smtpUsername = $this->emailSettings->smtp_username;
+//        $smtpPassword = $this->emailSettings->smtp_password;
+//
+//        $stream = new  Symfony\Component\Mailer\Transport\Smtp\Stream();
+//        $transport = new SmtpTransport($stream);
+//        $transport->setHost($smtpHost);
+//        $transport->setPort($smtpPort);
+//        $transport->setUsername($smtpUsername);
+//        $transport->setPassword($smtpPassword);
+//
+//// Configure the SMTP transport using the Mail facade
+//        $mailer = new Mailer($transport);
+//dd($mailer);
 
         return new Content(
             view: 'email.send_mail',

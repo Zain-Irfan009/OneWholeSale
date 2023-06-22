@@ -88,7 +88,7 @@ class ProductController extends Controller
 if(isset($request->variants) ) {
     $variants=json_decode($request->variants);
     if( count($variants) > 0){
-  dd($variants);
+
     foreach ($variants as $index => $variant) {
 
         $title = explode("/", $variant->name);

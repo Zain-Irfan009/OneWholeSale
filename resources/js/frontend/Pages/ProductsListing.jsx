@@ -353,7 +353,7 @@ export function ProductsListing() {
     console.log(selectedResources, "eqeeeqeqeq");
   }, [selectedResources]);
 
-  const allResourcesSelect = products.every(({ id }) =>
+  const allResourcesSelect = products?.every(({ id }) =>
     selectedResources.includes(id)
   );
 
@@ -395,7 +395,7 @@ export function ProductsListing() {
     }
   }
 
-  const rowMarkup = products?.map(
+  const rowMarkup =products ? products?.map(
     (
       {
         id,
@@ -486,7 +486,7 @@ export function ProductsListing() {
         </IndexTable.Cell>
       </IndexTable.Row>
     )
-  );
+  ) : <EmptySearchResult title={"No Product Found"} withIllustration />
 
   const emptyStateMarkup = (
     <EmptySearchResult title={"No Product Found"} withIllustration />
@@ -1039,7 +1039,7 @@ export function ProductsListing() {
                 />
                 <IndexTable
                   resourceName={resourceName}
-                  itemCount={products.length}
+                  itemCount={products?.length}
                   hasMoreItems
                   selectable={true}
                   selectedItemsCount={

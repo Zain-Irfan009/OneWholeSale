@@ -334,6 +334,7 @@ class SellerController extends Controller
                     $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
                 }
             }
+
             if(count($sellers) > 0){
                 $data = [
                     'seller'=>$sellers

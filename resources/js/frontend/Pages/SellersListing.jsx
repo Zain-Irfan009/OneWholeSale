@@ -116,8 +116,9 @@ export function SellersListing() {
                       Authorization: "Bearer " + sessionToken
                   }
               })
-          console.log(response?.data?.seller,'res')
-          setCustomers(response?.data?.seller)
+          console.log('3',response?.data?.seller)
+          console.log('443',response?.data)
+              setCustomers(response?.data?.seller)
 
           // setBtnLoading(false)
           // setToastMsg(response?.data?.message)
@@ -358,7 +359,7 @@ export function SellersListing() {
     console.log(selectedResources, "eqeeeqeqeq");
   }, [selectedResources]);
 
-  const allResourcesSelect = customers.every(({ id }) =>
+  const allResourcesSelect = customers?.every(({ id }) =>
     selectedResources.includes(id)
   );
 
@@ -367,7 +368,7 @@ export function SellersListing() {
       content: selectedResources.length > 0 && "Disable",
       onAction: () => {
         const newSelection = selectedResources.filter(
-          (id) => !customers.find((customer) => customer.id === id)
+          (id) => !customers?.find((customer) => customer.id === id)
         );
         handleSelectionChange(newSelection);
       },
@@ -411,81 +412,81 @@ export function SellersListing() {
       return formatedDate;
   }
 
-  const rowMarkup = customers?.map(
-    ({ id, seller_id, name, seller_shopname, email, created_at, status }, index) => (
+  const rowMarkup =customers ?  customers?.map(
+      ({ id, seller_id, name, seller_shopname, email, created_at, status }, index) => (
 
-      <IndexTable.Row
-        id={id}
-        key={id}
-        selected={selectedResources.includes(id)}
-        position={index}
-        onClick={() => handleRowClick(id)} // Add this line
-      >
-        <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
-          <Text variant="bodyMd" fontWeight="semibold" as="span">
-            {id != null ? id : "---"}
-          </Text>
-        </IndexTable.Cell>
-
-        <IndexTable.Cell>{name != null ? name : "---"}</IndexTable.Cell>
-
-        <IndexTable.Cell className="Capitalize-Cell">
-          {seller_shopname != null ? seller_shopname : "---"}
-        </IndexTable.Cell>
-
-        <IndexTable.Cell>{email != null ? email : "---"}</IndexTable.Cell>
-
-        <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
-        <IndexTable.Cell>
-          <CustomBadge value={status==1 ?"ACTIVE" : "Disabled"} type="products" />
-
-        </IndexTable.Cell>
-
-        <IndexTable.Cell>
-          <Popover
-            active={active[id]}
-            activator={
-              <Button onClick={() => toggleActive(id)} plain>
-                <Icon source={HorizontalDotsMinor}></Icon>
-              </Button>
-            }
-            autofocusTarget="first-node"
-            onClose={() => setActive(false)}
+          <IndexTable.Row
+              id={id}
+              key={id}
+              selected={selectedResources.includes(id)}
+              position={index}
+              onClick={() => handleRowClick(id)} // Add this line
           >
-            <ActionList
-              actionRole="menuitem"
-              items={[
-                {
-                  content: "Edit",
-                  onAction: () => handleEditAction(id),
-                },
-                {
-                  content: status==1 ?"Disable" : "Enable",
-                  onAction: () => status==1 ? handleDisableAction(id) : handleEnableAction(id) ,
-                },
-                {
-                  content: "View in Store",
-                  onAction: handleViewinStoreAction,
-                },
-                {
-                  content: "Send Message",
-                  onAction: () => handleSendMessageAction(id),
-                },
-                {
-                  content: "Change Password",
-                  onAction: () => handleChangePasswordAction(id),
-                },
-                {
-                  content: "Delete Seller",
-                  onAction: () =>deleteSellerModalHandler(id),
-                },
-              ]}
-            />
-          </Popover>
-        </IndexTable.Cell>
-      </IndexTable.Row>
-    )
-  );
+              <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
+                  <Text variant="bodyMd" fontWeight="semibold" as="span">
+                      {id != null ? id : "---"}
+                  </Text>
+              </IndexTable.Cell>
+
+              <IndexTable.Cell>{name != null ? name : "---"}</IndexTable.Cell>
+
+              <IndexTable.Cell className="Capitalize-Cell">
+                  {seller_shopname != null ? seller_shopname : "---"}
+              </IndexTable.Cell>
+
+              <IndexTable.Cell>{email != null ? email : "---"}</IndexTable.Cell>
+
+              <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
+              <IndexTable.Cell>
+                  <CustomBadge value={status==1 ?"ACTIVE" : "Disabled"} type="products" />
+
+              </IndexTable.Cell>
+
+              <IndexTable.Cell>
+                  <Popover
+                      active={active[id]}
+                      activator={
+                          <Button onClick={() => toggleActive(id)} plain>
+                              <Icon source={HorizontalDotsMinor}></Icon>
+                          </Button>
+                      }
+                      autofocusTarget="first-node"
+                      onClose={() => setActive(false)}
+                  >
+                      <ActionList
+                          actionRole="menuitem"
+                          items={[
+                              {
+                                  content: "Edit",
+                                  onAction: () => handleEditAction(id),
+                              },
+                              {
+                                  content: status==1 ?"Disable" : "Enable",
+                                  onAction: () => status==1 ? handleDisableAction(id) : handleEnableAction(id) ,
+                              },
+                              {
+                                  content: "View in Store",
+                                  onAction: handleViewinStoreAction,
+                              },
+                              {
+                                  content: "Send Message",
+                                  onAction: () => handleSendMessageAction(id),
+                              },
+                              {
+                                  content: "Change Password",
+                                  onAction: () => handleChangePasswordAction(id),
+                              },
+                              {
+                                  content: "Delete Seller",
+                                  onAction: () =>deleteSellerModalHandler(id),
+                              },
+                          ]}
+                      />
+                  </Popover>
+              </IndexTable.Cell>
+          </IndexTable.Row>
+      )
+  ) : <EmptySearchResult title={"No Seller Found"} withIllustration />
 
   const emptyStateMarkup = (
     <EmptySearchResult title={"No Seller Found"} withIllustration />
@@ -1081,7 +1082,7 @@ export function SellersListing() {
                 />
                 <IndexTable
                   resourceName={resourceName}
-                  itemCount={customers.length}
+                  itemCount={customers?.length}
                   hasMoreItems
                   selectable={true}
                   selectedItemsCount={
