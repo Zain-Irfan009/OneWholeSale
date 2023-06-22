@@ -56,7 +56,7 @@ export function MailSmtp() {
     const [selectedVariantProducts, setSelectedVariantProducts] = useState([])
     const [checkedVariants, setCheckedVariants] = useState([])
     const [previousCheckedVariants, setPreviousCheckedVariants] = useState([])
-
+    const [smtpType, setSmtpType] = useState('tls');
 
     const handleProductTabChange = useCallback(
         (selectedTabIndex) => setProductTab(selectedTabIndex),
@@ -595,6 +595,7 @@ export function MailSmtp() {
 
         setSkeleton(true)
         setBtnLoading(true)
+        console.log('smtpType',smtpType)
         const sessionToken = getAccessToken();
         try {
 
@@ -642,7 +643,7 @@ export function MailSmtp() {
         {label: "SSL", value: "ssl"},
         {label: "STARTTLS", value: "start_tls"},
     ];
-    const [smtpType, setSmtpType] = useState('tls');
+
     const handleSmtpType = useCallback((value) => setSmtpType(value), []);
     return (
         <div className='Discount-Detail-Page'>

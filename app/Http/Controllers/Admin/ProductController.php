@@ -140,7 +140,7 @@ if(isset($request->variants) ) {
     }
 }
 
-dd($variants_array);
+
 
         $images_array = array();
 if(isset($request->images)) {
@@ -523,7 +523,6 @@ if(isset($request->images)) {
     public function SendMail($product){
 
         $user=User::find($product->user_id);
-
         $shop=Session::find($product->shop_id);
 
         $Setting = MailSmtpSetting::where('shop_id',$shop->id)->first();

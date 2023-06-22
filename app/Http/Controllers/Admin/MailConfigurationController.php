@@ -72,6 +72,7 @@ class MailConfigurationController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         if($shop){
             $mail_smtp=MailSmtpSetting::where('shop_id',$shop->id)->first();
+
             if($mail_smtp==null){
                 $mail_smtp=new MailSmtpSetting();
             }
