@@ -422,10 +422,10 @@ export function OrdersListing() {
                   content: "View",
                   onAction: () => handleViewAction(id),
                 },
-                {
-                  content: "Sync with your Store",
-                  onAction: handleViewinStoreAction,
-                },
+                // {
+                //   content: "Sync with your Store",
+                //   onAction: handleViewinStoreAction,
+                // },
               ]}
             />
           </Popover>
@@ -607,6 +607,7 @@ export function OrdersListing() {
                     headers: { Authorization: `Bearer ${getAccessToken()}` },
                 }
             );
+            getData()
             setBtnLoading(false);
             setToastMsg(response?.data?.message)
             setSucessToast(true)

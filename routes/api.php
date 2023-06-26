@@ -95,7 +95,10 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
 
     });
-    });
+
+
+
+});
 
 
 

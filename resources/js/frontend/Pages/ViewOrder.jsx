@@ -29,19 +29,17 @@ import {getAccessToken} from "../assets/cookies";
 export function ViewOrder() {
 
 
-    let data=[
-        {
-            id:1,
-            title:"1000ml Classic Refill Bubbles",
-            quantity:"1",
-            price:"5.99",
-            product_images:[
-                {
-                    src:"https://cdn.shopify.com/s/files/1/0608/1983/3070/products/277_103.663500_-Extra_Classic_Refill18.png?v=1674566261"
-                }
-            ]
-        }
-    ]
+    // let data=[
+    //     {
+    //         id:1,
+    //         title:"1000ml Classic Refill Bubbles",
+    //         quantity:"1",
+    //         price:"5.99",
+    //         image:"https://cdn.shopify.com/s/files/1/0608/1983/3070/products/277_103.663500_-Extra_Classic_Refill18.png?v=1674566261"
+    //
+    //
+    //     }
+    // ]
 
 
     let data1=
@@ -88,7 +86,7 @@ export function ViewOrder() {
     const [toastMsg, setToastMsg] = useState("");
 
     const [abandonedCheckout, setAbandonedCheckout] = useState(data1);
-    const [lineItems, setLineItems] = useState(data);
+    const [lineItems, setLineItems] = useState([]);
     const [cartPrices, setCartPrices] = useState(cart_data);
     const [shippingDetails, setShippingDetails] = useState();
     const [billingDetails, setBillingDetails] = useState();
@@ -98,7 +96,7 @@ export function ViewOrder() {
     const [sellerName, setSellerName] = useState();
     const [shopName, setShopName] = useState();
     const [email, setEmail] = useState();
-    const [totalOrderCommission, setTotalOrderCommission] = useState();
+    const [totalOrderCommission, setTotalOrderCommission] = useState('');
     const [orderCreateDate, setOrderCreateDate] = useState();
     const [orderStatus, setOrderStatus] = useState();
     const [paymentStatus, setPaymentStatus] = useState();
@@ -109,6 +107,9 @@ export function ViewOrder() {
     const [shippingCity, setShippingCity] = useState();
     const [shippingZip, setShippingZip] = useState();
     const [shippingCountry, setShippingCountry] = useState();
+    const [orderNum, setOrderNum] = useState();
+    const [orderDate, setOrderDate] = useState();
+    const [totalItems, setTotalItems] = useState();
 
     const [billingName, setBillingName] = useState();
     const [billingAddress, setBillingAddress] = useState();
@@ -174,8 +175,12 @@ export function ViewOrder() {
             setTotalPrice(response?.data?.order?.total_price)
             setSellerName(response?.data?.order?.user_name)
             setShopName(response?.data?.order?.seller_shopname)
+            setLineItems(response?.data?.line_items)
             setEmail(response?.data?.order?.user_email)
             setTotalOrderCommission(response?.data?.order_commission)
+            setOrderNum(response?.data?.order?.order_number)
+            setOrderDate(response?.data?.date)
+            setTotalItems(response?.data?.total_items)
            let format_date= formatDate(response?.data?.order?.created_at)
                 setOrderCreateDate(format_date)
 
@@ -255,13 +260,13 @@ console.log('check',cartPrices)
                             onAction: discardAbandonedCheckout,
                         },
                     ]}
-                    title='#266'
+                    title={orderNum}
                     // subtitle={dateFormat(
                     //     abandonedCheckout?.created_at,
                     //     "mmmm d, yyyy 'at' h:MM tt"
                     // )}
                     subtitle={
-                        "March 21, 2023 at 8:07 pm"
+                       orderDate
                     }
 
                       // primaryAction={{
@@ -287,7 +292,7 @@ console.log('check',cartPrices)
                                                         <div className="Order-Product-Image-Section">
                                                             <div className="Order-Product-Image">
                                                                 <img
-                                                                    src={item.product_images[0]?.src}
+                                                                    src={item.image}
                                                                     alt={item.title}
                                                                 />
                                                             </div>
@@ -331,8 +336,7 @@ console.log('check',cartPrices)
                                                 <Stack>
                                                     <p>SubTotal</p>
                                                     <p>
-                                                        {lineItems?.length}{" "}
-                                                        {lineItems?.length > 1 ? "items" : "item"}
+                                                        {totalItems > 1 ? `${totalItems} items` : `${totalItems} item`}
                                                     </p>
                                                     <p>
                                                         {abandonedCheckout?.oldCurrencyCode}{" "}

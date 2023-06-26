@@ -11,6 +11,7 @@ import { CustomBadge } from '../../components/Utils/CustomBadge'
 import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import {InputField} from "../../components/Utils";
+import {getAccessToken} from "../../assets/cookies";
 // import dateFormat from "dateformat";
 
 
@@ -66,7 +67,7 @@ export function Products() {
     const [storeUrl, setStoreUrl] = useState('')
     const [active, setActive] = useState(false);
 
-    const [customers, setCustomers] = useState(data)
+    const [products, setProducts] = useState([])
     const [hasNextPage, setHasNextPage] = useState(false)
     const [hasPreviousPage, setHasPreviousPage] = useState(false)
     const [pageCursor, setPageCursor] = useState('next')
@@ -141,7 +142,7 @@ export function Products() {
 
 
     const handleViewAction = (id) => {
-        navigate(`/vendor/view-product/${id}`)
+        navigate(`/view-product/${id}`)
     }
 
 
@@ -164,28 +165,78 @@ export function Products() {
         [],
     );
 
-    const {selectedResources, allResourcesSelected, handleSelectionChange} =
-        useIndexResourceState(customers);
 
-    const rowMarkup = customers?.map(
-        ({ id, product_id,image,product_name,type,price,quantity,status  }, index) => (
+    const getData = async () => {
+
+        const sessionToken = getAccessToken();
+        console.log('session',sessionToken)
+        try {
+
+            const response = await axios.get(`${apiUrl}/seller/products`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+
+            setProducts(response?.data?.products)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+console.log(error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    function handleRowClick(id) {
+        const target = event.target;
+        const isCheckbox = target.tagName === "INPUT" && target.type === "checkbox";
+
+        if (!isCheckbox) {
+            event.stopPropagation(); // Prevent row from being selected
+        } else {
+            // Toggle selection state of row
+            const index = selectedResources.indexOf(id);
+            if (index === -1) {
+                handleSelectionChange([...selectedResources, id]);
+            } else {
+                handleSelectionChange(selectedResources.filter((item) => item !== id));
+            }
+        }
+    }
+    useEffect(() => {
+        getData();
+    }, []);
+
+    const {selectedResources, allResourcesSelected, handleSelectionChange} =
+        useIndexResourceState(products);
+
+    const rowMarkup = products?.map(
+        ({ id, product_id,featured_image,product_status,product_name,type,price,quantity,status  }, index) => (
 
             <IndexTable.Row
                 id={id}
                 key={id}
                 selected={selectedResources.includes(id)}
                 position={index}
+                onClick={() => handleRowClick(id)} // Add this line
             >
                 <IndexTable.Cell className='Polaris-IndexTable-Product-Column'>
 
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {product_id != null ? product_id : '---'}
+                        {id != null ? id : '---'}
 
                     </Text>
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    <Avatar size="small" shape="square" name='title' source={image} />
+                    <Avatar size="small" shape="square" name='title' source={featured_image} />
                 </IndexTable.Cell>
 
                 <IndexTable.Cell className='Capitalize-Cell'>
@@ -204,7 +255,7 @@ export function Products() {
                     {quantity != null ? quantity : '---'}
                 </IndexTable.Cell>
                 <IndexTable.Cell>
-                    <CustomBadge value={"APPROVED"}  type='products' />
+                    <CustomBadge value={product_status}  type="products" />
                 </IndexTable.Cell>
 
 
@@ -243,14 +294,14 @@ export function Products() {
 
     const emptyStateMarkup = (
         <EmptySearchResult
-            title={'No Customers Found'}
+            title={'No Products Found'}
             withIllustration
         />
     );
 
 
     const handleClearStates = () => {
-        setCustomers([])
+        setProducts([])
         setPageCursorValue('')
         setNextPageCursor('')
         setPreviousPageCursor('')
@@ -266,70 +317,7 @@ export function Products() {
     const handleAddProduct = () => {
         navigate('#')
     }
-    // ---------------------Api Code starts Here----------------------
 
-    const getCustomers = async () => {
-        setCustomersLoading(true)
-        try {
-
-            const response = await axios.get(`${apiUrl}/api/shopify/customers?title=${queryValue}&${pageCursor}=${pageCursorValue}`, {
-                headers: { "Authorization": `Bearer ${getAccessToken()}` }
-            })
-
-            // console.log('getCustomers response: ', response.data);
-            if (response.data.errors) {
-                setToastMsg(response.data.message)
-                setErrorToast(true)
-            }
-            else {
-                let customers = response.data.data.body?.data?.customers;
-                let customersArray = []
-                let nextValue = ''
-
-                if (customers?.edges?.length > 0) {
-                    let previousValue = customers.edges[0]?.cursor;
-                    customers?.edges?.map((item) => {
-                        nextValue = item.cursor
-                        customersArray.push({
-                            id: item.node.id.replace('gid://shopify/Customer/', ''),
-                            name: item.node.displayName,
-                            email: item.node.email,
-                            ordersCount: item.node.ordersCount,
-                            totalSpent: item.node.totalSpent,
-                            address: item.node.defaultAddress?.formattedArea,
-                        })
-                    })
-
-
-                    setCustomers(customersArray)
-                    setPageCursorValue('')
-                    setNextPageCursor(nextValue)
-                    setPreviousPageCursor(previousValue)
-                    setHasNextPage(customers.pageInfo?.hasNextPage)
-                    setHasPreviousPage(customers.pageInfo?.hasPreviousPage)
-                }
-                else {
-                    handleClearStates()
-                }
-                setStoreUrl(response.data.user?.shopifyShopDomainName)
-            }
-
-
-            setLoading(false)
-            setCustomersLoading(false)
-            setToggleLoadData(false)
-
-
-        } catch (error) {
-            console.warn('getCustomers Api Error', error.response);
-            setLoading(false)
-            // setCustomersLoading(false)
-            setToastMsg('Server Error')
-            setToggleLoadData(false)
-            setErrorToast(true)
-            handleClearStates()
-        }
-    }
 
     useEffect(() => {
         if (toggleLoadData) {
@@ -347,23 +335,29 @@ export function Products() {
 
     // ---------------------Tabs Code Start Here----------------------
 
-    const handleTabChange = (selectedTabIndex) => {
-        if (selected != selectedTabIndex) {
-            setSelected(selectedTabIndex)
-            if (selectedTabIndex == 0) {
-                setProductStatus('')
-            }
-            else if (selectedTabIndex == 1) {
-                setProductStatus('ACTIVE')
-            }
-            else if (selectedTabIndex == 2) {
-                setProductStatus('DRAFT')
-            }
-            else if (selectedTabIndex == 3) {
-                setProductStatus('ARCHIVED')
-            }
-            setPageCursorValue('')
-            setToggleLoadData(true)
+    const handleTabChange = async (selectedTabIndex) => {
+
+        setSelected(selectedTabIndex)
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/seller/product-filter?status=${selectedTabIndex}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setProducts(response?.data?.products)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
         }
     }
 
@@ -376,17 +370,17 @@ export function Products() {
         },
         {
             id: 'active-products',
-            content: 'Active',
+            content: 'Approval Pending',
             panelID: 'active-products-content',
         },
         {
             id: 'draft-products',
-            content: 'Draft',
+            content: 'Approved',
             panelID: 'draft-products-content',
         },
         {
             id: 'archived-products',
-            content: 'Archived',
+            content: 'Disbaled',
             panelID: 'archived-products-content',
         },
     ];
@@ -464,7 +458,7 @@ export function Products() {
 
                                 <IndexTable
                                     resourceName={resourceName}
-                                    itemCount={customers.length}
+                                    itemCount={products?.length}
                                     hasMoreItems
                                     selectable={true}
                                     selectedItemsCount={

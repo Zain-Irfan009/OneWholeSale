@@ -14,8 +14,12 @@ import {
     Badge,
     EmptySearchResult,
     Toast,
+    LegacyStack,
+    Thumbnail,
     Tooltip,
     Button,
+    LegacyCard,
+    DropZone,
     Popover,
     ActionList,
     ButtonGroup,
@@ -31,6 +35,7 @@ import { CustomBadge } from '../components/Utils/CustomBadge'
 import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import {InputField} from "../components/Utils";
+import {getAccessToken} from "../assets/cookies";
 // import dateFormat from "dateformat";
 
 
@@ -71,7 +76,9 @@ export function ImportProduct() {
     const [toastMsg, setToastMsg] = useState('')
     const [storeUrl, setStoreUrl] = useState('')
     const [active, setActive] = useState(false);
-
+    //modal code
+    const [modalReassign, setModalReassign] = useState(false);
+    const [files, setFiles] = useState([]);
     const [customers, setCustomers] = useState(data)
     const [hasNextPage, setHasNextPage] = useState(false)
     const [hasPreviousPage, setHasPreviousPage] = useState(false)
@@ -85,6 +92,8 @@ export function ImportProduct() {
     const [btnLoading, setBtnLoading] = useState(false)
     const [sellerEmail, setSellerEmail] = useState('')
     const [assignProduct, setAssignProduct] = useState('normal');
+    const [sellerMessage, setSellerMessage] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
 
     const toggleActive=(id)=>{
 
@@ -113,7 +122,21 @@ export function ImportProduct() {
     ) : null;
 
 
+    const handleDropZoneDrop = useCallback(
+        (_dropFiles, acceptedFiles, _rejectedFiles) => {
+            setSelectedFile(acceptedFiles[0]);
+            setFiles((files) => [...files, ...acceptedFiles]);
+        },
+        []
+    );
+
     // ---------------------Tag/Filter Code Start Here----------------------
+
+    const validImageTypes = [
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
         setQueryValue('')
@@ -253,11 +276,165 @@ export function ImportProduct() {
         {label: "Normal Product", value: "normal"},
     ];
 
+    const handleImportProductCloseAction = () => {
+        setUniqueId();
+        setSellerMessage("");
+        setModalReassign(false);
 
+    };
 
+    const handleImportProduct=()=>{
+        setModalReassign(true);
+    };
+
+    const importProducts = async () => {
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+        const errors = {};
+
+        if (sellerMessage.trim() === '') {
+            errors.sellerMessage = 'Message is required';
+        }
+        if (Object.keys(errors).length > 0) {
+            // setFormErrors(errors);
+            setBtnLoading(false)
+            return;
+        }
+
+        let data = {
+            message: sellerMessage,
+            id:sellerId
+        }
+
+        try {
+            const response = await axios.post(`${apiUrl}/send-message`,data,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setBtnLoading(false)
+            setToastMsg('Message Send Successfully')
+            setSucessToast(true)
+            // setSkeleton(false)
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg('Message Failed')
+            setErrorToast(true)
+        }
+
+    }
+    const uploadedFiles = files.length > 0 && (
+        <LegacyStack vertical>
+            {files.map((file, index) => (
+                <LegacyStack alignment="center" key={index}>
+                    <Thumbnail
+                        size="small"
+                        alt={file.name}
+                        source={
+                            validImageTypes.includes(file.type)
+                                ? window.URL.createObjectURL(file)
+                                : NoteMinor
+                        }
+                    />
+                    <div>
+                        {file.name}{' '}
+                        <Text variant="bodySm" as="p">
+                            {file.size} bytes
+                        </Text>
+                    </div>
+                </LegacyStack>
+            ))}
+        </LegacyStack>
+    );
+
+    const fileUpload = !files.length && (
+        <DropZone.FileUpload actionHint="Accepts .csv, .xlsx only" />
+    );
+
+    const handleLoadFile = async () => {
+        if (selectedFile) {
+            const formData = new FormData();
+            formData.append('csv_file', selectedFile);
+            setBtnLoading(true);
+            const sessionToken = getAccessToken();
+            // Verify that the sessionToken is a valid JWT token with three segments
+            const tokenSegments = sessionToken.split('.');
+            if (tokenSegments.length !== 3) {
+                throw new Error('Invalid JWT token');
+            }
+            // Create a headers object with the authorization bearer token
+            const headers = {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${sessionToken}`
+            };
+            try {
+                const response = await axios.post('/api/load_file', formData, { headers });
+                if (response) {
+                    setBtnLoading(false);
+                    setShowToast(true);
+                    const data = response.data;
+                    // Process the data returned from the API
+                    const newData = data.file; // Assuming the API response contains the file data in the "file" property
+                    // Update the products state with the new data
+                    setProducts((prevProducts) => [...prevProducts, ...newData]);
+                } else {
+                    console.error('Failed to load file:');
+                }
+            } catch (error) {
+                console.error('Error loading file:', error);
+            }
+        }
+    };
 
     return (
         <div className='Products-Page IndexTable-Page Orders-page'>
+            <Modal
+                open={modalReassign}
+                onClose={handleImportProductCloseAction}
+                title="Import Products"
+                loading={btnLoading}
+                primaryAction={{
+                    content: "Send",
+                    destructive: true,
+                    disabled: btnLoading,
+                    onAction: importProducts,
+                }}
+                secondaryActions={[
+                    {
+                        content: "Cancel",
+                        disabled: btnLoading[2],
+                        onAction: handleImportProductCloseAction,
+                    },
+                ]}
+            >
+                <Modal.Section>
+                    <LegacyCard sectioned>
+                        <DropZone onDrop={handleDropZoneDrop} variableHeight label="Upload File">
+                            {uploadedFiles}
+                            {fileUpload}
+                        </DropZone>
+                        <div className='load_file'>
+                            <ButtonGroup>
+                                <Button primary onClick={handleLoadFile} loading={btnLoading}>Load File</Button>
+                            </ButtonGroup>
+                        </div>
+                    </LegacyCard>
+                    <InputField
+                        multiline={1}
+                        placeholder="Enter Message for Seller"
+                        type="text"
+                        name="seller_message"
+                        value={sellerMessage}
+                        onChange={(e) => setSellerMessage(e.target.value)}
+                        // error={formErrors.sellerMessage}
+
+
+                    />
+                </Modal.Section>
+            </Modal>
             <Modal
                 open={modalAssignProduct}
                 onClose={handleAassignProductCloseAction}
@@ -308,7 +485,7 @@ export function ImportProduct() {
                     title="Import Products From Shopify"
                     primaryAction={{
                         content:  'Import Products',
-                        onAction:  handleAddSeller,
+                        onAction:  handleImportProduct,
 
                     }}
                     // secondaryActions={

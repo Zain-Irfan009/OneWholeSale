@@ -10,7 +10,8 @@ use Illuminate\Http\Request;
 class OrderController extends Controller
 {
     public function Orders(Request $request){
-        $user=User::find($request->user_id);
+        $user=auth()->user();
+        $user=User::find($user->id);
         if($user){
             $orders=Order::where('user_id',$user->id)->get();
             $data = [

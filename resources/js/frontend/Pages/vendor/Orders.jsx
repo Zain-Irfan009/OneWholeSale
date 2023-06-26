@@ -11,6 +11,7 @@ import { CustomBadge } from '../../components/Utils/CustomBadge'
 import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import {InputField} from "../../components/Utils";
+import {getAccessToken} from "../../assets/cookies";
 // import dateFormat from "dateformat";
 
 
@@ -57,7 +58,7 @@ export function Orders() {
     const [storeUrl, setStoreUrl] = useState('')
     const [active, setActive] = useState(false);
 
-    const [customers, setCustomers] = useState(data)
+    const [orders, setOrders] = useState([])
     const [hasNextPage, setHasNextPage] = useState(false)
     const [hasPreviousPage, setHasPreviousPage] = useState(false)
     const [pageCursor, setPageCursor] = useState('next')
@@ -121,6 +122,24 @@ export function Orders() {
         setToggleLoadData(true)
     }
 
+
+    function handleRowClick(id) {
+        const target = event.target;
+        const isCheckbox = target.tagName === "INPUT" && target.type === "checkbox";
+
+        if (!isCheckbox) {
+            event.stopPropagation(); // Prevent row from being selected
+        } else {
+            // Toggle selection state of row
+            const index = selectedResources.indexOf(id);
+            if (index === -1) {
+                handleSelectionChange([...selectedResources, id]);
+            } else {
+                handleSelectionChange(selectedResources.filter((item) => item !== id));
+            }
+        }
+    }
+
     // ---------------------Index Table Code Start Here----------------------
 
     const [modalReassign, setModalReassign] = useState(false)
@@ -163,9 +182,9 @@ export function Orders() {
     );
 
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
-        useIndexResourceState(customers);
+        useIndexResourceState(orders);
 
-    const rowMarkup = customers?.map(
+    const rowMarkup = orders?.map(
         ({ id, order_id,payment_mode,payment_status,order_status,tracking_id  }, index) => (
 
             <IndexTable.Row
@@ -173,11 +192,12 @@ export function Orders() {
                 key={id}
                 selected={selectedResources.includes(id)}
                 position={index}
+                onClick={() => handleRowClick(id)} // Add this line
             >
                 <IndexTable.Cell className='Polaris-IndexTable-Product-Column'>
 
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {order_id != null ? order_id : '---'}
+                        {id != null ? id : '---'}
 
                     </Text>
                 </IndexTable.Cell>
@@ -229,14 +249,14 @@ export function Orders() {
 
     const emptyStateMarkup = (
         <EmptySearchResult
-            title={'No Customers Found'}
+            title={'No Order Found'}
             withIllustration
         />
     );
 
 
     const handleClearStates = () => {
-        setCustomers([])
+        setOrders([])
         setPageCursorValue('')
         setNextPageCursor('')
         setPreviousPageCursor('')
@@ -252,70 +272,101 @@ export function Orders() {
     const handleExport = () => {
         navigate('#')
     }
-    // ---------------------Api Code starts Here----------------------
 
-    const getCustomers = async () => {
-        setCustomersLoading(true)
+
+    const getData = async () => {
+
+        const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/api/shopify/customers?title=${queryValue}&${pageCursor}=${pageCursorValue}`, {
-                headers: { "Authorization": `Bearer ${getAccessToken()}` }
-            })
+            const response = await axios.get(`${apiUrl}/seller/orders`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setOrders(response?.data?.orders)
 
-            // console.log('getCustomers response: ', response.data);
-            if (response.data.errors) {
-                setToastMsg(response.data.message)
-                setErrorToast(true)
-            }
-            else {
-                let customers = response.data.data.body?.data?.customers;
-                let customersArray = []
-                let nextValue = ''
-
-                if (customers?.edges?.length > 0) {
-                    let previousValue = customers.edges[0]?.cursor;
-                    customers?.edges?.map((item) => {
-                        nextValue = item.cursor
-                        customersArray.push({
-                            id: item.node.id.replace('gid://shopify/Customer/', ''),
-                            name: item.node.displayName,
-                            email: item.node.email,
-                            ordersCount: item.node.ordersCount,
-                            totalSpent: item.node.totalSpent,
-                            address: item.node.defaultAddress?.formattedArea,
-                        })
-                    })
-
-
-                    setCustomers(customersArray)
-                    setPageCursorValue('')
-                    setNextPageCursor(nextValue)
-                    setPreviousPageCursor(previousValue)
-                    setHasNextPage(customers.pageInfo?.hasNextPage)
-                    setHasPreviousPage(customers.pageInfo?.hasPreviousPage)
-                }
-                else {
-                    handleClearStates()
-                }
-                setStoreUrl(response.data.user?.shopifyShopDomainName)
-            }
-
-
-            setLoading(false)
-            setCustomersLoading(false)
-            setToggleLoadData(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
 
 
         } catch (error) {
-            console.warn('getCustomers Api Error', error.response);
-            setLoading(false)
-            // setCustomersLoading(false)
-            setToastMsg('Server Error')
-            setToggleLoadData(false)
+
+            setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
-            handleClearStates()
         }
     }
+
+    useEffect(() => {
+        getData();
+    }, []);
+
+    // // ---------------------Api Code starts Here----------------------
+    //
+    // const getCustomers = async () => {
+    //     setCustomersLoading(true)
+    //     try {
+    //
+    //         const response = await axios.get(`${apiUrl}/api/shopify/customers?title=${queryValue}&${pageCursor}=${pageCursorValue}`, {
+    //             headers: { "Authorization": `Bearer ${getAccessToken()}` }
+    //         })
+    //
+    //         // console.log('getCustomers response: ', response.data);
+    //         if (response.data.errors) {
+    //             setToastMsg(response.data.message)
+    //             setErrorToast(true)
+    //         }
+    //         else {
+    //             let customers = response.data.data.body?.data?.customers;
+    //             let customersArray = []
+    //             let nextValue = ''
+    //
+    //             if (orders?.edges?.length > 0) {
+    //                 let previousValue = customers.edges[0]?.cursor;
+    //                 orders?.edges?.map((item) => {
+    //                     nextValue = item.cursor
+    //                     customersArray.push({
+    //                         id: item.node.id.replace('gid://shopify/Customer/', ''),
+    //                         name: item.node.displayName,
+    //                         email: item.node.email,
+    //                         ordersCount: item.node.ordersCount,
+    //                         totalSpent: item.node.totalSpent,
+    //                         address: item.node.defaultAddress?.formattedArea,
+    //                     })
+    //                 })
+    //
+    //
+    //                 setOrders(customersArray)
+    //                 setPageCursorValue('')
+    //                 setNextPageCursor(nextValue)
+    //                 setPreviousPageCursor(previousValue)
+    //                 setHasNextPage(customers.pageInfo?.hasNextPage)
+    //                 setHasPreviousPage(customers.pageInfo?.hasPreviousPage)
+    //             }
+    //             else {
+    //                 handleClearStates()
+    //             }
+    //             setStoreUrl(response.data.user?.shopifyShopDomainName)
+    //         }
+    //
+    //
+    //         setLoading(false)
+    //         setCustomersLoading(false)
+    //         setToggleLoadData(false)
+    //
+    //
+    //     } catch (error) {
+    //         console.warn('getCustomers Api Error', error.response);
+    //         setLoading(false)
+    //         // setCustomersLoading(false)
+    //         setToastMsg('Server Error')
+    //         setToggleLoadData(false)
+    //         setErrorToast(true)
+    //         handleClearStates()
+    //     }
+    // }
 
     useEffect(() => {
         if (toggleLoadData) {
@@ -459,7 +510,7 @@ export function Orders() {
 
                                 <IndexTable
                                     resourceName={resourceName}
-                                    itemCount={customers.length}
+                                    itemCount={orders.length}
                                     hasMoreItems
                                     selectable={true}
                                     selectedItemsCount={

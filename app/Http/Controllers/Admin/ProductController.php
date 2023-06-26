@@ -237,6 +237,13 @@ if(isset($request->images)) {
         $product->status=$response->status;
         $product->product_status='Approval Pending';
         $product->type='Normal';
+
+        if ($response->images) {
+            $image = $response->images[0]->src;
+        } else {
+            $image = '';
+        }
+        $product->featured_image=$image;
         $product->save();
 
 

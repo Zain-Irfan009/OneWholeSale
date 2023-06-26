@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Seller;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\User;
 use App\Models\Variant;
 use Illuminate\Http\Request;
@@ -12,7 +13,9 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     public function Products(Request $request){
-        $user=User::find($request->user_id);
+
+        $user=auth()->user();
+        $user=User::find($user->id);
         if($user){
             $products=Product::where('user_id',$user->id)->get();
             $data = [
@@ -23,27 +26,47 @@ class ProductController extends Controller
     }
 
     public function ProductFilter(Request $request){
-        $user=User::find($request->user_id);
-        if($user){
-            $products=Product::where('status',$request->status)->where('user_id',$user->id)->get();
-            $data = [
-                'products'=>$products
-            ];
-            return response()->json($data);
+
+        $user=auth()->user();
+        $user=User::find($user->id);
+        if($user) {
+            if ($request->status == 0) {
+                $products = Product::where('user_id', $user->id)->get();
+            } else if ($request->status == 1) {
+                $status = 'Approval Pending';
+                $products = Product::where('product_status', $status)->where('user_id', $user->id)->get();
+            } else if ($request->status == 2) {
+                $status = 'Approved';
+                $products = Product::where('product_status', $status)->where('user_id', $user->id)->get();
+            } else if ($request->status == 3) {
+                $status = 'Disabled';
+                $products = Product::where('product_status', $status)->where('user_id', $user->id)->get();
+            }
+            if (count($products) > 0) {
+                $data = [
+                    'products' => $products
+                ];
+                return response()->json($data);
+            }
         }
     }
 
     public function ProductView(Request $request,$id){
-        $user=User::find($request->user_id);
+        $user=auth()->user();
+        $user=User::find($user->id);
         if($user){
             $product=Product::find($id);
             if($product){
                 $variants=Variant::where('shopify_product_id',$product->shopify_id)->get();
                 $options=Option::where('shopify_product_id',$product->shopify_id)->get();
+                $selected_variant=Variant::select('price','quantity','sku','compare_at_price')->where('shopify_product_id', $product->shopify_id)->get();
+                $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
                 $data = [
                     'product'=>$product,
                     'variants'=>$variants,
                     'options'=>$options,
+                    'product_images'=>$product_images,
+                    'selected_variant'=>$selected_variant,
                 ];
                 return response()->json($data);
             }
