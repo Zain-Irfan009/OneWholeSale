@@ -22,32 +22,33 @@ import { AppContext } from '../../components/providers/ContextProvider'
 // import { useAuthState } from "../../components/providers/AuthProvider";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import {getAccessToken} from "../../assets/cookies";
 
 
 
 export function VendorViewOrder() {
 
 
-    let data=[
-        {
-            id:1,
-            title:"1000ml Classic Refill Bubbles",
-            quantity:"1",
-            price:"5.99",
-            product_images:[
-                {
-                    src:"https://cdn.shopify.com/s/files/1/0608/1983/3070/products/277_103.663500_-Extra_Classic_Refill18.png?v=1674566261"
-                }
-            ]
-        }
-    ]
+    // let data=[
+    //     {
+    //         id:1,
+    //         title:"1000ml Classic Refill Bubbles",
+    //         quantity:"1",
+    //         price:"5.99",
+    //         image:"https://cdn.shopify.com/s/files/1/0608/1983/3070/products/277_103.663500_-Extra_Classic_Refill18.png?v=1674566261"
+    //
+    //
+    //     }
+    // ]
 
 
     let data1=
         {
             oldCurrencyCode:"Rs.",
             oldDiscountedValue:"0.00",
+
         }
+
 
     let cart_data=
 
@@ -85,10 +86,37 @@ export function VendorViewOrder() {
     const [toastMsg, setToastMsg] = useState("");
 
     const [abandonedCheckout, setAbandonedCheckout] = useState(data1);
-    const [lineItems, setLineItems] = useState(data);
+    const [lineItems, setLineItems] = useState([]);
     const [cartPrices, setCartPrices] = useState(cart_data);
     const [shippingDetails, setShippingDetails] = useState();
     const [billingDetails, setBillingDetails] = useState();
+    const [subtotalPrice, setSubtotalPrice] = useState();
+    const [totalTax, setTotalTax] = useState();
+    const [totalPrice, setTotalPrice] = useState();
+    const [sellerName, setSellerName] = useState();
+    const [shopName, setShopName] = useState();
+    const [email, setEmail] = useState();
+    const [totalOrderCommission, setTotalOrderCommission] = useState('');
+    const [orderCreateDate, setOrderCreateDate] = useState();
+    const [orderStatus, setOrderStatus] = useState();
+    const [paymentStatus, setPaymentStatus] = useState();
+    const [customerName, setCustomerName] = useState();
+    const [customerEmail, setCustomerEmail] = useState();
+    const [shippingName, setShippingName] = useState();
+    const [shippingAddress, setShippingAddress] = useState();
+    const [shippingCity, setShippingCity] = useState();
+    const [shippingZip, setShippingZip] = useState();
+    const [shippingCountry, setShippingCountry] = useState();
+    const [orderNum, setOrderNum] = useState();
+    const [orderDate, setOrderDate] = useState();
+    const [totalItems, setTotalItems] = useState();
+
+    const [billingName, setBillingName] = useState();
+    const [billingAddress, setBillingAddress] = useState();
+    const [billingCity, setBillingCity] = useState();
+    const [billingZip, setBillingZip] = useState();
+    const [billingCountry, setBillingCountry] = useState();
+
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(
@@ -119,6 +147,75 @@ export function VendorViewOrder() {
         return booleanValue;
     }
 
+    const formatDate=(created_at)=>{
+        const date = new Date(created_at);
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const formatedDate = `${month.toString().padStart(2, "0")}-${day
+            .toString()
+            .padStart(2, "0")}-${year}`;
+
+        return formatedDate ;
+    }
+
+
+    const getOrderData = async (id) => {
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/seller/view-order/${id}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setSubtotalPrice(response?.data?.order?.subtotal_price)
+            setTotalTax(response?.data?.order?.total_tax)
+            setTotalPrice(response?.data?.order?.total_price)
+            setSellerName(response?.data?.order?.user_name)
+            setShopName(response?.data?.order?.seller_shopname)
+            setLineItems(response?.data?.line_items)
+            setEmail(response?.data?.order?.user_email)
+            setTotalOrderCommission(response?.data?.order_commission)
+            setOrderNum(response?.data?.order?.order_number)
+            setOrderDate(response?.data?.date)
+            setTotalItems(response?.data?.total_items)
+            let format_date= formatDate(response?.data?.order?.created_at)
+            setOrderCreateDate(format_date)
+
+            setOrderStatus(response?.data?.order?.fulfillment_status)
+            setPaymentStatus(response?.data?.order?.financial_status)
+            setCustomerName(response?.data?.order?.first_name+' ' +response?.data?.order?.last_name)
+            setCustomerEmail(response?.data?.order?.email)
+            setShippingName(response?.data?.order?.shipping_name)
+            setShippingAddress(response?.data?.order?.address1)
+            setShippingCity(response?.data?.order?.city)
+            setShippingZip(response?.data?.order?.zip)
+            setShippingCountry(response?.data?.order?.country)
+            setBillingName(response?.data?.order?.billing_shipping_name)
+            setBillingAddress(response?.data?.order?.billing_address1)
+            setBillingCity(response?.data?.order?.billing_city)
+            setBillingZip(response?.data?.order?.billing_zip)
+            setBillingCountry(response?.data?.order?.billing_country)
+
+
+
+            // setCustomers(response?.data)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+    };
+
     function convertNumberToBoolean(value) {
         let booleanValue;
         if (value === 1) {
@@ -129,55 +226,7 @@ export function VendorViewOrder() {
         return booleanValue;
     }
 
-    // const abandonedCheckoutDetail = async (id) => {
-    //     setLoading(true);
-    //     try {
-    //         const response = await axios.get(
-    //             `${apiUrl}/api/abundant-checkout-view/${id}`,
-    //             {
-    //                 headers: { Authorization: `Bearer ${getAccessToken()}` },
-    //             }
-    //         );
-    //
-    //         console.log(
-    //             "AbandonedCheckoutDetail response: ",
-    //             response.data?.data?.checkout?.emailSendAt
-    //         );
-    //         if (response.data.errors) {
-    //             setToastMsg(response.data.message);
-    //             setErrorToast(true);
-    //         } else {
-    //             setAbandonedCheckout(response.data?.data?.checkout);
-    //             setLineItems(response.data?.data?.cart?.line_items);
-    //             if (response.data?.data?.checkout?.oldShippingFormDetails) {
-    //                 setShippingDetails(
-    //                     JSON.parse(response.data?.data?.checkout?.oldShippingFormDetails)
-    //                 );
-    //             }
-    //             if (response.data?.data?.checkout?.oldBillingFormDetails) {
-    //                 setBillingDetails(
-    //                     JSON.parse(response.data?.data?.checkout?.oldBillingFormDetails)
-    //                 );
-    //             }
-    //             if (response.data?.data?.checkout?.oldThankYouPageData) {
-    //                 setCartPrices(
-    //                     JSON.parse(response.data?.data?.checkout?.oldThankYouPageData)[0]
-    //                 );
-    //             }
-    //             setLoading(false);
-    //             setToggleLoadData(false);
-    //             window.scrollTo(0, 0);
-    //         }
-    //     } catch (error) {
-    //         console.warn("AbandonedCheckoutDetail Api Error", error.response);
-    //         if (error.response?.data?.message) {
-    //             setToastMsg(error.response?.data?.message);
-    //         } else {
-    //             setToastMsg("Server Error");
-    //         }
-    //         setErrorToast(true);
-    //     }
-    // };
+
 
     useEffect(() => {
         console.log('check',cartPrices)
@@ -186,8 +235,14 @@ export function VendorViewOrder() {
         }
     }, [toggleLoadData]);
 
+
+    useEffect(() => {
+        getOrderData(params.view_order_id);
+    }, []);
+
+
     const discardAbandonedCheckout = () => {
-        navigate("/vendor/orders");
+        navigate("/orders");
     };
 
     return (
@@ -205,13 +260,13 @@ export function VendorViewOrder() {
                             onAction: discardAbandonedCheckout,
                         },
                     ]}
-                    title='#266'
+                    title={orderNum}
                     // subtitle={dateFormat(
                     //     abandonedCheckout?.created_at,
                     //     "mmmm d, yyyy 'at' h:MM tt"
                     // )}
                     subtitle={
-                        "March 21, 2023 at 8:07 pm"
+                        orderDate
                     }
 
                     // primaryAction={{
@@ -237,7 +292,7 @@ export function VendorViewOrder() {
                                                         <div className="Order-Product-Image-Section">
                                                             <div className="Order-Product-Image">
                                                                 <img
-                                                                    src={item.product_images[0]?.src}
+                                                                    src={item.image}
                                                                     alt={item.title}
                                                                 />
                                                             </div>
@@ -281,43 +336,53 @@ export function VendorViewOrder() {
                                             <Stack>
                                                 <p>SubTotal</p>
                                                 <p>
-                                                    {lineItems?.length}{" "}
-                                                    {lineItems?.length > 1 ? "items" : "item"}
+                                                    {totalItems > 1 ? `${totalItems} items` : `${totalItems} item`}
                                                 </p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {5.99}
+                                                    {subtotalPrice}
                                                 </p>
                                             </Stack>
                                         </div>
 
                                         <div className="Paid-SubTotal">
                                             <Stack>
-                                                <p>Shipping</p>
+                                                <p>Tax</p>
                                                 <p>{cartPrices?.shippingName}</p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}
-                                                    {2000.00}
+                                                    {totalTax}
                                                 </p>
                                             </Stack>
                                         </div>
 
-                                        <div className="Paid-Tax">
-                                            <Stack>
-                                                <p>Estimated tax</p>
-                                                <p>
-                                                    {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {10.00}
-                                                </p>
-                                            </Stack>
-                                        </div>
+                                        {/*<div className="Paid-SubTotal">*/}
+                                        {/*    <Stack>*/}
+                                        {/*        <p>Shipping</p>*/}
+                                        {/*        <p>{cartPrices?.shippingName}</p>*/}
+                                        {/*        <p>*/}
+                                        {/*            {abandonedCheckout?.oldCurrencyCode}*/}
+                                        {/*            {2000.00}*/}
+                                        {/*        </p>*/}
+                                        {/*    </Stack>*/}
+                                        {/*</div>*/}
+
+                                        {/*    <div className="Paid-Tax">*/}
+                                        {/*        <Stack>*/}
+                                        {/*            <p>Estimated tax</p>*/}
+                                        {/*            <p>*/}
+                                        {/*                {abandonedCheckout?.oldCurrencyCode}{" "}*/}
+                                        {/*                {10.00}*/}
+                                        {/*            </p>*/}
+                                        {/*        </Stack>*/}
+                                        {/*    </div>*/}
 
                                         <div className="Paid-Total">
                                             <Stack>
                                                 <p>Total</p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {2025.99}
+                                                    {totalPrice}
                                                 </p>
                                             </Stack>
                                         </div>
@@ -327,7 +392,7 @@ export function VendorViewOrder() {
                                                 <p>To be paid by customer</p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {2025.99}
+                                                    {totalPrice}
                                                 </p>
                                             </Stack>
                                         </div>
@@ -335,6 +400,31 @@ export function VendorViewOrder() {
                                 </Card.Section>
 
                             </Card>
+
+                            {/*<div className="seller_detail_div">*/}
+                            {/*    <Card title="Seller Details">*/}
+
+                            {/*        <Card.Section>*/}
+                            {/*            <div className="order_detail_status">*/}
+                            {/*                <Text variant="headingXs" as="h6">*/}
+                            {/*                    Here are seller details*/}
+                            {/*                </Text>*/}
+
+                            {/*                <p className="order_status_p seller_status">*/}
+                            {/*                    Seller Name -<span className="order_status_span"> {sellerName}</span>*/}
+                            {/*                </p>*/}
+                            {/*                <p className="order_status_p">*/}
+                            {/*                    Seller Shop Name -<span className="order_status_span">  {shopName}</span>*/}
+                            {/*                </p>*/}
+                            {/*                <p className="order_status_p">*/}
+                            {/*                    Seller Email -<span className="order_status_span"> {email}</span>*/}
+                            {/*                </p>*/}
+                            {/*            </div>*/}
+
+                            {/*        </Card.Section>*/}
+
+                            {/*    </Card>*/}
+                            {/*</div>*/}
 
                             <div className="seller_detail_div">
                                 <Card title="Seller Earning">
@@ -345,20 +435,20 @@ export function VendorViewOrder() {
                                                 Here is earning of seller.
                                             </Text>
 
-                                            <p className="order_status_p seller_status">
-                                                Product Earning -<span className="order_status_span">  $26.24</span>
-                                            </p>
+                                            {/*<p className="order_status_p seller_status">*/}
+                                            {/*    Product Earning -<span className="order_status_span">  $26.24</span>*/}
+                                            {/*</p>*/}
+                                            {/*<p className="order_status_p">*/}
+                                            {/*    Shipping Charge Earning -<span className="order_status_span">   $0.00</span>*/}
+                                            {/*</p>*/}
+                                            {/*<p className="order_status_p">*/}
+                                            {/*    Tax Charge Earning -<span className="order_status_span">   $0.00</span>*/}
+                                            {/*</p>*/}
+                                            {/*<p className="order_status_p">*/}
+                                            {/*Tip Charge Earning -<span className="order_status_span">   $0.00</span>*/}
+                                            {/*  </p>*/}
                                             <p className="order_status_p">
-                                                Shipping Charge Earning -<span className="order_status_span">   $0.00</span>
-                                            </p>
-                                            <p className="order_status_p">
-                                                Tax Charge Earning -<span className="order_status_span">   $0.00</span>
-                                            </p>
-                                            <p className="order_status_p">
-                                                Tip Charge Earning -<span className="order_status_span">   $0.00</span>
-                                            </p>
-                                            <p className="order_status_p">
-                                                Total Order Earning -<span className="order_status_span">   $26.24</span>
+                                                Total Order Commission -<span className="order_status_span">   ${totalOrderCommission}</span>
                                             </p>
                                         </div>
 
@@ -375,16 +465,16 @@ export function VendorViewOrder() {
                                     <div className="order_detail_status">
                                         <h2 className="order_status_heading">Here is current status of order.</h2>
                                         <p className="order_status_p">
-                                            Ordered On -<span className="order_status_span">   Mar 21, 2023 9:43 PM</span>
+                                            Ordered On -<span className="order_status_span">{orderCreateDate}   </span>
+                                        </p>
+                                        {/*<p className="order_status_p">*/}
+                                        {/*    Delivery Method - <span className="order_status_span">   Standard shipping</span>*/}
+                                        {/*</p>*/}
+                                        <p className="order_status_p">
+                                            Order Status - <span className="order_status_span">    <Badge status='critical'>{!orderStatus ? 'Unfulfilled' : orderStatus}</Badge></span>
                                         </p>
                                         <p className="order_status_p">
-                                            Delivery Method - <span className="order_status_span">   Standard shipping</span>
-                                        </p>
-                                        <p className="order_status_p">
-                                            Order Status - <span className="order_status_span">    <Badge status='critical'>Unfulfilled</Badge></span>
-                                        </p>
-                                        <p className="order_status_p">
-                                            Payment Status - <span className="order_status_span">    <Badge status='success'>Paid</Badge></span>
+                                            Payment Status - <span className="order_status_span">    <Badge status='success'>{paymentStatus}</Badge></span>
                                         </p>
 
 
@@ -394,34 +484,34 @@ export function VendorViewOrder() {
 
                                 <Card.Section title="Customer">
                                     <p>
-                                        Test Person
+                                        {customerName}
                                     </p>
-                                    <p>test@gmail.com</p>
+                                    <p>{customerEmail}</p>
                                 </Card.Section>
 
                                 <Card.Section title="Shipping address">
                                     <p>
-                                        Test Person
+                                        {shippingName}
                                     </p>
-                                    <p> 62 Nerrigundah Drive</p>
+                                    <p> {shippingAddress }</p>
                                     <p>
-                                        Skye Victoria
-                                        3977
+                                        {shippingCity}
+                                        {shippingZip}
                                     </p>
-                                    <p>Australia</p>
+                                    <p>{shippingCountry}</p>
                                 </Card.Section>
 
                                 <Card.Section title="Billing address">
 
                                     <p>
-                                        Test Person
+                                        {billingName}
                                     </p>
-                                    <p> 62 Nerrigundah Drive</p>
+                                    <p> {billingAddress}</p>
                                     <p>
-                                        Skye Victoria
-                                        3977
+                                        {billingCity}
+                                        {billingZip}
                                     </p>
-                                    <p> Australia</p>
+                                    <p> {billingCountry}</p>
 
 
                                 </Card.Section>

@@ -151,7 +151,7 @@ export function Orders() {
 
 
     const handleViewAction = (id) => {
-        navigate(`/vendor/view-order/${id}`)
+        navigate(`/view-order/${id}`)
     }
 
     const handleDisableAction = useCallback(
@@ -185,7 +185,8 @@ export function Orders() {
         useIndexResourceState(orders);
 
     const rowMarkup = orders?.map(
-        ({ id, order_id,payment_mode,payment_status,order_status,tracking_id  }, index) => (
+        ({ id, order_id, gateway, financial_status,
+             fulfillment_status,payment_status,order_status,tracking_id  }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -203,15 +204,16 @@ export function Orders() {
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    {payment_mode != null ? payment_mode : '---'}
+                    { gateway != null ? gateway : '---'}
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    <CustomBadge  value={'PAID'} type='orders' variant={'financial'} />
+                    <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
                 </IndexTable.Cell>
 
+
                 <IndexTable.Cell>
-                    <CustomBadge  value={'UNFULFILLED' } variant={'fulfillment'} type='orders' />
+                    <CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />
                 </IndexTable.Cell>
                 <IndexTable.Cell>
                     {tracking_id != null ? tracking_id : '---'}

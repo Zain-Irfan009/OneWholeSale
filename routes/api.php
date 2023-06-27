@@ -88,12 +88,12 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('products',[\App\Http\Controllers\Seller\ProductController::class,'Products']);
         Route::get('product-filter',[\App\Http\Controllers\Seller\ProductController::class,'ProductFilter']);
         Route::get('product-view/{id}',[\App\Http\Controllers\Seller\ProductController::class,'ProductView']);
-        Route::get('product-delete',[\App\Http\Controllers\Seller\ProductController::class,'Productdelete']);
+        Route::delete('product-delete',[\App\Http\Controllers\Seller\ProductController::class,'Productdelete']);
 
 
         //orders
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
-
+        Route::get('view-order/{id}',[\App\Http\Controllers\Seller\OrderController::class,'ViewOrder']);
     });
 
 

@@ -238,7 +238,11 @@ if(isset($request->images)) {
         $product->status=$response->status;
         $product->price=$response->variants[0]->price;
         $product->quantity=$response->variants[0]->inventory_quantity;
-        $product->product_status='Approval Pending';
+        if($status=='draft') {
+            $product->product_status = 'Approval Pending';
+        }else{
+            $product->product_status = 'Approved';
+        }
         $product->type='Normal';
 
         if ($response->images) {

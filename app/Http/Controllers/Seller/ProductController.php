@@ -76,9 +76,10 @@ class ProductController extends Controller
 
 
     public function Productdelete(Request $request){
-        $user=User::find($request->user_id);
+        $user=auth()->user();
+        $user=User::find($user->id);
         if($user){
-            $product=Product::find($request->product_id);
+            $product=Product::find($request->id);
             if($product){
                 $product->user_id=null;
                 $product->seller_name=null;

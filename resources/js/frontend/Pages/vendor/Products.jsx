@@ -160,10 +160,32 @@ export function Products() {
         setSellerEmail('')
         setModalReassign(false)
     }
-    const handleDeleteAction = useCallback(
-        () => console.log('View in delete action'),
-        [],
-    );
+
+    const deleteProduct  = async (id) => {
+
+        // setSkeleton(true)
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.delete(`${apiUrl}/seller/product-delete?id=${id}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            getData();
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            // setSkeleton(false)
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+
+    }
 
 
     const getData = async () => {
@@ -280,7 +302,7 @@ console.log(error)
 
                                 {
                                     content: 'Delete',
-                                    onAction: handleDeleteAction,
+                                    onAction: ()=>deleteProduct(id),
                                 },
                             ]}
                         />
