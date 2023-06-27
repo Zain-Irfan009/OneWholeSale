@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\SendMail;
+use App\Models\MailConfiguration;
 use App\Models\MailSmtpSetting;
 use App\Models\Option;
 use App\Models\Product;
@@ -531,18 +532,20 @@ if(isset($request->images)) {
 
     public function SendMail($product){
 
+
         $user=User::find($product->user_id);
         $shop=Session::find($product->shop_id);
+        $mail_configuration=MailConfiguration::where('shop_id',$product->shop_id)->first();
+        if($mail_configuration && $mail_configuration->product_approval_status==1) {
+            $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
+            $details['subject'] = 'Product Approved';
+            $details['name'] = $user->name;
+            $details['body'] = 'This is for testing email using smtp.';
+            $details['shop_id'] = $product->shop_id;
+            $details['product_name'] = $product->product_name;
+            $details['shop_name'] = $shop->shop;
 
-        $Setting = MailSmtpSetting::where('shop_id',$shop->id)->first();
-        $details['subject'] ='Product Approved';
-        $details['name'] =$user->name;
-        $details['body'] = 'This is for testing email using smtp.';
-        $details['shop_id'] = $product->shop_id;
-        $details['product_name'] = $product->product_name;
-        $details['shop_name'] = $shop->shop;
-
-        Mail::to($user->email)->send(new SendMail($details,$Setting));
-
+            Mail::to($user->email)->send(new SendMail($details, $Setting));
+        }
     }
 }
