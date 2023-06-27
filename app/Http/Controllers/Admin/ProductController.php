@@ -235,6 +235,8 @@ if(isset($request->images)) {
         $product->product_type=$request->product_type;
         $product->vendor=$request->vendor;
         $product->status=$response->status;
+        $product->price=$response->variants[0]->price;
+        $product->quantity=$response->variants[0]->inventory_quantity;
         $product->product_status='Approval Pending';
         $product->type='Normal';
 

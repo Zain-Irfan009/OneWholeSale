@@ -1794,30 +1794,30 @@ export function ViewProduct() {
                                                                             value
                                                                         )
                                                                     }
-                                                                    connectedRight={[
-                                                                        // <Button primary onClick={handleAddField}>
-                                                                        //   Add Field
-                                                                        // </Button>,
-                                                                        (inputField
-                                                                                .value
-                                                                                .length >
-                                                                            0 ||
-                                                                            inputFields.length -
-                                                                            1 !=
-                                                                            index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
+                                                                    // connectedRight={[
+                                                                    //     // <Button primary onClick={handleAddField}>
+                                                                    //     //   Add Field
+                                                                    //     // </Button>,
+                                                                    //     (inputField
+                                                                    //             .value
+                                                                    //             .length >
+                                                                    //         0 ||
+                                                                    //         inputFields.length -
+                                                                    //         1 !=
+                                                                    //         index) && (
+                                                                    //         <Button
+                                                                    //             plain
+                                                                    //             icon={
+                                                                    //                 DeleteMinor
+                                                                    //             }
+                                                                    //             onClick={() =>
+                                                                    //                 handleRemoveField(
+                                                                    //                     index
+                                                                    //                 )
+                                                                    //             }
+                                                                    //         />
+                                                                    //     ),
+                                                                    // ]}
                                                                 />
                                                             </div>
                                                         )
@@ -1860,27 +1860,27 @@ export function ViewProduct() {
                                                                             value
                                                                         )
                                                                     }
-                                                                    connectedRight={[
-                                                                        (inputField
-                                                                                .value
-                                                                                .length >
-                                                                            0 ||
-                                                                            inputFields2.length -
-                                                                            1 !=
-                                                                            index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField2(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
+                                                                    // connectedRight={[
+                                                                    //     (inputField
+                                                                    //             .value
+                                                                    //             .length >
+                                                                    //         0 ||
+                                                                    //         inputFields2.length -
+                                                                    //         1 !=
+                                                                    //         index) && (
+                                                                    //         <Button
+                                                                    //             plain
+                                                                    //             icon={
+                                                                    //                 DeleteMinor
+                                                                    //             }
+                                                                    //             onClick={() =>
+                                                                    //                 handleRemoveField2(
+                                                                    //                     index
+                                                                    //                 )
+                                                                    //             }
+                                                                    //         />
+                                                                    //     ),
+                                                                    // ]}
                                                                 />
                                                             </div>
                                                         )
@@ -1923,27 +1923,27 @@ export function ViewProduct() {
                                                                             value
                                                                         )
                                                                     }
-                                                                    connectedRight={[
-                                                                        (inputField
-                                                                                .value
-                                                                                .length >
-                                                                            0 ||
-                                                                            inputFields3.length -
-                                                                            1 !=
-                                                                            index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField3(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
+                                                                    // connectedRight={[
+                                                                    //     (inputField
+                                                                    //             .value
+                                                                    //             .length >
+                                                                    //         0 ||
+                                                                    //         inputFields3.length -
+                                                                    //         1 !=
+                                                                    //         index) && (
+                                                                    //         <Button
+                                                                    //             plain
+                                                                    //             icon={
+                                                                    //                 DeleteMinor
+                                                                    //             }
+                                                                    //             onClick={() =>
+                                                                    //                 handleRemoveField3(
+                                                                    //                     index
+                                                                    //                 )
+                                                                    //             }
+                                                                    //         />
+                                                                    //     ),
+                                                                    // ]}
                                                                 />
                                                             </div>
                                                         )
@@ -1960,17 +1960,17 @@ export function ViewProduct() {
                                                         display: "flex",
                                                     }}
                                                 >
-                                                    <Icon
-                                                        source={MobilePlusMajor}
-                                                        color="base"
-                                                    />
-                                                    <Link
-                                                        onClick={
-                                                            addVariantHandler
-                                                        }
-                                                    >
-                                                        Add another option
-                                                    </Link>
+                                                    {/*<Icon*/}
+                                                    {/*    source={MobilePlusMajor}*/}
+                                                    {/*    color="base"*/}
+                                                    {/*/>*/}
+                                                    {/*<Link*/}
+                                                    {/*    onClick={*/}
+                                                    {/*        addVariantHandler*/}
+                                                    {/*    }*/}
+                                                    {/*>*/}
+                                                    {/*    Add another option*/}
+                                                    {/*</Link>*/}
                                                 </div>
                                             </Card.Section>
                                         )}
