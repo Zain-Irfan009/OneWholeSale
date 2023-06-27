@@ -380,7 +380,7 @@ console.log(error)
         },
         {
             id: 'archived-products',
-            content: 'Disbaled',
+            content: 'Disabled',
             panelID: 'archived-products-content',
         },
     ];
