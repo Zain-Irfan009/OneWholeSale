@@ -392,7 +392,7 @@ if(isset($request->images)) {
                         $product->save();
 
 
-                        $this->SendMail($product);
+                        $this->SendMail($product,$request->product_status);
 
 
                         $data = [
@@ -530,9 +530,9 @@ if(isset($request->images)) {
         return response()->json($data);
     }
 
-    public function SendMail($product){
+    public function SendMail($product,$status){
 
-
+            if($status=='Approved'){
         $user=User::find($product->user_id);
         $shop=Session::find($product->shop_id);
         $mail_configuration=MailConfiguration::where('shop_id',$product->shop_id)->first();
@@ -546,6 +546,7 @@ if(isset($request->images)) {
             $details['shop_name'] = $shop->shop;
 
             Mail::to($user->email)->send(new SendMail($details, $Setting));
+        }
         }
     }
 }

@@ -400,7 +400,7 @@ export function ProductsListing() {
       {
         id,
         product_id,
-        image,
+          featured_image,
         product_name,
         seller_name,
         type,
@@ -424,7 +424,7 @@ export function ProductsListing() {
         </IndexTable.Cell>
 
         <IndexTable.Cell>
-          <Avatar size="small" shape="square" name="title" source={image} />
+          <Avatar size="small" shape="square" name="title" source={featured_image} />
         </IndexTable.Cell>
 
         <IndexTable.Cell className="Capitalize-Cell">
