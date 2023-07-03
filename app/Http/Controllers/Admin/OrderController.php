@@ -162,6 +162,8 @@ class OrderController extends Controller
 
                         }
 
+                        $admin_earning=($item->price*$item->quantity)-$total_commission;
+
 
                         $newOrder->user_id=$user->id;
                         $newOrder->user_name=$user->name;
@@ -182,6 +184,7 @@ class OrderController extends Controller
                         $commission_log->quantity = $new_line->quantity;
                         $commission_log->price = $new_line->price;
                         $commission_log->unit_product_commission = $commission;
+                        $commission_log->total_admin_earning = $admin_earning;
                         $commission_log->total_product_commission = $total_commission;
                         $commission_log->shop_id = $shop->id;
                         $commission_log->save();

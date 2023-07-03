@@ -83,7 +83,7 @@ Route::get('/api/auth/callback', function (Request $request) {
     $user->shop_id=$user_session->id;
     $user->save();
 
-    $response = Registry::register('/api/webhooks', Topics::APP_UNINSTALLED, $shop, $session->getAccessToken());
+    $response = Registry::register('/webhooks/app-uninstall', Topics::APP_UNINSTALLED, $shop, $session->getAccessToken());
     $response_order_create = Registry::register('/webhooks/order-create', Topics::ORDERS_CREATE, $shop, $session->getAccessToken());
     if ($response->isSuccess()) {
         Log::debug("Registered APP_UNINSTALLED webhook for shop $shop");
@@ -137,4 +137,52 @@ Route::view('/{path?}', 'welcome')
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+
+Route::get('/testing1', function() {
+
+
+    $user=\App\Models\User::where('name','onewholesalelive.myshopify.com')->first();
+    $session = Session::where('shop', $user->name)->first();
+    $shop = new Rest($session->shop, $session->access_token);
+    $response = $shop->get('webhooks', [], ['limit' => 250]);
+    dd($response->getDecodedBody());
+
+})->name('getwebbhook');
+
+Route::post('/webhooks/app-uninstall', function (Request $request) {
+
+    try {
+//        $error_log=new \App\Models\ErrorLog();
+//        $error_log->topic='uninstall';
+//        $error_log->response=$request->header('x-shopify-shop-domain');
+//        $error_log->save();
+
+        $product=json_decode($request->getContent());
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $client = new Rest($shop->shop, $shop->access_token);
+//        \App\Models\ProductVariant::where('shop_id',$shop->id)->delete();
+//        \App\Models\UserTemplate::where('shop_id',$shop->id)->delete();
+//        \App\Models\Advantage::where('shop_id',$shop->id)->delete();
+//        \App\Models\Competator::where('shop_id',$shop->id)->delete();
+//        \App\Models\CompetitorName::where('shop_id',$shop->id)->delete();
+//        \App\Models\Charge::where('shop_id',$shop->id)->delete();
+//        \App\Models\UserTemplateProduct::where('shop_id',$shop->id)->delete();
+//        \App\Models\Product::where('shop_id',$shop->id)->delete();
+//        $result = $client->get('/metafields/' .$shop->metafield_id. '.json');
+//        $result = $result->getDecodedBody();
+//        if(isset($result['metafield'])) {
+//            $shop_metafield = $client->delete('/metafields/' . $shop->metafield_id . '.json');
+//        }
+        \App\Models\User::where('shop_id',$shop->id)->forceDelete();
+        Session::where('id',$shop->id)->forceDelete();
+
+    } catch (\Exception $e) {
+
+//        $error_log=new \App\Models\ErrorLog();
+//        $error_log->topic='Unistall catch';
+//        $error_log->response=  $e->getMessage();
+//        $error_log->save();
+    }
+});
 
