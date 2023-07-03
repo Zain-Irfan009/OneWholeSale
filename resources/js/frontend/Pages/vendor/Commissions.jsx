@@ -275,16 +275,6 @@ export function Commissions() {
                     {total_product_commission != null ? total_product_commission : '---'}
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    {total_admin_earning != null ? total_admin_earning : '---'}
-                </IndexTable.Cell>
-
-                <IndexTable.Cell>
-                    {refunded_admin_earning != null ? refunded_admin_earning : '---'}
-                </IndexTable.Cell>
-                <IndexTable.Cell>
-                    {vat_on_commission != null ? vat_on_commission : '---'}
-                </IndexTable.Cell>
 
             </IndexTable.Row>
         ),
@@ -441,9 +431,6 @@ export function Commissions() {
                                         { title: 'Price' },
                                         { title: 'Unit Product Commission' },
                                         { title: 'Total Product Commission' },
-                                        { title: 'Total Admin Earning' },
-                                        { title: 'Refunded Admin Earning' },
-                                        { title: 'VAT on Commission' },
                                     ]}
                                 >
                                     {rowMarkup}
