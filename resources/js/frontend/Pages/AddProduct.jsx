@@ -186,7 +186,7 @@ export function AddProduct() {
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
 
-
+    const [formErrors, setFormErrors] = useState({});
 
 
 
@@ -1176,7 +1176,19 @@ export function AddProduct() {
 
     //SUbmit Data
     const addProduct = async () => {
+        const errors = {};
+        if (productName.trim() === '') {
+            errors.productName = 'Product Name is required';
+        }
+        if (sellerEmail.trim() === '') {
+            errors.sellerEmail = 'Seller Email is required';
+        }
 
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            setBtnLoading(false)
+            return;
+        }
         setBtnLoading(true)
         const sessionToken = getAccessToken();
         let formData = new FormData();
@@ -1262,12 +1274,12 @@ export function AddProduct() {
                 <ContextualSaveBar
                     message="Unsaved changes"
                     saveAction={{
-                        onAction: () => console.log("add form submit logic"),
-                        loading: false,
+                        onAction: addProduct,
+                        loading: btnLoading,
                         disabled: false,
                     }}
                     discardAction={{
-                        onAction: () => console.log("add clear form logic"),
+                        onAction: handleDiscardModal,
                     }}
                 />
             )}
@@ -1333,6 +1345,7 @@ export function AddProduct() {
                                             name="productName"
                                             value={productName}
                                             onChange={(e) =>setProductName(e.target.value)}
+                                            error={formErrors.productName}
 
                                         />
                                         <div className="label_editor">
@@ -1885,6 +1898,7 @@ export function AddProduct() {
                                                 name="email"
                                                 value={sellerEmail}
                                                 onChange={(e) => setSellerEmail(e.target.value)}
+                                                error={formErrors.sellerEmail}
 
                                             />
                                         </div>

@@ -77,6 +77,11 @@ export function EditSeller() {
   const [file4, setFile4] = useState();
   const [file5, setFile5] = useState();
 
+
+    const [fileUrl3, setFileUrl3] = useState();
+    const [fileUrl4, setFileUrl4] = useState();
+    const [fileUrl5, setFileUrl5] = useState();
+
   const [name, setName] = useState("");
   const [shopName, setShopName] = useState("");
   const [email, setEmail] = useState("");
@@ -87,6 +92,7 @@ export function EditSeller() {
   const [sellerDescription, setSellerDescription] = useState("");
   const [sellerPolicy, setSellerPolicy] = useState("");
   const [handle, setHandle] = useState("");
+
 
     const [formErrors, setFormErrors] = useState({});
 
@@ -120,6 +126,12 @@ export function EditSeller() {
           setStoreDescriptionContent(response?.data?.seller_store_description)
           setSellerDescriptionContent(response?.data?.seller_description)
           setSellerPolicyContent(response?.data?.seller_policy)
+          setFileUrl5(response?.data?.store_banner_image)
+          setFileUrl3(response?.data?.seller_image)
+          setFileUrl4(response?.data?.seller_shop_image)
+          setPublishSellerPageProfile(response?.data?.publish_seller_profile)
+          setHandle(response?.data?.seller_handle)
+
 
           // setCustomers(response?.data)
 
@@ -129,7 +141,7 @@ export function EditSeller() {
 
 
       } catch (error) {
-
+console.log('error',error)
           setToastMsg(error?.response?.data?.message)
           setErrorToast(true)
       }
@@ -217,16 +229,33 @@ export function EditSeller() {
       setFile3();
     }
   };
+
+    const handleRemoveImage1 = (type) => {
+        if (type == "favicons") {
+            setFileUrl3();
+        }
+    };
   const handleBannerRemove = (type) => {
     if (type == "favicons") {
       setFile5();
     }
   };
+    const handleBannerRemove1 = (type) => {
+        if (type == "favicons") {
+            setFileUrl5();
+        }
+    };
   const handleRemoveShopImage = (type) => {
     if (type == "favicons") {
       setFile4();
     }
   };
+
+    const handleRemoveShopImage1 = (type) => {
+        if (type == "favicons") {
+            setFileUrl4();
+        }
+    };
 
   const handleSellerPageProfile = (e) => {
     setPublishSellerPageProfile(!publishSellerPageProfile);
@@ -290,12 +319,12 @@ export function EditSeller() {
         }
 
         let formData = new FormData();
-        formData.append('store_banner_image', file5 ? file5 : fileUrl);
-        formData.append('seller_shop_image', file4 ? file4 : fileUrl);
-        formData.append('seller_image', file3 ? file3 : fileUrl);
+        formData.append('store_banner_image', file5 ? file5 : fileUrl5);
+        formData.append('seller_shop_image', file4 ? file4 : fileUrl4);
+        formData.append('seller_image', file3 ? file3 : fileUrl3);
         formData.append('publish_seller_profile',publishSellerPageProfile);
         formData.append('seller_handle',handle);
-        formData.append('id',parmas.edit_seller_id);
+        formData.append('id',params.edit_seller_id);
         formData.append('seller_name',name);
         formData.append('seller_shopname',shopName);
         formData.append('seller_email',email);
@@ -476,23 +505,15 @@ export function EditSeller() {
                     <Text> Upload Banner here</Text>
                     <div className="margin-top" />
                     <div>
-                      {!file5 && (
+                      {!file5 && !fileUrl5 && (
                         <DropZone
                           allowMultiple={false}
                           onDrop={handleDropZoneDrop5}
                           accept="image/*"
                           type="image"
                         >
-                          {/*{(!customizationSettings.favicons || customizationSettings.favicons == 'null') &&*/}
-                          {/*    !file3 && <DropZone.FileUpload actionTitle={'Add Image'} />}*/}
-                          {/*{customizationSettings.favicons && customizationSettings.favicons != 'null' && !file3 &&*/}
-                          {/*    <Thumbnail*/}
-                          {/*        size="large"*/}
-                          {/*        alt={'header-img'}*/}
-                          {/*        source={customizationSettings.favicons}*/}
-                          {/*    />*/}
-                          {/*}*/}
-                          {!file5 && (
+
+                          {!file5 && !fileUrl5 && (
                             <DropZone.FileUpload actionTitle={"Add Image"} />
                           )}
                         </DropZone>
@@ -516,6 +537,14 @@ export function EditSeller() {
                         //     }
                         //   />
                       )}
+
+                        {fileUrl5 && fileUrl5 != 'null' && !file5 &&
+                            <img
+                                style={{ maxWidth: "600px", maxHeight: "200px" }}
+                                src={`${fileUrl5}`}
+                            />
+
+                        }
                     </div>
                     <div className="margin-top" />
                     {file5 ? (
@@ -527,9 +556,22 @@ export function EditSeller() {
                           Remove
                         </Button>
                       </span>
-                    ) : (
+                    ) :  (
                       ""
                     )}
+
+                      {fileUrl5 ? (
+                          <span className="Image-Remove">
+                        <Button
+                            plain
+                            onClick={() => handleBannerRemove1("favicons")}
+                        >
+                          Remove
+                        </Button>
+                      </span>
+                      ) :  (
+                          ""
+                      )}
                   </Card>
                 </FormLayout>
               </Layout.Section>
@@ -543,39 +585,21 @@ export function EditSeller() {
 
                       <br />
                       <div>
-                        {!file3 && (
+                        {!file3 && !fileUrl3 && (
                           <DropZone
                             allowMultiple={false}
                             onDrop={handleDropZoneDrop3}
                             accept="image/*"
                             type="image"
                           >
-                            {/*{(!customizationSettings.favicons || customizationSettings.favicons == 'null') &&*/}
-                            {/*    !file3 && <DropZone.FileUpload actionTitle={'Add Image'} />}*/}
-                            {/*{customizationSettings.favicons && customizationSettings.favicons != 'null' && !file3 &&*/}
-                            {/*    <Thumbnail*/}
-                            {/*        size="large"*/}
-                            {/*        alt={'header-img'}*/}
-                            {/*        source={customizationSettings.favicons}*/}
-                            {/*    />*/}
-                            {/*}*/}
-                            {!file3 && (
+
+                            {!file3 && !fileUrl3 && (
                               <DropZone.FileUpload actionTitle={"Add Image"} />
                             )}
-                            {/* {file3 && (
-                              <Thumbnail
-                                size="large"
-                                alt={file3.name}
-                                source={
-                                  validImageTypes.includes(file3.type)
-                                    ? window.URL.createObjectURL(file3)
-                                    : NoteMinor
-                                }
-                              />
-                            )} */}
+
                           </DropZone>
                         )}
-                        {file3 && (
+                        {file3 &&  (
                           <img
                             style={{ maxWidth: "300px", maxHeight: "200px" }}
                             src={
@@ -585,6 +609,13 @@ export function EditSeller() {
                             }
                           />
                         )}
+                          {fileUrl3 && fileUrl3 != 'null' && !file3 &&
+                              <img
+                                  style={{ maxWidth: "600px", maxHeight: "200px" }}
+                                  src={`${fileUrl3}`}
+                              />
+
+                          }
                       </div>
                       {file3 ? (
                         <span className="Image-Remove">
@@ -598,6 +629,19 @@ export function EditSeller() {
                       ) : (
                         ""
                       )}
+
+                        {fileUrl3 ? (
+                            <span className="Image-Remove">
+                        <Button
+                            plain
+                            onClick={() => handleRemoveImage1("favicons")}
+                        >
+                          Remove
+                        </Button>
+                      </span>
+                        ) :  (
+                            ""
+                        )}
 
                       <p>{`Publish Seller Profile Page`}</p>
                       <div className="edit_seller_page_toggle">
@@ -621,27 +665,21 @@ export function EditSeller() {
 
                       <br />
                       <div>
-                        {!file4 && (
+                        {!file4 && !fileUrl4 && (
                           <DropZone
                             allowMultiple={false}
                             onDrop={handleDropZoneDrop4}
                             accept="image/*"
                             type="image"
                           >
-                            {!file4 && (
+                            {!file4 && !fileUrl4 && (
                               <DropZone.FileUpload actionTitle={"Add Image"} />
                             )}
-                            {file4 && (
-                              <Thumbnail
-                                size="large"
-                                alt={file4.name}
-                                source={
-                                  validImageTypes.includes(file4.type)
-                                    ? window.URL.createObjectURL(file4)
-                                    : NoteMinor
-                                }
-                              />
-                            )}
+
+
+
+
+
                           </DropZone>
                         )}
                         {file4 && (
@@ -654,6 +692,14 @@ export function EditSeller() {
                             }
                           />
                         )}
+
+                          {fileUrl4 && fileUrl4 != 'null' && !file4 &&
+                              <img
+                                  style={{ maxWidth: "600px", maxHeight: "200px" }}
+                                  src={`${fileUrl4}`}
+                              />
+
+                          }
                       </div>
                       {file4 ? (
                         <span className="Image-Remove">
@@ -667,6 +713,19 @@ export function EditSeller() {
                       ) : (
                         ""
                       )}
+
+                        {fileUrl4 ? (
+                            <span className="Image-Remove">
+                          <Button
+                              plain
+                              onClick={() => handleRemoveShopImage1("favicons")}
+                          >
+                            Remove
+                          </Button>
+                        </span>
+                        ) : (
+                            ""
+                        )}
                     </Card.Section>
                   </Card>
                   <Card>
@@ -691,9 +750,9 @@ export function EditSeller() {
           <div className="Polaris-Product-Actions">
             <PageActions
               primaryAction={{
-                content: "Create Account",
+                content: "Update",
                 onAction: submitData,
-                loading: btnLoading[1],
+                loading: btnLoading,
               }}
             />
           </div>

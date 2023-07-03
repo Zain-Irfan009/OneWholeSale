@@ -104,7 +104,6 @@ class SellerController extends Controller
     }
 
     public function EditSeller(Request $request){
-
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         $client = new Rest($shop->shop, $shop->access_token);

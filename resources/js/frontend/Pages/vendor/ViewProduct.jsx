@@ -987,7 +987,7 @@ export function ViewProduct() {
                 onDrop={handleDropZoneDrop}
                 onFileDialogClose={toggleOpenFileDialog}
             >
-                {fileUpload}
+                {/*{fileUpload}*/}
             </DropZone>
         </Stack>
     );
@@ -1481,12 +1481,8 @@ export function ViewProduct() {
                                                             alt={'header-img'}
                                                             source={src}
                                                         />
-                                                        <span
-                                                            className="media_hover"
-                                                            onClick={() => handleRemoveMediaApi(index)}
-                                                        >
-                            <Icon source={DeleteMinor}> </Icon>
-                        </span>
+
+
                                                     </div>
                                                 </Stack>
                                             ))}
@@ -1505,29 +1501,24 @@ export function ViewProduct() {
                                                                         : NoteMinor
                                                                 }
                                                             />
-                                                            <span
-                                                                className="media_hover"
-                                                                onClick={() => handleRemoveMedia(index)}
-                                                            >
-                            <Icon source={DeleteMinor}> </Icon>
-                        </span>
+
                                                         </div>
                                                     </Stack>
                                                 ))}
 
-                                                <div className="Polaris-Product-DropZone">
-                                                    <Stack alignment="center">
-                                                        <DropZone
-                                                            accept="image/*, video/*"
-                                                            type="image,video"
-                                                            openFileDialog={openFileDialog}
-                                                            onDrop={handleDropZoneDrop}
-                                                            onFileDialogClose={toggleOpenFileDialog}
-                                                        >
-                                                            <DropZone.FileUpload actionTitle={"Add files"}/>
-                                                        </DropZone>
-                                                    </Stack>
-                                                </div>
+                                                {/*<div className="Polaris-Product-DropZone">*/}
+                                                {/*    <Stack alignment="center">*/}
+                                                {/*        <DropZone*/}
+                                                {/*            accept="image/*, video/*"*/}
+                                                {/*            type="image,video"*/}
+                                                {/*            openFileDialog={openFileDialog}*/}
+                                                {/*            onDrop={handleDropZoneDrop}*/}
+                                                {/*            onFileDialogClose={toggleOpenFileDialog}*/}
+                                                {/*        >*/}
+                                                {/*            <DropZone.FileUpload actionTitle={"Add files"}/>*/}
+                                                {/*        </DropZone>*/}
+                                                {/*    </Stack>*/}
+                                                {/*</div>*/}
                                             </Stack>
                                             );
                                         </Stack>
