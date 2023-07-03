@@ -115,13 +115,22 @@ export function VendorLayout(props) {
             icon: OrdersMinor,
             url: "/products",
             onClick: () => setLocationChange("/vendor/products"),
+              selected: location.pathname === "/products",
           },
           {
             label: "Order",
             icon: OrdersMinor,
             url: "/orders",
             onClick: () => setLocationChange("/vendor/orders"),
+              selected: location.pathname === "/orders",
           },
+            {
+                label: "Commission Listing",
+                icon: OrdersMinor,
+                url: "/commission",
+                onClick: () => setLocationChange("/vendor/commission"),
+                selected: location.pathname === "/commission",
+            },
         ]}
       />
     </Navigation>

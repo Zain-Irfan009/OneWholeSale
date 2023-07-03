@@ -94,6 +94,10 @@ Route::middleware('auth:sanctum')->group( function () {
         //orders
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
         Route::get('view-order/{id}',[\App\Http\Controllers\Seller\OrderController::class,'ViewOrder']);
+
+   //commissions
+        Route::get('commission-listing',[\App\Http\Controllers\Seller\CommissionController::class,'CommissionListing']);
+
     });
 
 

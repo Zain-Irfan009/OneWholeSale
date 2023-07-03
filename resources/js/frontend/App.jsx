@@ -15,6 +15,7 @@ import { Products } from "./Pages/vendor/Products";
 import { ViewProduct } from "./Pages/vendor/ViewProduct";
 import { Orders } from "./Pages/vendor/Orders";
 import { VendorViewOrder } from "./Pages/vendor/VendorViewOrder";
+import { Commissions } from "./Pages/vendor/Commissions";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -189,6 +190,7 @@ export default function App() {
                                 path="/view-order/:view_order_id"
                                 element={<VendorViewOrder />}
                             />
+                            <Route path="/commission" element={<Commissions />} />
                         </Routes>
                     </VendorLayout>
                 )}
