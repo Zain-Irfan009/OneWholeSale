@@ -220,6 +220,7 @@ class OrderController extends Controller
             $date = $date->format('F j, Y \a\t g:i a');
 
             $order_commission=CommissionLog::where('order_id',$id)->sum('total_product_commission');
+            $admin_earning=CommissionLog::where('order_id',$id)->sum('total_admin_earning');
 
             $line_items=LineItem::where('shopify_order_id',$order->shopify_order_id)->get();
             $line_item_array=array();
@@ -239,6 +240,7 @@ class OrderController extends Controller
             $data=[
             'order'=>$order,
               'order_commission'=>(string)((float)$order_commission),
+              'admin_earning'=>(string)((float)$admin_earning),
                 'line_items'=>$line_item_data,
                 'date'=>$date,
                 'total_items'=>$total_items

@@ -120,7 +120,7 @@ Route::get('sync-collection', [\App\Http\Controllers\Admin\CollectionController:
 
 Route::get('/testing', function() {
 
-    $session=Session::where('shop','tlx-new-brand.myshopify.com')->first();
+    $session=Session::where('shop','onewholesalelive.myshopify.com')->first();
 
     $client = new Rest($session->shop, $session->access_token);
 
@@ -128,3 +128,144 @@ Route::get('/testing', function() {
     dd($response->getDecodedBody());
 
 })->name('getwebbhook');
+
+
+//webhooks
+Route::post('/webhooks/app-uninstall', function (Request $request) {
+
+    try {
+
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='uninstall';
+        $logs->save();
+
+        $product=json_decode($request->getContent());
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+//        $client = new Rest($shop->shop, $shop->access_token);
+//        \App\Models\ProductVariant::where('shop_id',$shop->id)->delete();
+//        \App\Models\UserTemplate::where('shop_id',$shop->id)->delete();
+//        \App\Models\Advantage::where('shop_id',$shop->id)->delete();
+//        \App\Models\Competator::where('shop_id',$shop->id)->delete();
+//        \App\Models\CompetitorName::where('shop_id',$shop->id)->delete();
+//        \App\Models\Charge::where('shop_id',$shop->id)->delete();
+//        \App\Models\UserTemplateProduct::where('shop_id',$shop->id)->delete();
+//        \App\Models\Product::where('shop_id',$shop->id)->delete();
+//        $result = $client->get('/metafields/' .$shop->metafield_id. '.json');
+//        $result = $result->getDecodedBody();
+//        if(isset($result['metafield'])) {
+//            $shop_metafield = $client->delete('/metafields/' . $shop->metafield_id . '.json');
+//        }
+        \App\Models\User::where('shop_id',$shop->id)->forceDelete();
+        Session::where('id',$shop->id)->forceDelete();
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Uninstall catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+Route::post('/webhooks/collection-create', function (Request $request) {
+
+
+    try {
+
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='collection create';
+        $logs->save();
+        $collection=json_decode($request->getContent());
+
+
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $collectioncontroller = new \App\Http\Controllers\Admin\CollectionController();
+        $collectioncontroller->singleCollection($collection,$shop->shop);
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Collection Create catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+
+
+Route::post('/webhooks/collection-update', function (Request $request) {
+    try {
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='collection update';
+        $logs->save();
+        $collection=json_decode($request->getContent());
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $collectioncontroller = new \App\Http\Controllers\Admin\CollectionController();
+        $collectioncontroller->singleCollection($collection,$shop->shop);
+
+    } catch (\Exception $e) {
+        $error_log=new \App\Models\log();
+        $error_log->log='Collection update catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+
+    }
+});
+
+Route::post('/webhooks/collection-delete', function (Request $request) {
+    try {
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='collection Delete';
+        $logs->save();
+        $collection=json_decode($request->getContent());
+
+        $logs->log=$collection->id;
+        $logs->verify='collection Delete dssd';
+        $logs->save();
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+       \App\Models\Collection::where('shopify_id',$collection->id)->delete();
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Collection delete catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+
+Route::post('/webhooks/order-create', function (Request $request) {
+    try {
+
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='order create';
+        $logs->save();
+        $order=json_decode($request->getContent());
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
+        $ordercontroller->singleOrder($order,$shop->shop);
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Order Create catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+
+
+
+

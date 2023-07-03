@@ -97,6 +97,7 @@ export function ViewOrder() {
     const [shopName, setShopName] = useState();
     const [email, setEmail] = useState();
     const [totalOrderCommission, setTotalOrderCommission] = useState('');
+    const [totalAdminEarning, setTotalAdminEarning] = useState('');
     const [orderCreateDate, setOrderCreateDate] = useState();
     const [orderStatus, setOrderStatus] = useState();
     const [paymentStatus, setPaymentStatus] = useState();
@@ -178,6 +179,7 @@ export function ViewOrder() {
             setLineItems(response?.data?.line_items)
             setEmail(response?.data?.order?.user_email)
             setTotalOrderCommission(response?.data?.order_commission)
+            setTotalAdminEarning(response?.data?.admin_earning)
             setOrderNum(response?.data?.order?.order_number)
             setOrderDate(response?.data?.date)
             setTotalItems(response?.data?.total_items)
@@ -450,6 +452,10 @@ console.log('check',cartPrices)
                                             <p className="order_status_p">
                                             Total Order Commission -<span className="order_status_span">   ${totalOrderCommission}</span>
                                               </p>
+
+                                            <p className="order_status_p">
+                                                Total Admin Earning -<span className="order_status_span">   ${totalAdminEarning}</span>
+                                            </p>
                                         </div>
 
                                     </Card.Section>
