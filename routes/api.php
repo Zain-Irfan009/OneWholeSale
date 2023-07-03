@@ -52,8 +52,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple']);
 
     //collection
-    //Product
     Route::get('collections',[\App\Http\Controllers\Admin\CollectionController::class,'Collections']);
+
     //orders
     Route::get('orders',[\App\Http\Controllers\Admin\OrderController::class,'Orders']);
     Route::get('view-order/{id}',[\App\Http\Controllers\Admin\OrderController::class,'ViewOrder']);

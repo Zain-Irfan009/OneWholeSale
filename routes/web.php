@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Collection;
 use Illuminate\Support\Facades\Route;
 use App\Exceptions\ShopifyProductCreatorException;
 use App\Lib\AuthRedirection;
@@ -85,6 +86,9 @@ Route::get('/api/auth/callback', function (Request $request) {
 
     $response = Registry::register('/webhooks/app-uninstall', Topics::APP_UNINSTALLED, $shop, $session->getAccessToken());
     $response_order_create = Registry::register('/webhooks/order-create', Topics::ORDERS_CREATE, $shop, $session->getAccessToken());
+    $response_collection_create = Registry::register('/webhooks/collection-create', Topics::COLLECTIONS_CREATE, $shop, $session->getAccessToken());
+    $response_collection_update = Registry::register('/webhooks/collection-update', Topics::COLLECTIONS_UPDATE, $shop, $session->getAccessToken());
+    $response_collection_delete = Registry::register('/webhooks/collection-delete', Topics::COLLECTIONS_DELETE, $shop, $session->getAccessToken());
     if ($response->isSuccess()) {
         Log::debug("Registered APP_UNINSTALLED webhook for shop $shop");
 
@@ -124,6 +128,50 @@ Route::post('/webhooks/order-create', function (Request $request) {
 //        $error_log->topic='Product Create catch';
 //        $error_log->response=  $e->getMessage();
 //        $error_log->save();
+    }
+});
+
+Route::post('/webhooks/collection-create', function (Request $request) {
+    try {
+        $collection=json_decode($request->getContent());
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $collectioncontroller = new \App\Http\Controllers\Admin\CollectionController();
+        $collectioncontroller->singleCollection($collection,$shop->shop);
+
+    } catch (\Exception $e) {
+
+
+    }
+});
+
+Route::post('/webhooks/collection-update', function (Request $request) {
+    try {
+        $collection=json_decode($request->getContent());
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $collectioncontroller = new \App\Http\Controllers\Admin\CollectionController();
+        $collectioncontroller->singleCollection($collection,$shop->shop);
+
+    } catch (\Exception $e) {
+
+
+    }
+});
+
+Route::post('/webhooks/collection-delete', function (Request $request) {
+    try {
+        $collection=json_decode($request->getContent());
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        Collection::where('shopify_id', $collection->id)->where('shop_id', $shop->id)->delete();
+
+    } catch (\Exception $e) {
+
+
     }
 });
 
