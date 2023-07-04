@@ -537,6 +537,7 @@ if(isset($request->images)) {
     public function SendMail($product,$status){
 
             if($status=='Approved'){
+                $type='Product Approve';
         $user=User::find($product->user_id);
         $shop=Session::find($product->shop_id);
         $mail_configuration=MailConfiguration::where('shop_id',$product->shop_id)->first();
@@ -549,8 +550,37 @@ if(isset($request->images)) {
             $details['product_name'] = $product->product_name;
             $details['shop_name'] = $shop->shop;
 
-            Mail::to($user->email)->send(new SendMail($details, $Setting));
+            Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
         }
         }
+    }
+
+    public function ExportProduct(Request $request){
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        $products=Product::where('shop_id',$shop->id)->get();
+
+        $name = 'Product-' . time() . '.csv';
+        $file = fopen(public_path($name), 'w+');
+
+        // Add the CSV headers
+        fputcsv($file, ['Product Name','Seller Name', 'Status']);
+        foreach ($products as $product){
+
+            fputcsv($file, [
+                $product->product_name,
+                $product->seller_name,
+                $product->product_status,
+            ]);
+        }
+
+        fclose($file);
+
+        return response()->json([
+            'success' => true,
+            'name'=>$name,
+            'message'=>'Export Successfully',
+            'link' => asset($name),
+        ]);
     }
 }

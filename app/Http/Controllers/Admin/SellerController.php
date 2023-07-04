@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\SendMail;
+use App\Models\MailSmtpSetting;
 use App\Models\Product;
 use App\Models\Session;
 use App\Models\User;
@@ -346,19 +347,17 @@ class SellerController extends Controller
 
     public function SendMessage(Request $request){
         $user=auth()->user();
+        $type='Seller Message';
         $shop=Session::where('shop',$user->name)->first();
         if($shop){
             $user=User::where('id',$request->id)->where('shop_id',$shop->id)->where('role','seller')->first();
             if($user){
-
+                $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
                 $details['to'] = $user->email;
                 $details['name'] = $user->name;
                 $details['subject'] = 'OneWholesale';
                 $details['message'] = $request->message;
-
-
-                Mail::to($details['to'])
-                    ->send(new SendMail($details));
+                Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
             }
 
         }
@@ -386,5 +385,40 @@ class SellerController extends Controller
         }
 
 
+    }
+
+    public function ExportSeller(Request $request){
+
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        $sellers=User::where('shop_id',$shop->id)->where('role','seller')->get();
+
+        $name = 'Seller-' . time() . '.csv';
+        $file = fopen(public_path($name), 'w+');
+
+        // Add the CSV headers
+        fputcsv($file, ['Seller Name','Store Name', 'Email','Status']);
+        foreach ($sellers as $seller){
+            if($seller->status==1){
+                $status='Active';
+            }else{
+                $status='Disabled';
+            }
+            fputcsv($file, [
+                $seller->name,
+                $seller->seller_shopname,
+                $seller->email,
+                $status,
+            ]);
+        }
+
+        fclose($file);
+
+        return response()->json([
+            'success' => true,
+            'name'=>$name,
+            'message'=>'Export Successfully',
+            'link' => asset($name),
+        ]);
     }
 }

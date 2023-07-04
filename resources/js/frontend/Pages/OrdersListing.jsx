@@ -68,6 +68,7 @@ export function OrdersListing() {
   const [previousPageCursor, setPreviousPageCursor] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
   const [btnLoading, setBtnLoading] = useState(false);
+  const [btnLoading1, setBtnLoading1] = useState(false);
   const [sellerEmail, setSellerEmail] = useState("");
   const [uniqueId, setUniqueId] = useState();
   const [moneySpent, setMoneySpent] = useState(undefined);
@@ -597,6 +598,34 @@ export function OrdersListing() {
   ];
 
 
+    const handleExportOrder = async () => {
+        setBtnLoading1(true)
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/export-order`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            const downloadLink = document.createElement('a');
+            downloadLink.href = response?.data?.link; // Replace 'fileUrl' with the key containing the download link in the API response
+            downloadLink.download =response?.data?.name; // Specify the desired filename and extension
+            downloadLink.target = '_blank';
+            downloadLink.click();
+            setBtnLoading1(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            // setSkeleton(false)
+
+        } catch (error) {
+            setBtnLoading1(false)
+            setToastMsg('Export Failed')
+            setErrorToast(true)
+        }
+
+    }
+
 
     const handleSyncOrder = async () => {
         setBtnLoading(true);
@@ -698,9 +727,8 @@ export function OrdersListing() {
           }}
           secondaryActions={
             <ButtonGroup>
-              <a href="#">
-                <Button>Export </Button>
-              </a>
+                <Button onClick={handleExportOrder} loading={btnLoading1}>Export </Button>
+
             </ButtonGroup>
           }
         >

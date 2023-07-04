@@ -851,7 +851,33 @@ export function ProductsListing() {
         }
     }
 
+    const handleExportProduct = async () => {
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/export-product`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            const downloadLink = document.createElement('a');
+            downloadLink.href = response?.data?.link; // Replace 'fileUrl' with the key containing the download link in the API response
+            downloadLink.download =response?.data?.name; // Specify the desired filename and extension
+            downloadLink.target = '_blank';
+            downloadLink.click();
+            setBtnLoading(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            // setSkeleton(false)
 
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg('Export Failed')
+            setErrorToast(true)
+        }
+
+    }
     return (
     <div className="Products-Page IndexTable-Page Orders-page">
       <Modal
@@ -1000,9 +1026,9 @@ export function ProductsListing() {
           }}
           secondaryActions={
             <ButtonGroup>
-              <a href="#">
-                <Button>Export </Button>
-              </a>
+
+                <Button onClick={handleExportProduct} loading={btnLoading}>Export </Button>
+
             </ButtonGroup>
           }
         >

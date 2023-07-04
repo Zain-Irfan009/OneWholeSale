@@ -20,16 +20,18 @@ class SendMail extends Mailable
 
     public $details;
     public $emailSettings;
+    public $type;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($details,$emailSettings)
+    public function __construct($details,$emailSettings,$type)
     {
 
         $this->details = $details;
         $this->emailSettings = $emailSettings;
+        $this->type = $type;
     }
 
     /**
@@ -39,9 +41,15 @@ class SendMail extends Mailable
      */
     public function envelope()
     {
-        return new Envelope(
-            subject: 'Product Approved',
-        );
+        if($this->type=='Seller Message'){
+            return new Envelope(
+                subject: 'OneWholesale',
+            );
+        }else {
+            return new Envelope(
+                subject: 'Product Approved',
+            );
+        }
     }
 
     /**
@@ -51,27 +59,15 @@ class SendMail extends Mailable
      */
     public function content()
     {
-
-//        $smtpHost = $this->emailSettings->smtp_host;
-//        $smtpPort = $this->emailSettings->smtp_port;
-//        $smtpUsername = $this->emailSettings->smtp_username;
-//        $smtpPassword = $this->emailSettings->smtp_password;
-//
-//        $stream = new  Symfony\Component\Mailer\Transport\Smtp\Stream();
-//        $transport = new SmtpTransport($stream);
-//        $transport->setHost($smtpHost);
-//        $transport->setPort($smtpPort);
-//        $transport->setUsername($smtpUsername);
-//        $transport->setPassword($smtpPassword);
-//
-//// Configure the SMTP transport using the Mail facade
-//        $mailer = new Mailer($transport);
-//dd($mailer);
-
-        return new Content(
-            view: 'email.send_mail',
-        );
-
+            if($this->type=='Seller Message'){
+                return new Content(
+                    view: 'email.send_message',
+                );
+            }else {
+                return new Content(
+                    view: 'email.send_mail',
+                );
+            }
     }
 
     /**

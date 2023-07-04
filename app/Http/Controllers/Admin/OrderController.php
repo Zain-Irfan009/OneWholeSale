@@ -249,4 +249,34 @@ class OrderController extends Controller
 
         }
 
+        public function ExportOrder(Request $request){
+            $user=auth()->user();
+            $shop=Session::where('shop',$user->name)->first();
+            $orders=Order::where('shop_id',$shop->id)->get();
+
+            $name = 'Order-' . time() . '.csv';
+            $file = fopen(public_path($name), 'w+');
+
+            // Add the CSV headers
+            fputcsv($file, ['Order Number','Shipping Name', 'Email','Financial Status','Seller Name']);
+            foreach ($orders as $order){
+
+                fputcsv($file, [
+                    $order->order_number,
+                    $order->shipping_name,
+                    $order->email,
+                    $order->financial_status,
+                    $order->user_name,
+                ]);
+            }
+
+            fclose($file);
+
+            return response()->json([
+                'success' => true,
+                'name'=>$name,
+                'message'=>'Export Successfully',
+                'link' => asset($name),
+            ]);
+        }
 }

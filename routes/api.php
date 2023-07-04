@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group( function () {
     Route::get('profile', [App\Http\Controllers\AuthController::class, 'profile']);
+
         //Seller
     Route::get('sellers',[\App\Http\Controllers\Admin\SellerController::class,'Sellers']);
     Route::post('add-seller',[\App\Http\Controllers\Admin\SellerController::class,'AddSeller']);
@@ -32,8 +33,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('change-password',[\App\Http\Controllers\Admin\SellerController::class,'ChangePassword']);
     Route::delete('delete-seller',[\App\Http\Controllers\Admin\SellerController::class,'DeleteSeller']);
     Route::get('sellers-filter',[\App\Http\Controllers\Admin\SellerController::class,'SellersFilter']);
-    Route::post('send-message',[\App\Http\Controllers\Admin\SellerController::class,'SendMessage']);
+    Route::post('send-message',[\App\Http\Controllers\Admin\SellerController::class,'SendMessage'])->middleware('smtp');
     Route::get('update-seller-status-multiple',[\App\Http\Controllers\Admin\SellerController::class,'UpdateSellerStatusMultiple']);
+    Route::get('export-seller',[\App\Http\Controllers\Admin\SellerController::class,'ExportSeller']);
+
+
 
         //shop-page-setting
     Route::get('shop-setting',[\App\Http\Controllers\Admin\ShopController::class,'ShopSetting']);
@@ -50,6 +54,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('product-filter',[\App\Http\Controllers\Admin\ProductController::class,'ProductFilter']);
     Route::get('edit-product/{id}',[\App\Http\Controllers\Admin\ProductController::class,'EditProduct']);
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple']);
+    Route::get('export-product',[\App\Http\Controllers\Admin\ProductController::class,'ExportProduct']);
 
     //collection
     Route::get('collections',[\App\Http\Controllers\Admin\CollectionController::class,'Collections']);
@@ -59,6 +64,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('view-order/{id}',[\App\Http\Controllers\Admin\OrderController::class,'ViewOrder']);
     Route::get('sync-orders',[\App\Http\Controllers\Admin\OrderController::class,'SyncOrder']);
     Route::get('order-filter',[\App\Http\Controllers\Admin\OrderController::class,'OrderFilter']);
+    Route::get('export-order',[\App\Http\Controllers\Admin\OrderController::class,'ExportOrder']);
 
         //Global Commission
     Route::get('global-commission',[\App\Http\Controllers\Admin\CommissionController::class,'GlobalCommission']);
