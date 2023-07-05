@@ -195,6 +195,8 @@ export function CommissionListing() {
 
 
     const getData = async () => {
+        setCustomersLoading(true)
+        setLoading(true)
 
         const sessionToken = getAccessToken();
         try {
@@ -209,6 +211,7 @@ export function CommissionListing() {
             console.log(response?.data?.data)
             setCommissions(response?.data?.data)
 
+            setCustomersLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -229,8 +232,9 @@ export function CommissionListing() {
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(commissions);
 
-    const rowMarkup = commissions?.map(
-        ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission }, index) => (
+    const rowMarkup = commissions? commissions?.map(
+        // ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission }, index) => (
+        ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -279,16 +283,16 @@ export function CommissionListing() {
                     {total_admin_earning != null ? total_admin_earning : '---'}
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    {refunded_admin_earning != null ? refunded_admin_earning : '---'}
-                </IndexTable.Cell>
-                <IndexTable.Cell>
-                    {vat_on_commission != null ? vat_on_commission : '---'}
-                </IndexTable.Cell>
+                {/*<IndexTable.Cell>*/}
+                {/*    {refunded_admin_earning != null ? refunded_admin_earning : '---'}*/}
+                {/*</IndexTable.Cell>*/}
+                {/*<IndexTable.Cell>*/}
+                {/*    {vat_on_commission != null ? vat_on_commission : '---'}*/}
+                {/*</IndexTable.Cell>*/}
 
             </IndexTable.Row>
         ),
-    );
+    )  : <EmptySearchResult title={"No Commission Found"} withIllustration />
 
     const emptyStateMarkup = (
         <EmptySearchResult
@@ -431,7 +435,7 @@ export function CommissionListing() {
                                     }
                                     onSelectionChange={handleSelectionChange}
                                     loading={customersLoading}
-                                    emptyState={emptyStateMarkup}
+                                    // emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
                                         { title: 'Date' },
@@ -442,8 +446,8 @@ export function CommissionListing() {
                                         { title: 'Unit Product Commission' },
                                         { title: 'Total Product Commission' },
                                         { title: 'Total Admin Earning' },
-                                        { title: 'Refunded Admin Earning' },
-                                        { title: 'VAT on Commission' },
+                                        // { title: 'Refunded Admin Earning' },
+                                        // { title: 'VAT on Commission' },
                                     ]}
                                 >
                                     {rowMarkup}
@@ -453,7 +457,14 @@ export function CommissionListing() {
 
 
                             <Card.Section>
-                                <div className='data-table-pagination'>
+                                <div className='data-table-pagination'
+                                     style={{
+                                         display: "flex",
+                                         justifyContent: "center",
+                                         marginTop: "20px",
+                                         paddingBottom: "20px",
+                                     }}
+                                >
 
                                     <Pagination
                                         hasPrevious={hasPreviousPage ? true : false}

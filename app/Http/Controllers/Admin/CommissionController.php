@@ -74,6 +74,14 @@ class CommissionController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         if($shop) {
+
+            $seller_exist=SellerCommission::where('shop_id',$shop->id)->where('seller_email',$request->seller_email)->first();
+            if($seller_exist){
+                $data = [
+                    'message' => 'This Seller Already Exists',
+                ];
+                return response()->json($data,422);
+            }
             $user=User::where('email',$request->seller_email)->first();
             if($user){
             $seller_commission = SellerCommission::where('shop_id', $shop->id)->where('user_id',$user->id)->first();
@@ -96,7 +104,17 @@ class CommissionController extends Controller
                 'data' => $seller_commission
             ];
             return response()->json($data);
-        }
+        }else{
+                $data = [
+                    'message' => 'Seller Not Found',
+                ];
+                return response()->json($data,422);
+            }
+        }else{
+            $data = [
+                'message' => 'Shop Not Found',
+            ];
+            return response()->json($data,422);
         }
 
     }

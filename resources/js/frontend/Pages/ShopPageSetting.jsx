@@ -250,6 +250,7 @@ export function ShopPageSetting() {
 
       const handleCreateDiscount = async () => {
           setBtnLoading(true)
+          setLoading(true)
           const sessionToken = getAccessToken();
           const errors = {};
 
@@ -410,6 +411,7 @@ export function ShopPageSetting() {
                   })
 
               setBtnLoading(false)
+              setLoading(false)
               setToastMsg(response?.data?.message)
               setSucessToast(true)
               // setSkeleton(false)
@@ -456,6 +458,7 @@ export function ShopPageSetting() {
   return (
     <div className="Discount-Detail-Page">
 
+
       <Modal
         open={discardModal}
         onClose={handleDiscardModal}
@@ -479,7 +482,11 @@ export function ShopPageSetting() {
         </Modal.Section>
       </Modal>
 
-
+        {loading ?
+            <span>
+                    <Loading />
+                    <SkeltonPageForTable />
+                </span> :
         <Page title="Shop Page Settings">
 
 
@@ -864,6 +871,7 @@ export function ShopPageSetting() {
       }
       {toastErrorMsg}
       {toastSuccessMsg}
+        }
     </div>
   );
 }

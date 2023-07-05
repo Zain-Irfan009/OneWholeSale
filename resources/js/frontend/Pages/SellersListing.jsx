@@ -107,6 +107,7 @@ export function SellersListing() {
 
   const handleSellerFilter =async (value) =>  {
       setSelected(value)
+      setLoading(true)
       const sessionToken = getAccessToken();
       try {
 
@@ -118,7 +119,8 @@ export function SellersListing() {
               })
           console.log('3',response?.data?.seller)
           console.log('443',response?.data)
-              setCustomers(response?.data?.seller)
+          setCustomers(response?.data?.seller)
+          setLoading(false)
 
           // setBtnLoading(false)
           // setToastMsg(response?.data?.message)
@@ -1107,6 +1109,8 @@ export function SellersListing() {
                   mode={mode}
                   // setMode={setMode}
                 />
+
+
                 <IndexTable
                   resourceName={resourceName}
                   itemCount={customers?.length}
@@ -1117,7 +1121,7 @@ export function SellersListing() {
                   }
                   onSelectionChange={handleSelectionChange}
                   loading={customersLoading}
-                  emptyState={emptyStateMarkup}
+                  // emptyState={emptyStateMarkup}
                   headings={[
                     { title: "Seller ID" },
                     { title: "Seller Name" },

@@ -1176,6 +1176,8 @@ export function AddProduct() {
 
     //SUbmit Data
     const addProduct = async () => {
+
+        setLoading(true)
         const errors = {};
         if (productName.trim() === '') {
             errors.productName = 'Product Name is required';
@@ -1229,6 +1231,7 @@ export function AddProduct() {
                 })
         console.log('res',response?.data?.message)
             setBtnLoading(false)
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             // setSkeleton(false)

@@ -180,7 +180,6 @@ export function EditProduct() {
     const [variantOptions3, setVariantOptions3] = useState("");
     const [variantsInputFileds, setVariantsInputFileds] = useState([]);
     const [refresh, setRefresh] = useState(false);
-    console.log("variantsInputFileds",variantsInputFileds)
 
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
@@ -192,6 +191,7 @@ export function EditProduct() {
     const getProductData = async (id) => {
 
         setSkeleton(true)
+        setLoading(true)
         console.log(id);
         const sessionToken = getAccessToken();
         try {
@@ -202,7 +202,7 @@ export function EditProduct() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            console.log(response.data?.tags);
+            console.log("qwerty",response.data);
 
             setSellerEmail(response?.data?.product?.seller_email)
             setProductName(response?.data?.product?.product_name)
@@ -255,7 +255,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                 setVariants(3)
             }
 
-            let option1_data=response?.data?.options?.[0]?.values.split(',');
+            let option1_data = response?.data?.options?.[0]?.values.split(',');
             if (option1_data && option1_data.length > 0) {
                 let savedArr = option1_data.map((item, index) => {
                     let obj = {}
@@ -297,6 +297,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
 
 
             setSkeleton(false)
+            setLoading(false)
 
         } catch (error) {
 
@@ -349,39 +350,35 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         };
     });
 
-    const variantsInputFiledsHandler = (e, index, type, name) => {
-        const {value} = e.target;
-        console.log("value, index, type", value, index, type,name);
-
+    const variantsInputFiledsHandler = (value, index, type, name) => {
         setVariantsInputFileds((prevState) => {
-            const updatedState = [...prevState];
+          const updatedState = [...prevState];
+          const updatedObject = { ...updatedState[index] };
 
+          updatedObject.title = name;
 
-            const updatedObject = {...updatedState[index]};
-            updatedObject.name = name;
-            console.log("updatedObject", updatedObject);
-            switch (type) {
-                case "price":
-                    updatedObject.price = value;
-                    break;
-                case "sku":
-                    updatedObject.sku = value;
-                    break;
-                case "quantity":
-                    updatedObject.quantity = value;
-                    break;
+          switch (type) {
+            case "price":
+              updatedObject.price = value;
+              break;
+            case "sku":
+              updatedObject.sku = value;
+              break;
+            case "quantity":
+              updatedObject.quantity = value;
+              break;
+            case "compare_at_price":
+              updatedObject.compare_at_price = value;
+              break;
+            default:
+              break;
+          }
 
-                case "compare_at_price":
-                    updatedObject.compare_at_price = value;
-                    break;
-            }
-            updatedState[index] = updatedObject;
+          updatedState[index] = updatedObject;
+          return updatedState;
+        })
 
-            return updatedState;
-        });
-
-        setRefresh((prevRefresh) => !prevRefresh);
-    };
+      };
 
     const handleAddField = () => {
         setInputFields([...inputFields, {value: ""}]);
@@ -440,6 +437,8 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
     useEffect(() => {
         console.log('ds',variantsInputFileds)
     }, [variantsInputFileds]);
+
+
     const getCollectionData = async () => {
 
         const sessionToken = getAccessToken();
@@ -586,9 +585,11 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
 
     const makeState = (num) => {
         let arr = [];
+
+
         for (let i = 0; i < num; i++) {
             arr.push({
-                name: "",
+                title: "",
                 sku: "",
                 price: "",
                 quantity: "",
@@ -596,36 +597,24 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
             });
         }
 
-        // setVariantsInputFileds(arr);
+        console.log("variantsInputFileds",variantsInputFileds)
+        console.log("arr",arr)
+        setVariantsInputFileds(arr);
     };
 
-    useEffect(() => {
-        console.log(inputFields.length);
-    }, [inputFields]);
+
     // =================Products Modal Code Ends Here================
 
     // =================Collections Modal Code Ends Here================
 
-    let markup = [];
-
-
-    useEffect(() => {
-        const calculateMarkup = () => {
-            let globalIndex = -1;
-            let newMarkup = [];
-
-            const createRow = (text, priceIndex, skuIndex) => {
+      const createRow = (text, priceIndex, skuIndex) => {
                 console.log("updatedState", variantsInputFileds);
                 setVariantsInputFileds((prevState) => {
                     const updatedState = [...prevState];
-
-
                     const updatedObject = {...updatedState[skuIndex]};
-                    updatedObject.name = text;
+                    updatedObject.title = text;
                     // updatedObject.price = price;
                     updatedState[skuIndex] = updatedObject;
-
-
                     return updatedState;
                 });
 
@@ -633,21 +622,21 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                     <>
 
 
-                        <IndexTable.Row key={globalIndex} position={globalIndex}>
-                            {console.log("globalIndex", globalIndex)}
+                        <IndexTable.Row key={priceIndex} position={priceIndex}>
+
                             <IndexTable.Cell>
                                 <Text variant="bodyMd" fontWeight="bold" as="span">
                                     {text}
                                 </Text>
                             </IndexTable.Cell>
-                            {console.log("variantsInputFileds[globalIndex+1]?.price",variantsInputFileds[globalIndex+1]?.price)}
+
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-                                value={variantsInputFileds[globalIndex]?.price}
+                                value={variantsInputFileds[priceIndex]?.price}
                                     onChange={(e) =>
                                         variantsInputFiledsHandler(
-                                            e,
+                                             e.target.value,
                                             priceIndex,
                                             "price",
                                             text
@@ -660,11 +649,11 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-                                    value={variantsInputFileds[globalIndex]?.quantity}
+                                    value={variantsInputFileds[priceIndex]?.quantity}
                                     // value={variantsInputFileds[skuIndex]?.sku}
-                                    onChange={(value) =>
+                                    onChange={(e) =>
                                         variantsInputFiledsHandler(
-                                            value,
+                                            e.target.value,
                                             skuIndex,
                                             "quantity",
                                             text
@@ -677,11 +666,11 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
-                                    value={variantsInputFileds[globalIndex]?.sku}
+                                    value={variantsInputFileds[priceIndex]?.sku}
                                     // value={variantsInputFileds[skuIndex]?.sku}
-                                    onChange={(value) =>
+                                    onChange={(e) =>
                                         variantsInputFiledsHandler(
-                                            value,
+                                            e.target.value,
                                             skuIndex,
                                             "sku",
                                             text
@@ -696,10 +685,10 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                 <InputField
                                     type="text"
                                     // value={variantsInputFileds[skuIndex]?.sku}
-                                    value={variantsInputFileds[globalIndex]?.compare_at_price}
-                                    onChange={(value) =>
+                                    value={variantsInputFileds[priceIndex]?.compare_at_price}
+                                    onChange={(e) =>
                                         variantsInputFiledsHandler(
-                                            value,
+                                            e.target.value,
                                             skuIndex,
                                             "compare_at_price",
                                             text
@@ -714,57 +703,34 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                 );
             }
 
-            if (
-                (variants === 1 || inputFields2[0].value.length === 0) &&
-                inputFields[0].value.length > 0
-            ) {
-                console.log(1);
-                makeState(inputFields.length - 1);
-                newMarkup = inputFields.map((input, index) => {
-                    if (input.value.length === 0) {
-                        return null;
-                    } else {
-                        globalIndex++;
-                        console.log("globalIndex", globalIndex);
-                        return createRow(input.value, globalIndex, globalIndex);
-                    }
-                });
-            } else if (
-                (variants === 2 || inputFields3[0].value.length === 0) &&
-                inputFields2[0].value.length > 0
-            ) {
-                makeState((inputFields2.length - 1) * (inputFields.length - 1));
-
-                newMarkup = inputFields.flatMap((input, index) => {
-                    return inputFields2.map((input2, index2) => {
-                        if (
-                            input2.value.length === 0 ||
-                            input.value.length === 0
-                        ) {
+            const calculateMarkup = () => {
+                let globalIndex = -1;
+                let newMarkup = [];
+                if (
+                    (variants === 1 || inputFields2[0].value.length === 0) &&
+                    inputFields[0].value.length > 0
+                ) {
+                   console.log("inputFields",inputFields);
+                    makeState(inputFields.length - 1);
+                    newMarkup = inputFields.map((input, index) => {
+                        if (input.value.length === 0) {
                             return null;
                         } else {
                             globalIndex++;
-                            console.log(globalIndex);
-                            return createRow(
-                                `${input.value}/${input2.value}`,
-                                globalIndex,
-                                globalIndex
-                            );
+                            console.log("globalIndex", globalIndex);
+                            return createRow(input.value, globalIndex, globalIndex);
                         }
                     });
-                });
-            } else if (variants === 3 && inputFields3[0].value.length > 0) {
-                makeState(
-                    (inputFields3.length - 1) *
-                    (inputFields2.length - 1) *
-                    (inputFields.length - 1)
-                );
-                console.log(3);
-                newMarkup = inputFields.flatMap((input, index) => {
-                    return inputFields2.flatMap((input2, index2) => {
-                        return inputFields3.map((input3, index3) => {
+                } else if (
+                    (variants === 2 || inputFields3[0].value.length === 0) &&
+                    inputFields2[0].value.length > 0
+                ) {
+                    makeState((inputFields2.length - 1) * (inputFields.length - 1));
+                    console.log("inputFields",inputFields);
+
+                    newMarkup = inputFields.flatMap((input, index) => {
+                        return inputFields2.map((input2, index2) => {
                             if (
-                                input3.value.length === 0 ||
                                 input2.value.length === 0 ||
                                 input.value.length === 0
                             ) {
@@ -773,22 +739,54 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                 globalIndex++;
                                 console.log(globalIndex);
                                 return createRow(
-                                    `${input.value}/${input2.value}/${input3.value}`,
+                                    `${input.value}/${input2.value}`,
                                     globalIndex,
                                     globalIndex
                                 );
                             }
                         });
                     });
-                });
-            }
+                } else if (variants === 3 && inputFields3[0].value.length > 0) {
+                    makeState(
+                        (inputFields3.length - 1) *
+                        (inputFields2.length - 1) *
+                        (inputFields.length - 1)
+                    );
+                    console.log(3);
+                    newMarkup = inputFields.flatMap((input, index) => {
+                        return inputFields2.flatMap((input2, index2) => {
+                            return inputFields3.map((input3, index3) => {
+                                if (
+                                    input3.value.length === 0 ||
+                                    input2.value.length === 0 ||
+                                    input.value.length === 0
+                                ) {
+                                    return null;
+                                } else {
+                                    globalIndex++;
+                                    console.log(globalIndex);
+                                    return createRow(
+                                        `${input.value}/${input2.value}/${input3.value}`,
+                                        globalIndex,
+                                        globalIndex
+                                    );
+                                }
+                            });
+                        });
+                    });
+                }
 
-            return newMarkup;
-        };
+                return newMarkup;
+            };
 
-        const markup = calculateMarkup();
+
+
+    useEffect(() => {
+
+
+         let markup = calculateMarkup();
         setVariantsMarkup(markup);
-    }, [inputFields, inputFields2, inputFields3]);
+    }, [inputFields, inputFields2, inputFields3,refresh]);
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(
@@ -1267,6 +1265,8 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
     const addProduct = async () => {
 
         setBtnLoading(true)
+        setLoading(true)
+
         const sessionToken = getAccessToken();
 
         let formData = new FormData();
@@ -1307,6 +1307,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                 })
             console.log('res', response?.data?.message)
             setBtnLoading(false)
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             // setSkeleton(false)
@@ -1351,12 +1352,12 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                 <ContextualSaveBar
                     message="Unsaved changes"
                     saveAction={{
-                        onAction: () => console.log("add form submit logic"),
-                        loading: false,
+                        onAction: addProduct,
+                        loading: btnLoading,
                         disabled: false,
                     }}
                     discardAction={{
-                        onAction: () => console.log("add clear form logic"),
+                        onAction: handleDiscardModal,
                     }}
                 />
             )}
@@ -1364,7 +1365,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
             {loading ? (
                 <span>
                     <Loading/>
-                    <SkeltonPageForProductDetail/>
+                    <SkeltonPageForTable/>
                 </span>
             ) : (
                 <Page
@@ -1485,7 +1486,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                                 </Stack>
                                             ))}
 
-                                            mediaFiles.length > 0 && (
+                                            {mediaFiles.length > 0 && (
                                             <Stack id="jjj">
                                                 {mediaFiles.map((file, index) => (
                                                     <Stack alignment="center" key={index}>
@@ -1523,7 +1524,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                                     </Stack>
                                                 </div>
                                             </Stack>
-                                            );
+                                            )};
                                         </Stack>
 
 

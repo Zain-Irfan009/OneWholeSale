@@ -37,7 +37,7 @@ class ProductController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $product=Product::where('id',$id)->first();
         $variants = Variant::where('shopify_product_id', $product->shopify_id)->get();
-        $selected_variant=Variant::select('price','quantity','sku','compare_at_price')->where('shopify_product_id', $product->shopify_id)->get();
+        $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price')->where('shopify_product_id', $product->shopify_id)->get();
         $options=Option::where('shopify_product_id',$product->shopify_id)->get();
         $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
 

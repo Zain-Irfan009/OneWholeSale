@@ -115,7 +115,7 @@ export function GlobalCommissionSetting() {
 
         {label: '%', value: '%'},
         {label: 'FIXED', value: 'fixed'},
-        {label: '% + FIXED', value: '%_fixed'},
+        // {label: '% + FIXED', value: '%_fixed'},
     ];
 
     const FixedCommissionTypeOptions=[
@@ -134,6 +134,7 @@ export function GlobalCommissionSetting() {
 
     const getData = async () => {
         setSkeleton(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -150,7 +151,7 @@ export function GlobalCommissionSetting() {
             setSecondGlobalCommission(response?.data?.data?.second_global_commission)
             setEnableMaximumCommission(response?.data?.data?.enable_maximum_commission)
             setMaximumCommission(response?.data?.data?.maximum_commission)
-
+            setLoading(false)
             setSkeleton(false)
 
         } catch (error) {
@@ -169,6 +170,7 @@ export function GlobalCommissionSetting() {
     const submitData = async () => {
 
         setBtnLoading(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
 
 
@@ -189,7 +191,7 @@ export function GlobalCommissionSetting() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+            setLoading(false)
             setBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
@@ -232,7 +234,7 @@ export function GlobalCommissionSetting() {
             {loading ?
                 <span>
                     <Loading />
-                    <SkeltonPageForProductDetail />
+                    <SkeltonPageForTable />
                 </span>
                 :
                 <Page

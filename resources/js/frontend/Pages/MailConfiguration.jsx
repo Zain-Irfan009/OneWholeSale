@@ -531,12 +531,12 @@ export function MailConfiguration() {
 
 
                                             </div>
-                                            <div className="mail_config_btn_group" >
-                                            <ButtonGroup>
-                                                <Button>Test Mail</Button>
-                                                <Button primary>Save</Button>
-                                            </ButtonGroup>
-                                            </div>
+                                            {/*<div className="mail_config_btn_group" >*/}
+                                            {/*<ButtonGroup>*/}
+                                            {/*    <Button>Test Mail</Button>*/}
+                                            {/*    <Button primary>Save</Button>*/}
+                                            {/*</ButtonGroup>*/}
+                                            {/*</div>*/}
                                         </Card.Section>
 
                                             </>

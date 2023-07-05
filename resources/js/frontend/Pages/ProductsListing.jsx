@@ -249,6 +249,7 @@ export function ProductsListing() {
 
     const handleEnableAction=async (id) => {
         setSkeleton(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
 
         try {
@@ -263,6 +264,7 @@ export function ProductsListing() {
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             getData()
+            setLoading(false)
             setSkeleton(false)
 
 
@@ -277,6 +279,7 @@ export function ProductsListing() {
     const deleteProduct  = async (id) => {
 
         setSkeleton(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -287,6 +290,7 @@ export function ProductsListing() {
                     }
                 })
             getData();
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             setSkeleton(false)
@@ -304,6 +308,7 @@ export function ProductsListing() {
     const handleDisableAction = async(id) => {
 
         setSkeleton(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
             const response = await axios.get(`${apiUrl}/update-product-status?id=${id}&product_status=Disabled`,
@@ -316,6 +321,7 @@ export function ProductsListing() {
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             getData()
+            setLoading(false)
             setSkeleton(false)
 
         } catch (error) {
@@ -828,6 +834,7 @@ export function ProductsListing() {
 
     const handleProductFilter =async (value) =>  {
         setSelected(value)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -837,8 +844,9 @@ export function ProductsListing() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            setProducts(response?.data?.products)
 
+            setProducts(response?.data?.products)
+            setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -1073,7 +1081,7 @@ export function ProductsListing() {
                   }
                   onSelectionChange={handleSelectionChange}
                   loading={customersLoading}
-                  emptyState={emptyStateMarkup}
+                  // emptyState={emptyStateMarkup}
                   headings={[
                     { title: "Product Id" },
                     { title: "Image" },
@@ -1105,6 +1113,7 @@ export function ProductsListing() {
                     paddingBottom: "20px",
                   }}
                 >
+
                   <Pagination
                     hasPrevious={hasPreviousPage ? true : false}
                     onPrevious={() => handlePagination("prev")}

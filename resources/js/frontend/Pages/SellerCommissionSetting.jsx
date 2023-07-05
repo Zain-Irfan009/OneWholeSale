@@ -137,6 +137,7 @@ export function SellerCommissionSetting() {
     const deleteSellerCommission  = async (id) => {
 
         setBtnLoading(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -147,6 +148,7 @@ export function SellerCommissionSetting() {
                     }
                 })
             getData();
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             setBtnLoading(false)
@@ -164,6 +166,7 @@ export function SellerCommissionSetting() {
     const getData = async () => {
 
         const sessionToken = getAccessToken();
+        setLoading(true)
         try {
 
             const response = await axios.get(`${apiUrl}/seller-commission`,
@@ -174,7 +177,7 @@ export function SellerCommissionSetting() {
                 })
 
             setSellerCommission(response?.data?.data)
-
+            setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -211,7 +214,7 @@ export function SellerCommissionSetting() {
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(sellerCommission);
 
-    const rowMarkup = sellerCommission?.map(
+    const rowMarkup = sellerCommission ? sellerCommission?.map(
         ({ id, user_id,seller_name,store_name,seller_email,commission_type,first_commission,second_commission  }, index) => (
 
             <IndexTable.Row
@@ -286,7 +289,7 @@ export function SellerCommissionSetting() {
 
             </IndexTable.Row>
         ),
-    );
+    )  : <EmptySearchResult title={"No Seller Commission Found"} withIllustration />
 
     const emptyStateMarkup = (
         <EmptySearchResult
@@ -464,7 +467,7 @@ export function SellerCommissionSetting() {
                                     }
                                     onSelectionChange={handleSelectionChange}
                                     loading={customersLoading}
-                                    emptyState={emptyStateMarkup}
+                                    // emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Seller Id' },
                                         { title: 'Seller Name' },
@@ -483,7 +486,14 @@ export function SellerCommissionSetting() {
 
 
                             <Card.Section>
-                                <div className='data-table-pagination'>
+                                <div className='data-table-pagination'
+                                     style={{
+                                         display: "flex",
+                                         justifyContent: "center",
+                                         marginTop: "20px",
+                                         paddingBottom: "20px",
+                                     }}
+                                >
 
                                     <Pagination
                                         hasPrevious={hasPreviousPage ? true : false}

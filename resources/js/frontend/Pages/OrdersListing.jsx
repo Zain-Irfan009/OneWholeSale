@@ -629,6 +629,7 @@ export function OrdersListing() {
 
     const handleSyncOrder = async () => {
         setBtnLoading(true);
+        setLoading(true)
         try {
             const response = await axios.get(
                 `${apiUrl}/sync-orders`,
@@ -638,6 +639,7 @@ export function OrdersListing() {
             );
             getData()
             setBtnLoading(false);
+            setLoading(false);
             setToastMsg(response?.data?.message)
             setSucessToast(true)
 

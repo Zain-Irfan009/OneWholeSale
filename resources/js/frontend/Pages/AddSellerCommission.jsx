@@ -367,7 +367,7 @@ export function AddSellerCommission() {
   const commissionTypeOptions = [
     { label: "%", value: "%" },
     { label: "FIXED", value: "fixed" },
-    { label: "% + FIXED", value: "%_fixed" },
+    // { label: "% + FIXED", value: "%_fixed" },
   ];
 
   const handleCommissionType = useCallback(
@@ -380,6 +380,7 @@ export function AddSellerCommission() {
     const submitData = async () => {
 
         setBtnLoading(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
 
 
@@ -397,7 +398,7 @@ export function AddSellerCommission() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+            setLoading(false)
             setBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
@@ -405,6 +406,7 @@ export function AddSellerCommission() {
 
         } catch (error) {
             setBtnLoading(false)
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -435,87 +437,94 @@ export function AddSellerCommission() {
         </Modal.Section>
       </Modal>
 
-        <Page
-          breadcrumbs={[{ content: "Discounts", onAction: handleDiscardModal }]}
-          title="Add Seller Commission"
-        >
+        {loading ?
+            <span>
+                    <Loading/>
+                    <SkeltonPageForTable/>
+                </span>
+            :
+
+            <Page
+                breadcrumbs={[{content: "Discounts", onAction: handleDiscardModal}]}
+                title="Add Seller Commission"
+            >
 
 
-          <Form >
-            <FormLayout>
-              <Card sectioned title="ADD COMMISSION">
-                <Text variant="bodyMd" as="p" fontWeight="regular">
-                  {`Enter Commission Details You Want To add. `}
-                </Text>
+                <Form>
+                    <FormLayout>
+                        <Card sectioned title="ADD COMMISSION">
+                            <Text variant="bodyMd" as="p" fontWeight="regular">
+                                {`Enter Commission Details You Want To add. `}
+                            </Text>
 
-                <div>
-                  <InputField
-                    marginTop
-                    label="Seller Email*"
-                    placeholder="Enter Seller Email Here"
-                    type="email"
-                    required
-                    name="code"
-                    value={sellerEmail}
-                    onChange={handleSellerEmail}
-                  />
+                            <div>
+                                <InputField
+                                    marginTop
+                                    label="Seller Email*"
+                                    placeholder="Enter Seller Email Here"
+                                    type="email"
+                                    required
+                                    name="code"
+                                    value={sellerEmail}
+                                    onChange={handleSellerEmail}
+                                />
 
-                  <div className="add_product_select">
-                    <Select
-                      label="Commission Type"
-                      options={commissionTypeOptions}
-                      onChange={handleCommissionType}
-                      value={commissionType}
+                                <div className="add_product_select">
+                                    <Select
+                                        label="Commission Type"
+                                        options={commissionTypeOptions}
+                                        onChange={handleCommissionType}
+                                        value={commissionType}
+                                    />
+                                </div>
+
+                                <InputField
+                                    label="First Commission*"
+                                    name="value"
+                                    type="number"
+                                    required
+                                    marginTop
+                                    suffix={`%`}
+                                    value={firstCommission}
+                                    onChange={handleFirstCommission}
+                                />
+
+                                {commissionType == "%_fixed" && (
+                                    <>
+                                        <InputField
+                                            label="Second Commission*"
+                                            name="value"
+                                            type="number"
+                                            required
+                                            marginTop
+                                            suffix={`FIXED`}
+                                            value={secondCommission}
+                                            onChange={handleSecondCommission}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        </Card>
+                    </FormLayout>
+                </Form>
+
+                <div className="Polaris-Product-Actions">
+                    <PageActions
+                        primaryAction={{
+                            content: "Save",
+                            onAction: submitData,
+                            loading: btnLoading,
+                        }}
+                        // secondaryActions={[
+                        //     {
+                        //         content: "Cancel",
+                        //         onAction: handleDiscardModal,
+                        //     },
+                        // ]}
                     />
-                  </div>
-
-                  <InputField
-                    label="First Commission*"
-                    name="value"
-                    type="number"
-                    required
-                    marginTop
-                    suffix={`%`}
-                    value={firstCommission}
-                    onChange={handleFirstCommission}
-                  />
-
-                  {commissionType == "%_fixed" && (
-                    <>
-                      <InputField
-                        label="Second Commission*"
-                        name="value"
-                        type="number"
-                        required
-                        marginTop
-                        suffix={`FIXED`}
-                        value={secondCommission}
-                        onChange={handleSecondCommission}
-                      />
-                    </>
-                  )}
                 </div>
-              </Card>
-            </FormLayout>
-          </Form>
-
-          <div className="Polaris-Product-Actions">
-            <PageActions
-              primaryAction={{
-                content: "Save",
-                onAction: submitData,
-                loading: btnLoading,
-              }}
-              secondaryActions={[
-                {
-                  content: "Cancel",
-                  onAction: handleDiscardModal,
-                },
-              ]}
-            />
-          </div>
-        </Page>
-
+            </Page>
+        }
       {toastErrorMsg}
       {toastSuccessMsg}
     </div>

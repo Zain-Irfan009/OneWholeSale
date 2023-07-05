@@ -163,6 +163,7 @@ export function ViewOrder() {
 
     const getOrderData = async (id) => {
         const sessionToken = getAccessToken();
+        setLoading(true)
         try {
             const response = await axios.get(`${apiUrl}/view-order/${id}`,
                 {
@@ -202,7 +203,7 @@ export function ViewOrder() {
             setBillingCountry(response?.data?.order?.billing_country)
 
 
-
+            setLoading(false)
             // setCustomers(response?.data)
 
             // setBtnLoading(false)
