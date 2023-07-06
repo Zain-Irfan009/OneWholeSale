@@ -143,6 +143,7 @@ export function AddSeller() {
     const submitData = async () => {
 
         setBtnLoading(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
 
         const errors = {};
@@ -206,12 +207,14 @@ export function AddSeller() {
                 })
 
             setBtnLoading(false)
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             setSkeleton(false)
 
         } catch (error) {
             setBtnLoading(false)
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -247,7 +250,7 @@ export function AddSeller() {
       {loading ? (
         <span>
           <Loading />
-          <SkeltonPageForProductDetail />
+          <SkeltonPageForTable />
         </span>
       ) : (
         <Page

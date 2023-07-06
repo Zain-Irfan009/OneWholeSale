@@ -1290,7 +1290,7 @@ export function AddProduct() {
             {loading ? (
                 <span>
                     <Loading />
-                    <SkeltonPageForProductDetail />
+                    <SkeltonPageForTable />
                 </span>
             ) : (
                 <Page

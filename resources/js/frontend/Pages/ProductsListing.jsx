@@ -1081,7 +1081,7 @@ export function ProductsListing() {
                   }
                   onSelectionChange={handleSelectionChange}
                   loading={customersLoading}
-                  // emptyState={emptyStateMarkup}
+                  emptyState={emptyStateMarkup}
                   headings={[
                     { title: "Product Id" },
                     { title: "Image" },

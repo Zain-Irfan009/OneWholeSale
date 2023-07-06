@@ -164,6 +164,7 @@ export function Products() {
     const deleteProduct  = async (id) => {
 
         // setSkeleton(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -174,12 +175,13 @@ export function Products() {
                     }
                 })
             getData();
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             // setSkeleton(false)
 
         } catch (error) {
-
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
             setBtnLoading(false)
@@ -191,6 +193,7 @@ export function Products() {
     const getData = async () => {
 
         const sessionToken = getAccessToken();
+        setLoading(true)
         console.log('session',sessionToken)
         try {
 
@@ -203,6 +206,7 @@ export function Products() {
 
 
             setProducts(response?.data?.products)
+            setLoading(false)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -239,7 +243,7 @@ console.log(error)
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(products);
 
-    const rowMarkup = products?.map(
+    const rowMarkup = products ? products?.map(
         ({ id, product_id,featured_image,product_status,product_name,type,price,quantity,status  }, index) => (
 
             <IndexTable.Row
@@ -312,7 +316,7 @@ console.log(error)
 
             </IndexTable.Row>
         ),
-    );
+    ) : <EmptySearchResult title={"No Product Found"} withIllustration />
 
     const emptyStateMarkup = (
         <EmptySearchResult
@@ -360,6 +364,7 @@ console.log(error)
     const handleTabChange = async (selectedTabIndex) => {
 
         setSelected(selectedTabIndex)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -370,6 +375,7 @@ console.log(error)
                     }
                 })
             setProducts(response?.data?.products)
+            setLoading(false)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -377,7 +383,7 @@ console.log(error)
 
 
         } catch (error) {
-
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -488,7 +494,7 @@ console.log(error)
                                     }
                                     onSelectionChange={handleSelectionChange}
                                     loading={customersLoading}
-                                    emptyState={emptyStateMarkup}
+                                    // emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Product Id' },
                                         { title: 'Image' },
@@ -507,7 +513,14 @@ console.log(error)
 
 
                             <Card.Section>
-                                <div className='data-table-pagination'>
+                                <div className='data-table-pagination'
+                                     style={{
+                                         display: "flex",
+                                         justifyContent: "center",
+                                         marginTop: "20px",
+                                         paddingBottom: "20px",
+                                     }}
+                                >
 
                                     <Pagination
                                         hasPrevious={hasPreviousPage ? true : false}

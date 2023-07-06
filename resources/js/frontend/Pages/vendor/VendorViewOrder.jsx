@@ -162,6 +162,7 @@ export function VendorViewOrder() {
 
     const getOrderData = async (id) => {
         const sessionToken = getAccessToken();
+        setLoading(true)
         try {
             const response = await axios.get(`${apiUrl}/seller/view-order/${id}`,
                 {
@@ -203,6 +204,7 @@ export function VendorViewOrder() {
 
             // setCustomers(response?.data)
 
+            setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -210,6 +212,7 @@ export function VendorViewOrder() {
 
         } catch (error) {
 
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -247,7 +250,7 @@ export function VendorViewOrder() {
 
     return (
         <div className="Discount-Detail-Page Abandoned-Checkout-Detail-Page">
-            {!loading ? (
+            {loading ? (
                 <span>
           <Loading />
           <SkeltonPageForTable />

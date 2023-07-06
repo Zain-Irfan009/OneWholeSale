@@ -192,6 +192,7 @@ export function ViewProduct() {
     const getProductData = async (id) => {
 
         setSkeleton(true)
+        setLoading(true)
         console.log(id);
         const sessionToken = getAccessToken();
         try {
@@ -303,9 +304,10 @@ export function ViewProduct() {
 
 
             setSkeleton(false)
+            setLoading(false)
 
         } catch (error) {
-
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
             setSkeleton(false)
@@ -1370,7 +1372,7 @@ export function ViewProduct() {
             {loading ? (
                 <span>
                     <Loading/>
-                    <SkeltonPageForProductDetail/>
+                    <SkeltonPageForTable/>
                 </span>
             ) : (
                 <Page

@@ -418,7 +418,8 @@ export function ShopPageSetting() {
 
           } catch (error) {
               setBtnLoading(false)
-              setToastMsg('Message Failed')
+              setLoading(false)
+              setToastMsg('Failed')
               setErrorToast(true)
           }
 
@@ -427,6 +428,7 @@ export function ShopPageSetting() {
 
     const handleResetDefault = async () => {
         setResetBtnLoading(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
 
 
@@ -439,6 +441,7 @@ export function ShopPageSetting() {
                 })
             getShopSettingData();
             setResetBtnLoading(false)
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             // setSkeleton(false)

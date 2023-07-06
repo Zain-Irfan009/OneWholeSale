@@ -197,6 +197,7 @@ export function Commissions() {
     const getData = async () => {
 
         const sessionToken = getAccessToken();
+        setLoading(true)
         try {
 
             const response = await axios.get(`${apiUrl}/seller/commission-listing`,
@@ -208,6 +209,7 @@ export function Commissions() {
 
             console.log(response?.data?.data)
             setCommissions(response?.data?.data)
+            setLoading(false)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -215,7 +217,7 @@ export function Commissions() {
 
 
         } catch (error) {
-
+        setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -229,7 +231,7 @@ export function Commissions() {
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(commissions);
 
-    const rowMarkup = commissions?.map(
+    const rowMarkup = commissions? commissions?.map(
         ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission }, index) => (
 
             <IndexTable.Row
@@ -278,7 +280,7 @@ export function Commissions() {
 
             </IndexTable.Row>
         ),
-    );
+    ) : <EmptySearchResult title={"No Commission Found"} withIllustration />
 
     const emptyStateMarkup = (
         <EmptySearchResult
@@ -440,7 +442,14 @@ export function Commissions() {
 
 
                             <Card.Section>
-                                <div className='data-table-pagination'>
+                                <div className='data-table-pagination'
+                                     style={{
+                                         display: "flex",
+                                         justifyContent: "center",
+                                         marginTop: "20px",
+                                         paddingBottom: "20px",
+                                     }}
+                                >
 
                                     <Pagination
                                         hasPrevious={hasPreviousPage ? true : false}

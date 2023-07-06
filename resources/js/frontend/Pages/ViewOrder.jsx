@@ -172,6 +172,7 @@ export function ViewOrder() {
                     }
                 })
 
+            console.log('yes')
             setSubtotalPrice(response?.data?.order?.subtotal_price)
             setTotalTax(response?.data?.order?.total_tax)
             setTotalPrice(response?.data?.order?.total_price)
@@ -212,7 +213,8 @@ export function ViewOrder() {
 
 
         } catch (error) {
-
+console.log('eror',error)
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -250,7 +252,7 @@ console.log('check',cartPrices)
 
     return (
         <div className="Discount-Detail-Page Abandoned-Checkout-Detail-Page">
-            {!loading ? (
+            {loading ? (
                 <span>
           <Loading />
           <SkeltonPageForTable />

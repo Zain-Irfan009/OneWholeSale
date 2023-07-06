@@ -184,7 +184,7 @@ export function Orders() {
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(orders);
 
-    const rowMarkup = orders?.map(
+    const rowMarkup = orders ? orders?.map(
         ({ id, order_id, gateway, financial_status,
              fulfillment_status,payment_status,order_status,tracking_id  }, index) => (
 
@@ -247,7 +247,7 @@ export function Orders() {
 
             </IndexTable.Row>
         ),
-    );
+    ) : <EmptySearchResult title={"No Order Found"} withIllustration />
 
     const emptyStateMarkup = (
         <EmptySearchResult
@@ -279,6 +279,7 @@ export function Orders() {
     const getData = async () => {
 
         const sessionToken = getAccessToken();
+        setLoading(true)
         try {
 
             const response = await axios.get(`${apiUrl}/seller/orders`,
@@ -288,6 +289,7 @@ export function Orders() {
                     }
                 })
             setOrders(response?.data?.orders)
+            setLoading(false)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -295,7 +297,7 @@ export function Orders() {
 
 
         } catch (error) {
-
+            setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -537,7 +539,14 @@ export function Orders() {
 
 
                             <Card.Section>
-                                <div className='data-table-pagination'>
+                                <div className='data-table-pagination'
+                                     style={{
+                                         display: "flex",
+                                         justifyContent: "center",
+                                         marginTop: "20px",
+                                         paddingBottom: "20px",
+                                     }}
+                                >
 
                                     <Pagination
                                         hasPrevious={hasPreviousPage ? true : false}
