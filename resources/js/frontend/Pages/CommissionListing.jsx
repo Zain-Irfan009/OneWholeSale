@@ -245,7 +245,7 @@ export function CommissionListing() {
                 <IndexTable.Cell className='Polaris-IndexTable-Product-Column'>
 
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {order_id != null ? order_id : '---'}
+                        {id != null ? id : '---'}
 
                     </Text>
                 </IndexTable.Cell>
