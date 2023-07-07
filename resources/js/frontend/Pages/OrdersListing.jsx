@@ -356,7 +356,7 @@ export function OrdersListing() {
       {
         id,
         order_id,
-        store_order_id,
+          order_number,
         user_name,
         gateway,
           financial_status,
@@ -380,7 +380,7 @@ export function OrdersListing() {
 
         <IndexTable.Cell>
           <Text variant="bodyMd" fontWeight="semibold" as="span">
-            {store_order_id != null ? store_order_id : "---"}
+            {order_number != null ? order_number : "---"}
           </Text>
         </IndexTable.Cell>
 
@@ -796,7 +796,7 @@ export function OrdersListing() {
                   emptyState={emptyStateMarkup}
                   headings={[
                     { title: "Order Id" },
-                    { title: "Store Order Id" },
+                    { title: "Store Order Num" },
                     { title: "Seller" },
                     { title: "Payment Mode" },
                     { title: "Payment Status" },
