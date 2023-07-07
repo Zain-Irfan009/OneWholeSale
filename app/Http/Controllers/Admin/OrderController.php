@@ -53,8 +53,11 @@ class OrderController extends Controller
         if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {
 
             $newOrder = Order::where('shopify_order_id', $order->id)->where('shop_id', $shop->id)->first();
+
+            $flag=0;
             if ($newOrder == null) {
                 $newOrder = new Order();
+                $flag=1;
             }
             $newOrder->shopify_order_id = $order->id;
             $newOrder->email = $order->email;
@@ -108,6 +111,7 @@ class OrderController extends Controller
 
 
             foreach ($order->line_items as $item) {
+
                 $new_line = LineItem::where('lineitem_id', $item->id)->where('order_id', $newOrder->id)->where('shop_id', $shop->id)->first();
                 if ($new_line == null) {
                     $new_line = new Lineitem();
@@ -162,32 +166,37 @@ class OrderController extends Controller
 
                         }
 
-                        $admin_earning=($item->price*$item->quantity)-$total_commission;
+                        $admin_earning = ($item->price * $item->quantity) - $total_commission;
 
 
-                        $newOrder->user_id=$user->id;
-                        $newOrder->user_name=$user->name;
-                        $newOrder->user_email=$user->email;
-                        $newOrder->seller_shopname=$user->seller_shopname;
+                        $newOrder->user_id = $user->id;
+                        $newOrder->user_name = $user->name;
+                        $newOrder->user_email = $user->email;
+                        $newOrder->seller_shopname = $user->seller_shopname;
                         $newOrder->save();
 
-                        $user->total_commission = $user->total_commission + $total_commission;
-                        $user->save();
-                        $commission_log = new CommissionLog();
-                        $commission_log->user_id = $user->id;
-                        $commission_log->seller_name = $user->name;
-                        $commission_log->order_id = $newOrder->id;
-                        $commission_log->commission = $commission;
-                        $commission_log->shopify_product_id = $item->product_id;
-                        $commission_log->shopify_order_id = $order->id;
-                        $commission_log->product_name = $new_line->title;
-                        $commission_log->quantity = $new_line->quantity;
-                        $commission_log->price = $new_line->price;
-                        $commission_log->unit_product_commission = $commission;
-                        $commission_log->total_admin_earning = $admin_earning;
-                        $commission_log->total_product_commission = $total_commission;
-                        $commission_log->shop_id = $shop->id;
-                        $commission_log->save();
+                        if ($flag == 1) {
+                            $commission_log = new CommissionLog();
+
+                            $user->total_commission = $user->total_commission + $total_commission;
+                            $user->save();
+
+                            $commission_log->user_id = $user->id;
+                            $commission_log->seller_name = $user->name;
+                            $commission_log->order_id = $newOrder->id;
+                            $commission_log->commission = $commission;
+                            $commission_log->shopify_product_id = $item->product_id;
+                            $commission_log->shopify_order_id = $order->id;
+                            $commission_log->product_name = $new_line->title;
+                            $commission_log->quantity = $new_line->quantity;
+                            $commission_log->price = $new_line->price;
+                            $commission_log->unit_product_commission = $commission;
+                            $commission_log->total_admin_earning = $admin_earning;
+                            $commission_log->total_product_commission = $total_commission;
+                            $commission_log->shop_id = $shop->id;
+                            $commission_log->save();
+
+                        }
                     }
 
                 }
