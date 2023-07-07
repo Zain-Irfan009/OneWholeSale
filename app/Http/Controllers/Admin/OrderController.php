@@ -279,4 +279,12 @@ class OrderController extends Controller
                 'link' => asset($name),
             ]);
         }
+
+
+        public function RecentOrders(Request $request){
+            $user=auth()->user();
+            $shop=Session::where('shop',$user->name)->first();
+            $orders = Order::where('shop_id', $shop->id)->latest()->take(3)->get();
+            return response()->json($orders);
+        }
 }

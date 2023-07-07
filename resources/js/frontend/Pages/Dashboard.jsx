@@ -42,69 +42,11 @@ import { useNavigate } from "react-router-dom";
 import { InputField } from "../components/Utils";
 import { AreaChart, XAxis, YAxis, CartesianGrid, Area } from "recharts";
 import { DateRangePicker } from "rsuite";
+import {getAccessToken} from "../assets/cookies";
 
-let orders = [
-  {
-    id: 1,
-    order_id: "3232332",
-    store_order_id: "W31411CA",
-    seller: "Sagar Patel",
-    payment_mode: "Interac E-Transfer",
-    payment_status: "Paid",
-    order_status: "Unfulfilled",
-    tracking_id: "N/A",
-  },
-  {
-    id: 2,
-    order_id: "3232332",
-    store_order_id: "W31411CA",
-    seller: "Sagar Patel",
-    payment_mode: "Interac E-Transfer",
-    payment_status: "Paid",
-    order_status: "Unfulfilled",
-    tracking_id: "N/A",
-  },
-  {
-    id: 3,
-    order_id: "3232332",
-    store_order_id: "W31411CA",
-    seller: "Sagar Patel",
-    payment_mode: "Interac E-Transfer",
-    payment_status: "Paid",
-    order_status: "Unfulfilled",
-    tracking_id: "N/A",
-  },
-];
 
-const sellers = [
-  {
-    id: 1,
-    seller_id: "333",
-    name: "Seller1",
-    shop_name: "Marketplace",
-    email: "marketplace@gmail.com",
-    date: "2023-03-08",
-    status: "active",
-  },
-  {
-    id: 2,
-    seller_id: "222",
-    name: "Seller1",
-    shop_name: "Marketplace",
-    email: "marketplace@gmail.com",
-    date: "2023-03-08",
-    status: "active",
-  },
-  {
-    id: 3,
-    seller_id: "111",
-    name: "Seller1",
-    shop_name: "Marketplace",
-    email: "marketplace@gmail.com",
-    date: "2023-03-08",
-    status: "active",
-  },
-];
+
+
 const resourceName = {
   singular: "order",
   plural: "orders",
@@ -124,6 +66,9 @@ export function Dashboard() {
   const [toastMsg, setToastMsg] = useState("");
   const [storeUrl, setStoreUrl] = useState("");
   const [active, setActive] = useState(false);
+
+    const [orders, setOrders] = useState([])
+    const [sellers, setSellers] = useState([])
 
   const [hasNextPage, setHasNextPage] = useState(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
@@ -159,29 +104,7 @@ export function Dashboard() {
     []
   );
 
-  // const tabs = [
-  //   {
-  //     id: "all-customers-1",
-  //     content: "All",
-  //     accessibilityLabel: "All customers",
-  //     panelID: "all-customers-content-1",
-  //   },
-  //   {
-  //     id: "accepts-marketing-1",
-  //     content: "Accepts marketing",
-  //     panelID: "accepts-marketing-content-1",
-  //   },
-  //   {
-  //     id: "repeat-customers-1",
-  //     content: "Repeat customers",
-  //     panelID: "repeat-customers-content-1",
-  //   },
-  //   {
-  //     id: "prospects-1",
-  //     content: "Prospects",
-  //     panelID: "prospects-content-1",
-  //   },
-  // ];
+
   const tabs = [
     {
       id: "all-customers-1",
@@ -242,8 +165,20 @@ export function Dashboard() {
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(sellers);
 
-  const rowMarkup = sellers.map(
-    ({ id, seller_id, name, shop_name, email, date, status }, index) => (
+
+    const formatDate=(created_at)=>{
+        const date = new Date(created_at);
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const formatedDate = `${month.toString().padStart(2, "0")}-${day
+            .toString()
+            .padStart(2, "0")}-${year}`;
+        return formatedDate;
+    }
+
+    const rowMarkup = sellers.map(
+    ({ id, seller_id, name, seller_shopname, email, created_at, status }, index) => (
       <IndexTable.Row
         id={id}
         key={id}
@@ -253,22 +188,24 @@ export function Dashboard() {
       >
         <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
           <Text variant="bodyMd" fontWeight="semibold" as="span">
-            {seller_id != null ? seller_id : "---"}
+            {id != null ? id : "---"}
           </Text>
         </IndexTable.Cell>
 
         <IndexTable.Cell>{name != null ? name : "---"}</IndexTable.Cell>
 
         <IndexTable.Cell className="Capitalize-Cell">
-          {shop_name != null ? shop_name : "---"}
+          {seller_shopname != null ? seller_shopname : "---"}
         </IndexTable.Cell>
 
         <IndexTable.Cell>{email != null ? email : "---"}</IndexTable.Cell>
 
-        <IndexTable.Cell>{date != null ? date : "---"}</IndexTable.Cell>
-        <IndexTable.Cell>
-          <CustomBadge value={"ACTIVE"} type="products" />
-        </IndexTable.Cell>
+          <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
+          <IndexTable.Cell>
+              <CustomBadge value={status==1 ?"ACTIVE" : "Disabled"} type="products" />
+
+          </IndexTable.Cell>
+
       </IndexTable.Row>
     )
   );
@@ -278,11 +215,11 @@ export function Dashboard() {
       {
         id,
         order_id,
-        store_order_id,
-        seller,
-        payment_mode,
-        payment_status,
-        order_status,
+        order_number,
+          user_name,
+          gateway,
+          financial_status,
+          fulfillment_status,
         tracking_id,
       },
       index
@@ -295,43 +232,98 @@ export function Dashboard() {
       >
         <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
           <Text variant="bodyMd" fontWeight="semibold" as="span">
-            {order_id != null ? order_id : "---"}
+            {id != null ? id : "---"}
           </Text>
         </IndexTable.Cell>
 
         <IndexTable.Cell>
           <Text variant="bodyMd" fontWeight="semibold" as="span">
-            {store_order_id != null ? store_order_id : "---"}
+            {order_number != null ? order_number : "---"}
           </Text>
         </IndexTable.Cell>
 
         <IndexTable.Cell className="Capitalize-Cell">
-          {seller != null ? seller : "---"}
+          {user_name != null ? user_name : "---"}
         </IndexTable.Cell>
 
         <IndexTable.Cell>
-          {payment_mode != null ? payment_mode : "---"}
+          {gateway != null ? gateway : "---"}
         </IndexTable.Cell>
 
-        <IndexTable.Cell>
-          <CustomBadge value={"PAID"} type="orders" variant={"financial"} />
-        </IndexTable.Cell>
+          <IndexTable.Cell>
+              <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
+          </IndexTable.Cell>
 
-        <IndexTable.Cell>
-          <CustomBadge
-            value={"UNFULFILLED"}
-            variant={"fulfillment"}
-            type="orders"
-          />
-        </IndexTable.Cell>
-        <IndexTable.Cell>
-          {tracking_id != null ? tracking_id : "---"}
-        </IndexTable.Cell>
+
+          <IndexTable.Cell>
+              <CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />
+          </IndexTable.Cell>
+
+          <IndexTable.Cell>
+              {tracking_id != null ? tracking_id : "N/A"}
+          </IndexTable.Cell>
       </IndexTable.Row>
     )
   );
 
-  return (
+
+    const getData = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/recent-orders`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setOrders(response?.data)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    const getSellerData = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/recent-sellers`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setSellers(response?.data)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    useEffect(() => {
+        getData();
+        getSellerData();
+    }, []);
+
+
+    return (
     <div className="Products-Page IndexTable-Page Orders-page">
       {!loading ? (
         <span>

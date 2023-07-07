@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('send-message',[\App\Http\Controllers\Admin\SellerController::class,'SendMessage'])->middleware('smtp');
     Route::get('update-seller-status-multiple',[\App\Http\Controllers\Admin\SellerController::class,'UpdateSellerStatusMultiple']);
     Route::get('export-seller',[\App\Http\Controllers\Admin\SellerController::class,'ExportSeller']);
+    Route::get('recent-sellers',[\App\Http\Controllers\Admin\SellerController::class,'RecentSellers']);
 
 
 
@@ -65,6 +66,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('sync-orders',[\App\Http\Controllers\Admin\OrderController::class,'SyncOrder']);
     Route::get('order-filter',[\App\Http\Controllers\Admin\OrderController::class,'OrderFilter']);
     Route::get('export-order',[\App\Http\Controllers\Admin\OrderController::class,'ExportOrder']);
+    Route::get('recent-orders',[\App\Http\Controllers\Admin\OrderController::class,'RecentOrders']);
+
+
 
         //Global Commission
     Route::get('global-commission',[\App\Http\Controllers\Admin\CommissionController::class,'GlobalCommission']);
