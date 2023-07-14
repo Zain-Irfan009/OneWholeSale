@@ -69,6 +69,7 @@ class DashboardController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         $store_earning=CommissionLog::where('shop_id',$shop->id)->sum('total_admin_earning');
+        $store_earning=(string)((float)$store_earning);
         return response()->json($store_earning);
     }
 
@@ -78,6 +79,7 @@ class DashboardController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         if($request->date==null){
             $store_earning=CommissionLog::where('shop_id',$shop->id)->sum('total_admin_earning');
+            $store_earning=(string)((float)$store_earning);
             return response()->json($store_earning);
         }
 
