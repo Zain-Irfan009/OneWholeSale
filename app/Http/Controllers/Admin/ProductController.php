@@ -3,18 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProductPushJob;
 use App\Mail\SendMail;
+use App\Models\CsvImport;
 use App\Models\MailConfiguration;
 use App\Models\MailSmtpSetting;
 use App\Models\Option;
 use App\Models\Product;
+use App\Models\ProductHistory;
 use App\Models\ProductImage;
 use App\Models\Session;
 use App\Models\User;
 use App\Models\Variant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Shopify\Clients\Rest;
+use Vtiful\Kernel\Excel;
 
 class ProductController extends Controller
 {
@@ -180,7 +186,7 @@ if(isset($request->images)) {
             $collections='';
         }
 
-        if($request->status==true){
+        if($request->status=="true"){
             $status='active';
         }else{
             $status='draft';
@@ -252,6 +258,15 @@ if(isset($request->images)) {
         }
         $product->featured_image=$image;
         $product->save();
+
+
+        $product_history=new ProductHistory();
+        $product_history->product_shopify_id=$response->id;
+        $product_history->shop_id=$session->id;
+        $product_history->product_name=$response->title;
+        $product_history->status=$response->status;
+        $product_history->date=Carbon::now();
+        $product_history->save();
 
 
         if(isset($request->product_id)){
@@ -388,12 +403,23 @@ if(isset($request->images)) {
                             'status'=>$status
                         ]
                     ];
+                    $this->SendMail($product,$request->product_status);
 
                     $product_status_update=$client->put( '/products/' . $product->shopify_id . '.json',$product_data);
                     $product_status_update=$product_status_update->getDecodedBody();
+
                     if(!isset($product_status_update['errors'])){
                         $product->product_status=$request->product_status;
+                        $product->status=$product_status_update['product']['status'];
                         $product->save();
+
+                        $product_history=new ProductHistory();
+                        $product_history->product_shopify_id=$product_status_update['product']['id'];
+                        $product_history->shop_id=$session->id;
+                        $product_history->product_name=$product_status_update['product']['title'];
+                        $product_history->status=$product_status_update['product']['status'];
+                        $product_history->date=Carbon::now();
+                        $product_history->save();
 
 
                         $this->SendMail($product,$request->product_status);
@@ -411,6 +437,7 @@ if(isset($request->images)) {
     }
 
     public function ReassignSeller(Request $request){
+
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
         $client = new Rest($session->shop, $session->access_token);
@@ -442,6 +469,7 @@ if(isset($request->images)) {
 
                         $product->user_id = $user->id;
                         $product->seller_email = $user->email;
+                        $product->seller_name = $user->name;
                         $product->collect_id = $collect_product['collect']['id'];
                         $product->save();
 
@@ -539,18 +567,21 @@ if(isset($request->images)) {
             if($status=='Approved'){
                 $type='Product Approve';
         $user=User::find($product->user_id);
+
         $shop=Session::find($product->shop_id);
         $mail_configuration=MailConfiguration::where('shop_id',$product->shop_id)->first();
-        if($mail_configuration && $mail_configuration->product_approval_status==1) {
-            $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
-            $details['subject'] = 'Product Approved';
-            $details['name'] = $user->name;
-            $details['body'] = 'This is for testing email using smtp.';
-            $details['shop_id'] = $product->shop_id;
-            $details['product_name'] = $product->product_name;
-            $details['shop_name'] = $shop->shop;
+        if($user) {
+            if ($mail_configuration && $mail_configuration->product_approval_status == 1) {
+                $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
+                $details['subject'] = 'Product Approved';
+                $details['name'] = $user->name;
+                $details['body'] = 'This is for testing email using smtp.';
+                $details['shop_id'] = $product->shop_id;
+                $details['product_name'] = $product->product_name;
+                $details['shop_name'] = $shop->shop;
 
-            Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
+                Mail::to($user->email)->send(new SendMail($details, $Setting, $type));
+            }
         }
         }
     }
@@ -583,4 +614,234 @@ if(isset($request->images)) {
             'link' => asset($name),
         ]);
     }
-}
+
+    public function importCSV(Request $request)
+    {
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+
+        $file = $request->file('csv_file');
+
+        // dd($file);
+        $filename = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $tempPath = $file->getRealPath();
+        $fileSize = $file->getSize();
+        $mimeType = $file->getMimeType();
+
+        // Valid File Extensions
+        $valid_extension = array("csv");
+
+        // 2MB in Bytes
+        $maxFileSize = 2097152;
+
+        // Check file extension
+        if (in_array(strtolower($extension), $valid_extension)) {
+
+            // Check file size
+            if ($fileSize <= $maxFileSize) {
+
+                // File upload location
+                $location = 'csv-file';
+
+                // Upload file
+                $file->move($location, $filename);
+
+                // Import CSV to Database
+                $filepath = public_path($location . "/" . $filename);
+
+                // Reading file
+                $file = fopen($filepath, "r");
+
+                $importData_arr = array();
+                $i = 0;
+
+                while (($filedata = fgetcsv($file, 1000, ",")) !== FALSE) {
+                    $num = count($filedata);
+
+                    // Skip first row (Remove below comment if you want to skip the first row)
+                    if ($i == 0) {
+                        $i++;
+                        continue;
+                    }
+                    for ($c = 0; $c < $num; $c++) {
+                        $importData_arr[$i][] = $filedata [$c];
+                    }
+                    $i++;
+                }
+                fclose($file);
+
+                // Insert to MySQL database
+                foreach ($importData_arr as $importData) {
+
+                    $insertData = array(
+                        "shop_id"=>$shop->id,
+                        "product_id"=>$importData[0],
+                        "title" => $importData[1],
+                        "description" => $importData[2],
+                        "seller_email" => $importData[3],
+                        "type" => $importData[4],
+                        "tags" => $importData[5],
+                        "option_name1" => $importData[6],
+                        "option_value1" => $importData[7],
+                        "option_name2" => $importData[8],
+                        "option_value2" => $importData[9],
+                        "option_name3" => $importData[10],
+                        "option_value3" => $importData[11],
+                        "variant_sku" => $importData[12],
+                        "variant_grams" => $importData[13],
+                        "variant_inventory_tracking" => $importData[14],
+                        "variant_quantity" => $importData[15],
+                        "variant_price" => $importData[16],
+                        "variant_compare_at_price" => $importData[17],
+                        "variant_require_shipping" => $importData[18],
+                        "variant_barcode" => $importData[19],
+                        "collection" => $importData[20],
+                        "status" => $importData[21],
+                        "inventory_policy" => $importData[22],
+                        "image" => $importData[23],
+                        "meta_title" => $importData[24],
+                        "meta_description" => $importData[25],
+                        "vendor_name" => $importData[27],
+                        "vendor_store_name" => $importData[28],
+                        "product_policy" => $importData[29]
+
+                    );
+
+                CsvImport::create($insertData);
+                }
+
+                $p_ids = DB::table('csv_imports')
+                    ->where('shop_id', $shop->id)
+                    ->where('imported', 0)
+                    ->distinct('product_id')
+                    ->pluck('product_id')
+                    ->all();
+
+                foreach ($p_ids as $p_id){
+                    ProductPushJob::dispatch($p_id,$shop);
+                }
+
+
+
+
+
+                return response()->json([
+                    'success' => true,
+                    'message'=>'Import Successful',
+
+                ]);
+
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message'=>'error',
+
+                ]);
+
+            }
+
+        } else {
+            return response()->json([
+                'success' => false,
+                'message'=>'error',
+
+            ]);
+
+        }
+
+    }
+
+    public function ImportProducts(Request $request)
+    {
+        $user = auth()->user();
+        $session = Session::where('shop', $user->name)->first();
+        if ($session) {
+            $products = CsvImport::where('shop_id', $session->id)->groupBy('product_shopify_id')->get();
+
+            $data = [
+                'data' => $products
+            ];
+            return response()->json($data);
+        }
+    }
+
+
+    public function AssignImportProducts(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        if($session){
+            $csv_import=CsvImport::find($request->id);
+            $product=Product::where('shopify_id',$csv_import->product_shopify_id)->first();
+
+            if($product){
+
+                $user=User::where('email',$request->email)->first();
+
+                if($user->id==$product->user_id){
+                    return response()->json([
+                        'message' => 'Product is Already Assigned to this Seller',
+                    ],422);
+                }
+                if($user){
+
+                    $delete_collect_product = $client->delete('/collects/'.$product->collect_id.'.json');
+                    $delete_collect_product = $delete_collect_product->getDecodedBody();
+
+                    if(!isset($delete_collect_product['errors']) || $delete_collect_product['errors']=='Not Found') {
+
+                        $collect_product = $client->post('/collects.json', [
+                            'collect' => [
+                                'collection_id'=>$user->collection_id,
+                                'product_id'=>$product->shopify_id
+                            ]
+                        ]);
+                    }
+
+                    $collect_product = $collect_product->getDecodedBody();
+
+                    if(!isset($collect_product['errors'])) {
+
+                        $product->user_id = $user->id;
+                        $product->seller_email = $user->email;
+                        $product->seller_name = $user->name;
+                        $product->collect_id = $collect_product['collect']['id'];
+                        $product->save();
+
+                        $csv_import->seller_email=$user->email;
+                        $csv_import->vendor_name=$user->name;
+                        $csv_import->vendor_store_name=$user->seller_shopname;
+                        $csv_import->save();
+
+                        $data = [
+                            'message' => 'Product Assigned Successfully',
+                        ];
+                    }else{
+                        $data = [
+                            'message' => $collect_product['errors']['product_id'][0],
+                        ];
+                        return response()->json($data,422);
+                    }
+                }else{
+                    return response()->json([
+                        'message' => 'This Email Seller Not Found',
+                    ],422);
+                }
+            }
+        }
+        return response()->json($data);
+
+    }
+
+    public function SearchProducts(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $products=CsvImport::where('title', 'like', '%' . $request->value . '%')->groupBy('product_shopify_id')->get();
+        $data = [
+            'data' => $products
+        ];
+        return response()->json($data);
+    }
+    }

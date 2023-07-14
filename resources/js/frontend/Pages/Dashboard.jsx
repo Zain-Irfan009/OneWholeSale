@@ -66,6 +66,8 @@ export function Dashboard() {
   const [toastMsg, setToastMsg] = useState("");
   const [storeUrl, setStoreUrl] = useState("");
   const [active, setActive] = useState(false);
+  const [productStats, setProductsStats] = useState(0);
+  const [storeEarning, setStoreEarning] = useState(0);
 
     const [orders, setOrders] = useState([])
     const [sellers, setSellers] = useState([])
@@ -94,16 +96,114 @@ export function Dashboard() {
     ranges?.map((range) => {
       const date = new Date(range);
       formattedDate.push(date.toISOString().slice(0, 10));
-      // console.log(formattedDate);
+      console.log(formattedDate);
     });
     setDateRange(formattedDate);
+
+      const sessionToken = getAccessToken();
+      try {
+
+          const response = await axios.get(`${apiUrl}/store-earning-filter?date=${formattedDate}`,
+              {
+                  headers: {
+                      Authorization: "Bearer " + sessionToken
+                  }
+              })
+
+          setStoreEarning(response?.data)
+
+
+
+      } catch (error) {
+
+          setToastMsg(error?.response?.data?.message)
+          setErrorToast(true)
+      }
   };
 
-  const handleTabChange = useCallback(
-    (selectedTabIndex) => setSelected(selectedTabIndex),
-    []
-  );
+  // const handleTabChange = useCallback(
+  //   (selectedTabIndex) => setSelected(selectedTabIndex),
+  //   []
+  // );
 
+
+    const getStoreStats =async (selectedTabIndex) =>  {
+        console.log(selectedTabIndex)
+        setSelected(selectedTabIndex)
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/store-stats?status=${selectedTabIndex}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setProductsStats(response?.data)
+
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    const getStoreStatsFirst =async () =>  {
+
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/store-stats?status=0`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+    setProductsStats(response?.data)
+            // setLoading(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+    const getStoreEarning =async () =>  {
+
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/store-earning`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setStoreEarning(response?.data)
+            // setLoading(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
 
   const tabs = [
     {
@@ -320,6 +420,8 @@ export function Dashboard() {
     useEffect(() => {
         getData();
         getSellerData();
+        getStoreStatsFirst()
+        getStoreEarning()
     }, []);
 
 
@@ -366,10 +468,10 @@ export function Dashboard() {
                   <Tabs
                     tabs={tabs}
                     selected={selected}
-                    onSelect={handleTabChange}
+                    onSelect={getStoreStats}
                   >
                     <LegacyCard.Section title={tabs[selected].content}>
-                      <p>Products {selected} selected</p>
+                      <p>Products {productStats} selected</p>
                     </LegacyCard.Section>
                     <LegacyCard.Section>
                       <div className="margin-top"></div>{" "}
@@ -398,7 +500,7 @@ export function Dashboard() {
                   />
                 </LegacyCard.Section>
                 <LegacyCard.Section>
-                  <Text>Total earning: 43</Text>
+                  <Text>Total earning: {storeEarning}</Text>
                   <div className="margin-top"> </div>
                   <Text>
                     This is the Overall Earning Amount of your Marketplace

@@ -592,6 +592,7 @@ export function SellersListing() {
   const [accountStatus, setAccountStatus] = useState(undefined);
 
   const onCreateNewView = async (value) => {
+      console.log(value)
     await sleep(500);
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);

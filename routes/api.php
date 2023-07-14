@@ -24,6 +24,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group( function () {
     Route::get('profile', [App\Http\Controllers\AuthController::class, 'profile']);
 
+
+
+    //Dashboard
+    Route::get('recent-orders',[\App\Http\Controllers\Admin\DashboardController::class,'RecentOrders']);
+    Route::get('recent-sellers',[\App\Http\Controllers\Admin\DashboardController::class,'RecentSellers']);
+    Route::get('store-stats',[\App\Http\Controllers\Admin\DashboardController::class,'StoreStats']);
+    Route::get('store-earning',[\App\Http\Controllers\Admin\DashboardController::class,'StoreEarning']);
+    Route::get('store-earning-filter',[\App\Http\Controllers\Admin\DashboardController::class,'StoreEarningFilter']);
+
         //Seller
     Route::get('sellers',[\App\Http\Controllers\Admin\SellerController::class,'Sellers']);
     Route::post('add-seller',[\App\Http\Controllers\Admin\SellerController::class,'AddSeller']);
@@ -36,7 +45,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('send-message',[\App\Http\Controllers\Admin\SellerController::class,'SendMessage'])->middleware('smtp');
     Route::get('update-seller-status-multiple',[\App\Http\Controllers\Admin\SellerController::class,'UpdateSellerStatusMultiple']);
     Route::get('export-seller',[\App\Http\Controllers\Admin\SellerController::class,'ExportSeller']);
-    Route::get('recent-sellers',[\App\Http\Controllers\Admin\SellerController::class,'RecentSellers']);
+
 
 
 
@@ -57,6 +66,14 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple']);
     Route::get('export-product',[\App\Http\Controllers\Admin\ProductController::class,'ExportProduct']);
 
+
+    //import Product
+    Route::get('import-products',[\App\Http\Controllers\Admin\ProductController::class,'ImportProducts']);
+    Route::get('search-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchProducts']);
+    Route::post('import-csv',[\App\Http\Controllers\Admin\ProductController::class,'importCSV']);
+    Route::post('assign-import-products',[\App\Http\Controllers\Admin\ProductController::class,'AssignImportProducts']);
+
+
     //collection
     Route::get('collections',[\App\Http\Controllers\Admin\CollectionController::class,'Collections']);
 
@@ -66,7 +83,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('sync-orders',[\App\Http\Controllers\Admin\OrderController::class,'SyncOrder']);
     Route::get('order-filter',[\App\Http\Controllers\Admin\OrderController::class,'OrderFilter']);
     Route::get('export-order',[\App\Http\Controllers\Admin\OrderController::class,'ExportOrder']);
-    Route::get('recent-orders',[\App\Http\Controllers\Admin\OrderController::class,'RecentOrders']);
+
 
 
 

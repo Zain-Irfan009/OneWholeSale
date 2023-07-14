@@ -92,11 +92,9 @@ export function OrdersListing() {
 
   const [itemStrings, setItemStrings] = useState([
     "All",
-    "Approved",
-    "Disapproved",
-    "Pending ",
-    "Approval",
-    "Disable",
+    "Paid",
+    "Pending",
+
   ]);
 
   const onCreateNewView = async (value) => {
@@ -110,6 +108,33 @@ export function OrdersListing() {
     await sleep(1);
     return true;
   };
+
+    const handleOrderFilter =async (value) =>  {
+        setSelected(value)
+        setLoading(true)
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/order-filter?status=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setOrders(response?.data?.orders)
+            setLoading(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
 
   const primaryAction =
     selected === 0
@@ -240,24 +265,43 @@ export function OrdersListing() {
 
   // ---------------------Tabs Code Start Here----------------------
 
-  const handleTabChange = (selectedTabIndex) => {
-    if (selected != selectedTabIndex) {
-      setSelected(selectedTabIndex);
-      if (selectedTabIndex == 0) {
-        setOrderStatus("");
-      } else if (selectedTabIndex == 1) {
-        setOrderStatus("unfulfilled");
-      } else if (selectedTabIndex == 2) {
-        setOrderStatus("unpaid");
-      } else if (selectedTabIndex == 3) {
-        setOrderStatus("open");
-      } else if (selectedTabIndex == 4) {
-        setOrderStatus("closed");
-      }
-      setPageCursorValue("");
-      setToggleLoadData(true);
-    }
-  };
+  // const handleTabChange = (selectedTabIndex) => {
+  //   if (selected != selectedTabIndex) {
+  //     setSelected(selectedTabIndex);
+  //     if (selectedTabIndex == 0) {
+  //       setOrderStatus("");
+  //     } else if (selectedTabIndex == 1) {
+  //       setOrderStatus("unfulfilled");
+  //     } else if (selectedTabIndex == 2) {
+  //       setOrderStatus("unpaid");
+  //     } else if (selectedTabIndex == 3) {
+  //       setOrderStatus("open");
+  //     } else if (selectedTabIndex == 4) {
+  //       setOrderStatus("closed");
+  //     }
+  //     setPageCursorValue("");
+  //     setToggleLoadData(true);
+  //   }
+  // };
+
+    const handleTabChange = (selectedTabIndex) => {
+        if (selected != selectedTabIndex) {
+            setSelected(selectedTabIndex);
+            if (selectedTabIndex == 0) {
+                setOrderStatus("");
+            } else if (selectedTabIndex == 1) {
+                setOrderStatus("unfulfilled");
+            } else if (selectedTabIndex == 2) {
+                setOrderStatus("unpaid");
+            } else if (selectedTabIndex == 3) {
+                setOrderStatus("open");
+            } else if (selectedTabIndex == 4) {
+                setOrderStatus("closed");
+            }
+            setPageCursorValue("");
+            setToggleLoadData(true);
+        }
+    };
 
   const appliedFilters = [];
   if (accountStatus && !isEmpty(accountStatus)) {
@@ -308,7 +352,7 @@ export function OrdersListing() {
     isLocked: index === 0,
 
   }));
-  const allResourcesSelect = orders.every(({ id }) =>
+  const allResourcesSelect = orders?.every(({ id }) =>
     selectedResources.includes(id)
   );
 
@@ -773,7 +817,7 @@ export function OrdersListing() {
                   }}
                   tabs={tabs}
                   selected={selected}
-                  onSelect={setSelected}
+                  onSelect={handleOrderFilter}
                   canCreateNewView
                   onCreateNewView={onCreateNewView}
                   filters={filters}
@@ -785,7 +829,7 @@ export function OrdersListing() {
 
                 <IndexTable
                   resourceName={resourceName}
-                  itemCount={orders.length}
+                  itemCount={orders?.length}
                   hasMoreItems
                   selectable={true}
                   selectedItemsCount={

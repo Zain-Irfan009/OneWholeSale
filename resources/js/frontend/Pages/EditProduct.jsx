@@ -222,7 +222,9 @@ export function EditProduct() {
             setPageDescription(response?.data?.product?.search_engine_meta_description)
             setStatus(response?.data?.product?.status)
             setNewTags(response?.data?.product?.tags.split(','))
-            setCollectionOptionsSelected(response?.data?.product?.collections.split(','))
+            if(response?.data?.product?.collections) {
+                setCollectionOptionsSelected(response?.data?.product?.collections.split(','))
+            }
             setVendor(response?.data?.product?.vendor)
             setMediaFilesUrl(response?.data?.product_images)
             setVariantOptions(response?.data?.options?.[0]?.name)
@@ -300,7 +302,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
             setLoading(false)
 
         } catch (error) {
-
+        console.log('error',error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
             setSkeleton(false)
@@ -2020,7 +2022,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                                 {label: "Active", value: 'active'},
                                             ]}
                                             onChange={() => setStatus(!status)}
-                                            value={status ? 'active' : 'draft'}
+                                            value={status =='active'? 'active' : 'draft'}
                                         />
                                     </div>
                                 </Card>

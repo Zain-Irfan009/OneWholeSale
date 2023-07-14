@@ -12,6 +12,8 @@
 <?php
 
 $mail_configuration=\App\Models\MailConfiguration::where('shop_id',$details['shop_id'])->first();
+
+
 $message='Product details
 
 {$product_details}
@@ -23,7 +25,11 @@ $body_msg = str_replace($message, "" , $mail_configuration->mail_content);
 $body = str_replace('{$seller_name}', $details['name'] ,$body_msg);
 
 ?>
-
+@if($mail_configuration->mail_header_status==1)
+    <div style="background-color:{{$mail_configuration->header_background_color}}">
+    <h3 style="text-align:center"><img src="{{asset('1.png')}}"> </h3>
+    </div>
+        @endif
 <p> {!! $body !!} </p>
 <br>
 <h4>Product Details</h4>
@@ -35,6 +41,12 @@ $body = str_replace('{$seller_name}', $details['name'] ,$body_msg);
 <br>
 <h5>{!! $details['shop_name'] !!}</h5>
 <br>
+
+@if($mail_configuration->mail_footer_status==1)
+    <div style="background-color:{{$mail_configuration->footer_background_color}}">
+        <h3 style="text-align:center">Footer</h3>
+    </div>
+@endif
 
 </body>
 </html>

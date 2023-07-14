@@ -206,9 +206,16 @@ class OrderController extends Controller
 
     public function OrderFilter(Request $request)
     {
-        $session = Session::where('shop', $request->shop)->first();
-        if ($session) {
-            $orders = Order::where('financial_status', $request->status)->get();
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        if ($shop) {
+            if($request->status==0) {
+                $orders = Order::where('financial_status', $request->status)->where('shop_id', $shop->id)->get();
+            }else if($request->status==1){
+                $orders = Order::where('financial_status','paid')->where('shop_id', $shop->id)->get();
+            }else if($request->status==2){
+                $orders = Order::where('financial_status','pending')->where('shop_id', $shop->id)->get();
+            }
             if (count($orders) > 0) {
                 $data = [
                     'orders' => $orders
@@ -290,10 +297,5 @@ class OrderController extends Controller
         }
 
 
-        public function RecentOrders(Request $request){
-            $user=auth()->user();
-            $shop=Session::where('shop',$user->name)->first();
-            $orders = Order::where('shop_id', $shop->id)->latest()->take(3)->get();
-            return response()->json($orders);
-        }
+
 }

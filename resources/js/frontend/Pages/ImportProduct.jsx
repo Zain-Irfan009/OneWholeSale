@@ -27,7 +27,7 @@ import {
     Modal,
     Select
 } from '@shopify/polaris';
-import { SearchMinor, ExternalMinor,DeleteMinor,HorizontalDotsMinor } from '@shopify/polaris-icons';
+import { SearchMinor, ExternalMinor,DeleteMinor,HorizontalDotsMinor,NoteMinor } from '@shopify/polaris-icons';
 import { AppContext } from '../components/providers/ContextProvider'
 import { SkeltonPageForTable } from '../components/global/SkeltonPage'
 import { CustomBadge } from '../components/Utils/CustomBadge'
@@ -39,27 +39,6 @@ import {getAccessToken} from "../assets/cookies";
 // import dateFormat from "dateformat";
 
 
-let data=[{
-    id:1,
-    product_id:'3232332',
-    product_name:'Leaf disposable lighter Box of 50 [XLC8025CAN]',
-    vendor:'HIGH-END BRANDS GLASS',
-},
-    {
-        id:2,
-        product_id:'3232332',
-        product_name:'Leaf disposable lighter Box of 50 [XLC8025CAN]',
-        vendor:'HIGH-END BRANDS GLASS',
-
-    },
-    {
-        id:3,
-        product_id:'3232332',
-        product_name:'Leaf disposable lighter Box of 50 [XLC8025CAN]',
-        vendor:'HIGH-END BRANDS GLASS',
-    }
-
-];
 
 
 export function ImportProduct() {
@@ -79,7 +58,7 @@ export function ImportProduct() {
     //modal code
     const [modalReassign, setModalReassign] = useState(false);
     const [files, setFiles] = useState([]);
-    const [customers, setCustomers] = useState(data)
+    const [importData, setImportData] = useState([])
     const [hasNextPage, setHasNextPage] = useState(false)
     const [hasPreviousPage, setHasPreviousPage] = useState(false)
     const [pageCursor, setPageCursor] = useState('next')
@@ -94,6 +73,7 @@ export function ImportProduct() {
     const [assignProduct, setAssignProduct] = useState('normal');
     const [sellerMessage, setSellerMessage] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
+    const [formErrors, setFormErrors] = useState({});
 
     const toggleActive=(id)=>{
 
@@ -140,11 +120,32 @@ export function ImportProduct() {
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
         setQueryValue('')
+        getData()
         setToggleLoadData(true)
     }
-    const handleFiltersQueryChange = (value) => {
+    const handleFiltersQueryChange = async (value)  => {
         setPageCursorValue('')
         setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/search-product?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+                setImportData(response?.data?.data)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
         setTimeout(() => {
             setToggleLoadData(true)
         }, 1000);
@@ -181,39 +182,130 @@ export function ImportProduct() {
         setModalAssignProduct(false)
     }
 
+
+    const assignProductToSeller = async () => {
+
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+        const errors = {};
+
+        if (sellerEmail.trim() === '') {
+            errors.sellerEmail = 'Email is required';
+        }
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+        setBtnLoading(true)
+        let data = {
+            id: uniqueId,
+            email:sellerEmail
+        }
+        try {
+            const response = await axios.post(`${apiUrl}/assign-import-products`,data,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setBtnLoading(false)
+            getData()
+            setModalAssignProduct(false)
+            setSellerEmail('')
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+    }
+
     const handleSellerEmail = (e) => {
         setSellerEmail(e.target.value)
     }
 
 
-    const {selectedResources, allResourcesSelected, handleSelectionChange} =
-        useIndexResourceState(customers);
+    const getData = async () => {
 
-    const rowMarkup = customers?.map(
-        ({ id, product_id,product_name,vendor }, index) => (
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/import-products`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            console.log(response?.data?.data)
+            setImportData(response?.data?.data)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    useEffect(() => {
+        getData();
+    }, []);
+
+    const {selectedResources, allResourcesSelected, handleSelectionChange} =
+        useIndexResourceState(importData);
+
+    function handleRowClick(id) {
+        const target = event.target;
+        const isCheckbox = target.tagName === "INPUT" && target.type === "checkbox";
+
+        if (!isCheckbox) {
+            event.stopPropagation(); // Prevent row from being selected
+        } else {
+            // Toggle selection state of row
+            const index = selectedResources.indexOf(id);
+            if (index === -1) {
+                handleSelectionChange([...selectedResources, id]);
+            } else {
+                handleSelectionChange(selectedResources.filter((item) => item !== id));
+            }
+        }
+    }
+
+    const rowMarkup = importData?.map(
+        ({ id, product_shopify_id,title,vendor_name }, index) => (
 
             <IndexTable.Row
                 id={id}
                 key={id}
                 selected={selectedResources.includes(id)}
                 position={index}
+                onClick={() => handleRowClick(id)} // Add this line
             >
                 <IndexTable.Cell className='Polaris-IndexTable-Product-Column'>
 
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {product_id != null ? product_id : '---'}
+                        {product_shopify_id != null ? product_shopify_id : '---'}
 
                     </Text>
 
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    {product_name != null ? product_name : '---'}
+                    {title != null ? title : '---'}
 
                 </IndexTable.Cell>
 
                 <IndexTable.Cell className='Capitalize-Cell'>
-                    {vendor != null ? vendor : '---'}
+                    {vendor_name != null ? vendor_name : '---'}
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
@@ -246,7 +338,7 @@ export function ImportProduct() {
 
     const emptyStateMarkup = (
         <EmptySearchResult
-            title={'No Customers Found'}
+            title={'No Data Found'}
             withIllustration
         />
     );
@@ -362,24 +454,26 @@ export function ImportProduct() {
             const sessionToken = getAccessToken();
             // Verify that the sessionToken is a valid JWT token with three segments
             const tokenSegments = sessionToken.split('.');
-            if (tokenSegments.length !== 3) {
-                throw new Error('Invalid JWT token');
-            }
+            // if (tokenSegments.length !== 3) {
+            //     throw new Error('Invalid JWT token');
+            // }
             // Create a headers object with the authorization bearer token
             const headers = {
                 'Content-Type': 'multipart/form-data',
                 'Authorization': `Bearer ${sessionToken}`
             };
             try {
-                const response = await axios.post('/api/load_file', formData, { headers });
+                const response = await axios.post('/api/import-csv', formData, { headers });
                 if (response) {
                     setBtnLoading(false);
-                    setShowToast(true);
-                    const data = response.data;
+                    setToastMsg(response?.data?.message);
+                    setSucessToast(true)
+                    setSelectedFile(null)
+                    // const data = response.data;
                     // Process the data returned from the API
-                    const newData = data.file; // Assuming the API response contains the file data in the "file" property
+                    // const newData = data.file; // Assuming the API response contains the file data in the "file" property
                     // Update the products state with the new data
-                    setProducts((prevProducts) => [...prevProducts, ...newData]);
+                    // setProducts((prevProducts) => [...prevProducts, ...newData]);
                 } else {
                     console.error('Failed to load file:');
                 }
@@ -397,10 +491,9 @@ export function ImportProduct() {
                 title="Import Products"
                 loading={btnLoading}
                 primaryAction={{
-                    content: "Send",
-                    destructive: true,
+                    content: "Load FIle",
                     disabled: btnLoading,
-                    onAction: importProducts,
+                    onAction: handleLoadFile,
                 }}
                 secondaryActions={[
                     {
@@ -416,34 +509,21 @@ export function ImportProduct() {
                             {uploadedFiles}
                             {fileUpload}
                         </DropZone>
-                        <div className='load_file'>
-                            <ButtonGroup>
-                                <Button primary onClick={handleLoadFile} loading={btnLoading}>Load File</Button>
-                            </ButtonGroup>
-                        </div>
+
                     </LegacyCard>
-                    <InputField
-                        multiline={1}
-                        placeholder="Enter Message for Seller"
-                        type="text"
-                        name="seller_message"
-                        value={sellerMessage}
-                        onChange={(e) => setSellerMessage(e.target.value)}
-                        // error={formErrors.sellerMessage}
 
-
-                    />
                 </Modal.Section>
             </Modal>
             <Modal
                 open={modalAssignProduct}
                 onClose={handleAassignProductCloseAction}
                 title="Assign Product To Seller"
-                loading={btnLoading[2]}
+                loading={btnLoading}
                 primaryAction={{
                     content: 'Assign',
                     destructive: true,
-                    disabled: btnLoading[2],
+                    disabled: btnLoading,
+                    onAction: assignProductToSeller,
                 }}
                 secondaryActions={[
                     {
@@ -455,12 +535,12 @@ export function ImportProduct() {
             >
                 <Modal.Section>
                     {/*<div className="label_editor">*/}
-                        <Select
-                            label="Assign Product As*"
-                            options={assignProductOptions}
-                            onChange={handleAssignProduct}
-                            value={assignProduct}
-                        />
+                    {/*    <Select*/}
+                    {/*        label="Assign Product As*"*/}
+                    {/*        options={assignProductOptions}*/}
+                    {/*        onChange={handleAssignProduct}*/}
+                    {/*        value={assignProduct}*/}
+                    {/*    />*/}
                     {/*</div>*/}
 
                     <InputField
@@ -470,6 +550,7 @@ export function ImportProduct() {
                         name='seller_email'
                         value={sellerEmail}
                         onChange={handleSellerEmail}
+
                     />
                 </Modal.Section>
             </Modal>
@@ -516,7 +597,7 @@ export function ImportProduct() {
 
                                 <IndexTable
                                     resourceName={resourceName}
-                                    itemCount={customers.length}
+                                    itemCount={importData.length}
                                     hasMoreItems
                                     selectable={true}
                                     selectedItemsCount={
@@ -539,7 +620,14 @@ export function ImportProduct() {
 
 
                             <Card.Section>
-                                <div className='data-table-pagination'>
+                                <div className='data-table-pagination'
+                                     style={{
+                                         display: "flex",
+                                         justifyContent: "center",
+                                         marginTop: "20px",
+                                         paddingBottom: "20px",
+                                     }}
+                                >
 
                                     <Pagination
                                         hasPrevious={hasPreviousPage ? true : false}

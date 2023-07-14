@@ -675,7 +675,7 @@ export function ProductsListing() {
     handleQueryValueRemove,
     handleTaggedWithRemove,
   ]);
-  const tabs = itemStrings.map((item, index) => ({
+  const tabs = itemStrings?.map((item, index) => ({
     content: item,
     index,
     onAction: () => {},
@@ -686,6 +686,7 @@ export function ProductsListing() {
   const primaryAction =
     selected === 0
       ? {
+
           type: "save-as",
           onAction: onCreateNewView,
           disabled: false,
@@ -1140,7 +1141,7 @@ export function ProductsListing() {
       case "taggedWith":
         return `Tagged with ${value}`;
       case "accountStatus":
-        return value.map((val) => `Customer ${val}`).join(", ");
+        return value?.map((val) => `Customer ${val}`).join(", ");
       default:
         return value;
     }

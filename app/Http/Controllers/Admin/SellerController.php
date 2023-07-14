@@ -423,11 +423,5 @@ class SellerController extends Controller
     }
 
 
-    public function RecentSellers(Request $request){
 
-        $user=auth()->user();
-        $shop=Session::where('shop',$user->name)->first();
-        $sellers = User::where('shop_id', $shop->id)->where('role','seller')->latest()->take(3)->get();
-        return response()->json($sellers);
-    }
 }
