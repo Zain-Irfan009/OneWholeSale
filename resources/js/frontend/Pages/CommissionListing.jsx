@@ -120,14 +120,9 @@ export function CommissionListing() {
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
         setQueryValue('')
+        getData()
+        // setCustomersLoading(false)
         setToggleLoadData(true)
-    }
-    const handleFiltersQueryChange = (value) => {
-        setPageCursorValue('')
-        setQueryValue(value)
-        setTimeout(() => {
-            setToggleLoadData(true)
-        }, 1000);
     }
 
     const handlePagination = (value) => {
@@ -210,7 +205,7 @@ export function CommissionListing() {
 
             console.log(response?.data?.data)
             setCommissions(response?.data?.data)
-
+            setLoading(false)
             setCustomersLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -224,6 +219,33 @@ export function CommissionListing() {
         }
     }
 
+    const handleFiltersQueryChange = async (value)  => {
+        setPageCursorValue('')
+        setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/search-commission?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setCommissions(response?.data?.data)
+            setCustomersLoading(false)
+
+        } catch (error) {
+            setCustomersLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+        setTimeout(() => {
+            setToggleLoadData(true)
+        }, 1000);
+    }
 
     useEffect(() => {
         getData();

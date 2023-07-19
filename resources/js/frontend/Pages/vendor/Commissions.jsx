@@ -119,12 +119,33 @@ export function Commissions() {
     // ---------------------Tag/Filter Code Start Here----------------------
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
+        getData()
         setQueryValue('')
         setToggleLoadData(true)
     }
-    const handleFiltersQueryChange = (value) => {
+    const handleFiltersQueryChange = async (value)  => {
         setPageCursorValue('')
         setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/seller/search-commission?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setCommissions(response?.data?.data)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
         setTimeout(() => {
             setToggleLoadData(true)
         }, 1000);
@@ -251,12 +272,12 @@ export function Commissions() {
                     {created_at != null ? formatDate(created_at) : "---"}
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {seller_name != null ? seller_name : '---'}
+                {/*<IndexTable.Cell>*/}
+                {/*    <Text variant="bodyMd" fontWeight="semibold" as="span">*/}
+                {/*        {seller_name != null ? seller_name : '---'}*/}
 
-                    </Text>
-                </IndexTable.Cell>
+                {/*    </Text>*/}
+                {/*</IndexTable.Cell>*/}
 
                 <IndexTable.Cell className='Capitalize-Cell'>
                     {product_name != null ? product_name : '---'}
@@ -427,7 +448,7 @@ export function Commissions() {
                                     headings={[
                                         { title: 'Order Id' },
                                         { title: 'Date' },
-                                        { title: 'Seller Name' },
+                                        // { title: 'Seller Name' },
                                         { title: 'Product Name' },
                                         { title: 'Quantity' },
                                         { title: 'Price' },

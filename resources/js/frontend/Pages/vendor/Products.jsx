@@ -109,12 +109,33 @@ export function Products() {
     // ---------------------Tag/Filter Code Start Here----------------------
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
+        getData()
         setQueryValue('')
         setToggleLoadData(true)
     }
-    const handleFiltersQueryChange = (value) => {
+    const handleFiltersQueryChange = async (value)  => {
         setPageCursorValue('')
         setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/seller/search-product?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setProducts(response?.data?.data)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
         setTimeout(() => {
             setToggleLoadData(true)
         }, 1000);
@@ -501,15 +522,15 @@ console.log(error)
                             <Card.Section>
                                 <div style={{ padding: '16px', display: 'flex' }}>
                                     <div style={{ flex: 1 }}>
-                                        {/*<TextField*/}
-                                        {/*    placeholder='Search Product'*/}
-                                        {/*    value={queryValue}*/}
-                                        {/*    onChange={handleFiltersQueryChange}*/}
-                                        {/*    clearButton*/}
-                                        {/*    onClearButtonClick={handleQueryValueRemove}*/}
-                                        {/*    autoComplete="off"*/}
-                                        {/*    prefix={<Icon source={SearchMinor} />}*/}
-                                        {/*/>*/}
+                                        <TextField
+                                            placeholder='Search Product'
+                                            value={queryValue}
+                                            onChange={handleFiltersQueryChange}
+                                            clearButton
+                                            onClearButtonClick={handleQueryValueRemove}
+                                            autoComplete="off"
+                                            prefix={<Icon source={SearchMinor} />}
+                                        />
                                     </div>
                                 </div>
 

@@ -97,7 +97,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('seller-commission-save',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommissionSave']);
     Route::delete('delete-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'DeleteSellerCommission']);
     Route::get('commission-listing',[\App\Http\Controllers\Admin\CommissionController::class,'CommissionListing']);
-
+    Route::get('search-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchCommission']);
+    Route::get('search-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchSellerCommission']);
 
 
     //Mail Configuration
@@ -117,15 +118,19 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('product-view/{id}',[\App\Http\Controllers\Seller\ProductController::class,'ProductView']);
         Route::delete('product-delete',[\App\Http\Controllers\Seller\ProductController::class,'Productdelete']);
         Route::get('export-product',[\App\Http\Controllers\Seller\ProductController::class,'ExportProduct']);
+        Route::get('search-product',[\App\Http\Controllers\Seller\ProductController::class,'SearchProducts']);
+
 
         //orders
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
         Route::get('view-order/{id}',[\App\Http\Controllers\Seller\OrderController::class,'ViewOrder']);
         Route::get('export-order',[\App\Http\Controllers\Seller\OrderController::class,'ExportOrder']);
         Route::get('order-filter',[\App\Http\Controllers\Seller\OrderController::class,'OrderFilter']);
+        Route::get('search-order',[\App\Http\Controllers\Seller\OrderController::class,'SearchOrders']);
 
    //commissions
         Route::get('commission-listing',[\App\Http\Controllers\Seller\CommissionController::class,'CommissionListing']);
+        Route::get('search-commission',[\App\Http\Controllers\Seller\CommissionController::class,'SearchCommission']);
 
     });
 

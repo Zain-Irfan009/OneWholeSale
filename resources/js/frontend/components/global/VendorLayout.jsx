@@ -26,8 +26,8 @@ export function VendorLayout(props) {
   const [userMenuActive, setUserMenuActive] = useState(false);
   const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
   const [userDetails, setUserDetails] = useState({
-    name: "zain",
-    initials: "z",
+    name: "Seller",
+    initials: "s",
   });
 
   const [errorToast, setErrorToast] = useState(false);

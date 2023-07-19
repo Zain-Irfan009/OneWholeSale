@@ -123,4 +123,14 @@ class ProductController extends Controller
             'link' => asset($name),
         ]);
     }
+
+    public function SearchProducts(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $products=Product::where('product_name', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+        $data = [
+            'data' => $products
+        ];
+        return response()->json($data);
+    }
 }

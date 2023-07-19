@@ -73,16 +73,11 @@ export function SellerCommissionSetting() {
     // ---------------------Tag/Filter Code Start Here----------------------
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
+        getData()
         setQueryValue('')
         setToggleLoadData(true)
     }
-    const handleFiltersQueryChange = (value) => {
-        setPageCursorValue('')
-        setQueryValue(value)
-        setTimeout(() => {
-            setToggleLoadData(true)
-        }, 1000);
-    }
+
 
 
     const getSellerCommissionData=async (id)=>{
@@ -209,6 +204,34 @@ export function SellerCommissionSetting() {
                 handleSelectionChange(selectedResources.filter((item) => item !== id));
             }
         }
+    }
+
+    const handleFiltersQueryChange = async (value)  => {
+        setPageCursorValue('')
+        setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/search-seller-commission?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setSellerCommission(response?.data?.data)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+        setTimeout(() => {
+            setToggleLoadData(true)
+        }, 1000);
     }
 
     const {selectedResources, allResourcesSelected, handleSelectionChange} =

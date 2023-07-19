@@ -20,4 +20,14 @@ class CommissionController extends Controller
         ];
         return response()->json($data);
     }
+
+    public function SearchCommission(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+        $data = [
+            'data' => $commissions
+        ];
+        return response()->json($data);
+    }
 }

@@ -210,7 +210,7 @@ class OrderController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         if ($shop) {
             if($request->status==0) {
-                $orders = Order::where('financial_status', $request->status)->where('shop_id', $shop->id)->get();
+                $orders = Order::where('shop_id', $shop->id)->get();
             }else if($request->status==1){
                 $orders = Order::where('financial_status','paid')->where('shop_id', $shop->id)->get();
             }else if($request->status==2){

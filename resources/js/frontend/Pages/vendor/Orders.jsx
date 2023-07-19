@@ -100,12 +100,33 @@ export function Orders() {
     // ---------------------Tag/Filter Code Start Here----------------------
     const handleQueryValueRemove = () => {
         setPageCursorValue('')
+        getData()
         setQueryValue('')
         setToggleLoadData(true)
     }
-    const handleFiltersQueryChange = (value) => {
+    const handleFiltersQueryChange = async (value)  => {
         setPageCursorValue('')
         setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/seller/search-order?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setOrders(response?.data?.data)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
         setTimeout(() => {
             setToggleLoadData(true)
         }, 1000);

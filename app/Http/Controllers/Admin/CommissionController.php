@@ -161,5 +161,26 @@ class CommissionController extends Controller
             return response()->json($data);
         }
 
+    public function SearchCommission(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $data = [
+            'data' => $commissions
+        ];
+        return response()->json($data);
+    }
+
+    public function SearchSellerCommission(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $seller_commissions=SellerCommission::where('seller_email', 'like', '%' . $request->value . '%')->orWhere('seller_name','like', '%' . $request->value . '%')->orWhere('store_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $data = [
+            'data' => $seller_commissions
+        ];
+        return response()->json($data);
+    }
 
 }

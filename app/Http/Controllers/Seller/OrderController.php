@@ -97,14 +97,13 @@ class OrderController extends Controller
     public function OrderFilter(Request $request)
     {
         $user=auth()->user();
-        $shop=Session::where('shop',$user->name)->first();
-        if ($shop) {
+
             if($request->status==0) {
-                $orders = Order::where('financial_status', $request->status)->where('user', $user->id)->get();
+                $orders = Order::where('user_id', $user->id)->get();
             }else if($request->status==1){
-                $orders = Order::where('financial_status','paid')->where('user', $user->id)->get();
+                $orders = Order::where('financial_status','paid')->where('user_id', $user->id)->get();
             }else if($request->status==2){
-                $orders = Order::where('financial_status','pending')->where('user', $user->id)->get();
+                $orders = Order::where('financial_status','pending')->where('user_id', $user->id)->get();
             }
             if (count($orders) > 0) {
                 $data = [
@@ -112,7 +111,17 @@ class OrderController extends Controller
                 ];
                 return response()->json($data);
             }
-        }
 
+
+    }
+
+    public function SearchOrders(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $orders=Order::where('id', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+        $data = [
+            'data' => $orders
+        ];
+        return response()->json($data);
     }
 }
