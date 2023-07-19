@@ -474,16 +474,16 @@ console.log('check',cartPrices)
                                         <div className="order_detail_status">
                                         <h2 className="order_status_heading">Here is current status of order.</h2>
                                         <p className="order_status_p">
-                                            Ordered On -<span className="order_status_span">{orderCreateDate}   </span>
+                                            Ordered On : <span className="order_status_span">{orderCreateDate}   </span>
                                         </p>
                                             {/*<p className="order_status_p">*/}
                                             {/*    Delivery Method - <span className="order_status_span">   Standard shipping</span>*/}
                                             {/*</p>*/}
                                             <p className="order_status_p">
-                                                Order Status - <span className="order_status_span">    <Badge status='critical'>{!orderStatus ? 'Unfulfilled' : orderStatus}</Badge></span>
+                                                Order Status : <span className="order_status_span">    <Badge status='critical'>{!orderStatus ? 'Unfulfilled' : orderStatus}</Badge></span>
                                             </p>
                                             <p className="order_status_p">
-                                                Payment Status - <span className="order_status_span">    <Badge status='success'>{paymentStatus}</Badge></span>
+                                                Payment Status : <span className="order_status_span">    <Badge status='success'>{paymentStatus}</Badge></span>
                                             </p>
 
 

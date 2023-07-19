@@ -401,8 +401,8 @@ export function MailConfiguration() {
                                         }
                                             <div className="mail_config_btn_group" >
                                             <ButtonGroup>
-                                            <Button>Reset</Button>
-                                            <Button primary onClick={handleEditAction}>Edit</Button>
+                                            {/*<Button>Reset</Button>*/}
+                                            {/*<Button primary onClick={handleEditAction}>Edit</Button>*/}
                                             </ButtonGroup>
                                             </div>
                                             </>

@@ -1,9 +1,9 @@
 import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useContext,
-  useMemo,
+    useState,
+    useCallback,
+    useEffect,
+    useContext,
+    useMemo,
 } from "react";
 import {
     Page,
@@ -40,13 +40,16 @@ import {
     Checkbox,
     DropZone,
     Thumbnail,
-    Combobox, Link, IndexTable,
+    Combobox,
+    Link,
+    IndexTable,
 } from "@shopify/polaris";
 import {
     SearchMinor,
     ChevronDownMinor,
     ChevronUpMinor,
-    DeleteMinor, MobilePlusMajor,
+    DeleteMinor,
+    MobilePlusMajor,
 } from "@shopify/polaris-icons";
 import { SkeltonPageForTable } from "../components/global/SkeltonPage";
 import { InputField } from "../components/Utils/InputField";
@@ -58,10 +61,10 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import EmptyCheckBox from "../assets/icons/EmptyCheckBox.png";
 import FillCheckBox from "../assets/icons/FillCheckBox.png";
-import {getAccessToken} from "../assets/cookies";
+import { getAccessToken } from "../assets/cookies";
 
 export function EditProduct() {
-    const {apiUrl} = useContext(AppContext);
+    const { apiUrl } = useContext(AppContext);
     // const { user } = useAuthState();
     const params = useParams();
     const navigate = useNavigate();
@@ -73,7 +76,7 @@ export function EditProduct() {
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
     const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
-    const [status, setStatus] = useState('active');
+    const [status, setStatus] = useState("active");
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
@@ -81,15 +84,13 @@ export function EditProduct() {
 
     const CollectionsOptionsData = useMemo(
         () => [
-            {value: "Catalogs", label: "catalog"},
-            {value: "Zippo Display", label: "zippo"},
+            { value: "Catalogs", label: "catalog" },
+            { value: "Zippo Display", label: "zippo" },
         ],
         []
     );
 
-    const [collectionOptions, setCollectionOptions] = useState(
-        []
-    );
+    const [collectionOptions, setCollectionOptions] = useState([]);
 
     const [collectionOptionsSelected, setCollectionOptionsSelected] =
         useState("");
@@ -133,15 +134,15 @@ export function EditProduct() {
 
     const deselectedOptions = useMemo(
         () => [
-            {value: "rustic", label: "Rustic"},
-            {value: "antique", label: "Antique"},
-            {value: "vinyl", label: "Vinyl"},
-            {value: "vintage", label: "Vintage"},
-            {value: "refurbished", label: "Refurbished"},
+            { value: "rustic", label: "Rustic" },
+            { value: "antique", label: "Antique" },
+            { value: "vinyl", label: "Vinyl" },
+            { value: "vintage", label: "Vintage" },
+            { value: "refurbished", label: "Refurbished" },
         ],
         []
     );
-    const [skeleton, setSkeleton] = useState(false)
+    const [skeleton, setSkeleton] = useState(false);
     const [productsLoading, setProductsLoading] = useState(false);
     const [queryValue, setQueryValue] = useState("");
     const [toggleLoadProducts, setToggleLoadProducts] = useState(true);
@@ -161,7 +162,7 @@ export function EditProduct() {
     const [descriptioncontent, setDescriptionContent] = useState("");
     const [costPerItem, setCostPerItem] = useState();
     const [unit, setUnit] = useState("");
-    const [weight, setWeight] = useState('');
+    const [weight, setWeight] = useState("");
     const [pageTitle, setPageTitle] = useState("");
     const [pageDescription, setPageDescription] = useState("");
     const [newTags, setNewTags] = useState([]);
@@ -172,9 +173,9 @@ export function EditProduct() {
     const [selectedOptions, setSelectedOptions] = useState(["rustic"]);
     const [inputValue, setInputValue] = useState("");
     const [autoOptions, setAutoOptions] = useState(deselectedOptions);
-    const [inputFields, setInputFields] = useState([{value: ""}]);
-    const [inputFields2, setInputFields2] = useState([{value: ""}]);
-    const [inputFields3, setInputFields3] = useState([{value: ""}]);
+    const [inputFields, setInputFields] = useState([{ value: "" }]);
+    const [inputFields2, setInputFields2] = useState([{ value: "" }]);
+    const [inputFields3, setInputFields3] = useState([{ value: "" }]);
     const [variantOptions, setVariantOptions] = useState("");
     const [variantOptions2, setVariantOptions2] = useState("");
     const [variantOptions3, setVariantOptions3] = useState("");
@@ -189,132 +190,125 @@ export function EditProduct() {
     const [fileUrl, setFileUrl] = useState();
 
     const getProductData = async (id) => {
-
-        setSkeleton(true)
-        setLoading(true)
-        console.log(id);
+        setSkeleton(true);
+        console.log("getProductData function called");
         const sessionToken = getAccessToken();
         try {
+            const response = await axios.get(`${apiUrl}/product-view/${id}`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
+            console.log("getProductData response", response.data);
 
-            const response = await axios.get(`${apiUrl}/product-view/${id}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            console.log("qwerty",response.data);
+            setSellerEmail(response?.data?.product?.seller_email);
+            setProductName(response?.data?.product?.product_name);
+            setDescriptionContent(response?.data?.product?.description);
+            setValue(response?.data?.product?.tags);
+            setPrice(response?.data?.variants?.[0].price);
+            setCompareatPrice(response?.data?.variants?.[0].compare_at_price);
+            setChargeTaxChecked(response?.data?.variants?.[0].taxable);
+            setSku(response?.data?.variants?.[0].sku);
+            setBarcode(response?.data?.variants?.[0].barcode);
+            setProductHandle(response?.data?.product?.product_type);
+            setTitleMetafield(response?.data?.product?.search_engine_title);
+            setDescriptionMetafield(
+                response?.data?.product?.search_engine_meta_description
+            );
+            setWeight(response?.data?.variants?.[0].weight);
+            setUnit(response?.data?.variants?.[0].weight_unit);
+            setPageTitle(response?.data?.product?.search_engine_title);
+            setPageDescription(
+                response?.data?.product?.search_engine_meta_description
+            );
+            setStatus(response?.data?.product?.status);
+            setNewTags(response?.data?.product?.tags.split(","));
+            setCollectionOptionsSelected(
+                response?.data?.product?.collections.split(",")
+            );
+            setVendor(response?.data?.product?.vendor);
+            setMediaFilesUrl(response?.data?.product_images);
+            setVariantOptions(response?.data?.options?.[0]?.name);
+            setVariantOptions2(response?.data?.options?.[1]?.name);
+            setVariantOptions3(response?.data?.options?.[2]?.name);
+            setVariantsInputFileds(response?.data?.selected_variant);
 
-            setSellerEmail(response?.data?.product?.seller_email)
-            setProductName(response?.data?.product?.product_name)
-            setDescriptionContent(response?.data?.product?.description)
-            setValue(response?.data?.product?.tags)
-            setPrice(response?.data?.variants?.[0].price)
-            setCompareatPrice(response?.data?.variants?.[0].compare_at_price)
-            setChargeTaxChecked(response?.data?.variants?.[0].taxable)
-            setSku(response?.data?.variants?.[0].sku)
-            setBarcode(response?.data?.variants?.[0].barcode)
-            setProductHandle(response?.data?.product?.product_type)
-            setTitleMetafield(response?.data?.product?.search_engine_title)
-            setDescriptionMetafield(response?.data?.product?.search_engine_meta_description)
-            setWeight(response?.data?.variants?.[0].weight)
-            setUnit(response?.data?.variants?.[0].weight_unit)
-            setPageTitle(response?.data?.product?.search_engine_title)
-            setPageDescription(response?.data?.product?.search_engine_meta_description)
-            setStatus(response?.data?.product?.status)
-            setNewTags(response?.data?.product?.tags.split(','))
-            if(response?.data?.product?.collections) {
-                setCollectionOptionsSelected(response?.data?.product?.collections.split(','))
-            }
-            setVendor(response?.data?.product?.vendor)
-            setMediaFilesUrl(response?.data?.product_images)
-            setVariantOptions(response?.data?.options?.[0]?.name)
-            setVariantOptions2(response?.data?.options?.[1]?.name)
-            setVariantOptions3(response?.data?.options?.[2]?.name)
-            setVariantsInputFileds(response?.data?.selected_variant)
-console.log("response?.data?.variants", response?.data?.selected_variant)
+            setQuantity(response?.data?.variants?.[0].quantity);
 
-            setQuantity(response?.data?.variants?.[0].quantity)
-
-
-            if(response?.data?.variants?.[0]?.inventory_management=='shopify'){
-                setTrackQuantityIsChecked(true)
-            }else{
-                setTrackQuantityIsChecked(false)
-            }
-
-            if(response?.data?.variants?.[0]?.inventory_policy=='continue'){
-                setAllowCustomer(true)
-            }else{
-                setAllowCustomer(false)
-            }
-            if(response?.data?.options?.[0]?.name){
-                setVariants(1)
-            }
-            if(response?.data?.options?.[1]?.name){
-                setVariants(2)
-            }
-            if(response?.data?.options?.[2]?.name){
-                setVariants(3)
+            if (
+                response?.data?.variants?.[0]?.inventory_management == "shopify"
+            ) {
+                setTrackQuantityIsChecked(true);
+            } else {
+                setTrackQuantityIsChecked(false);
             }
 
-            let option1_data = response?.data?.options?.[0]?.values.split(',');
+            if (response?.data?.variants?.[0]?.inventory_policy == "continue") {
+                setAllowCustomer(true);
+            } else {
+                setAllowCustomer(false);
+            }
+            if (response?.data?.options?.[0]?.name) {
+                setVariants(1);
+            }
+            if (response?.data?.options?.[1]?.name) {
+                setVariants(2);
+            }
+            if (response?.data?.options?.[2]?.name) {
+                setVariants(3);
+            }
+
+            let option1_data = response?.data?.options?.[0]?.values.split(",");
             if (option1_data && option1_data.length > 0) {
                 let savedArr = option1_data.map((item, index) => {
-                    let obj = {}
-                    obj.value = item
-                    return obj
-
-                }, [])
-                savedArr[savedArr.length] = {value: ""}
+                    let obj = {};
+                    obj.value = item;
+                    return obj;
+                }, []);
+                savedArr[savedArr.length] = { value: "" };
 
                 setInputFields(savedArr);
             }
-            let option2_data=response?.data?.options?.[1]?.values.split(',');
+            let option2_data = response?.data?.options?.[1]?.values.split(",");
             if (option2_data && option2_data.length > 0) {
                 let savedArr2 = option2_data.map((item, index) => {
-                    let obj = {}
-                    obj.value = item
-                    return obj
-
-                }, [])
-                savedArr2[savedArr2.length] = {value: ""}
+                    let obj = {};
+                    obj.value = item;
+                    return obj;
+                }, []);
+                savedArr2[savedArr2.length] = { value: "" };
 
                 setInputFields2(savedArr2);
             }
-            let option3_data=response?.data?.options?.[2]?.values.split(',');
+            let option3_data = response?.data?.options?.[2]?.values.split(",");
             if (option3_data && option3_data.length > 0) {
                 let savedArr3 = option3_data.map((item, index) => {
-                    let obj = {}
-                    obj.value = item
-                    return obj
-
-                }, [])
-                savedArr3[savedArr3.length] = {value: ""}
+                    let obj = {};
+                    obj.value = item;
+                    return obj;
+                }, []);
+                savedArr3[savedArr3.length] = { value: "" };
 
                 setInputFields3(savedArr3);
             }
-
-
-
-
-
-            setSkeleton(false)
-            setLoading(false)
-
+            console.log(
+                "inside api call",
+                inputFields,
+                inputFields2,
+                inputFields3,
+                variantsInputFileds
+            );
+            setSkeleton(false);
         } catch (error) {
-        console.log('error',error)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setSkeleton(false)
+            setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
+            setSkeleton(false);
         }
-
     };
 
     useEffect(() => {
         getProductData(params.edit_product_id);
     }, []);
-
-
 
     const inputHandleChange = (index, val) => {
         let totalLength = inputFields.length;
@@ -322,13 +316,10 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         newInputFields[index].value = val;
         setInputFields(newInputFields);
 
-
-
         if (totalLength - 1 == index && val.length == 1) {
             handleAddField();
         }
     };
-
 
     const data_option = [
         {
@@ -345,50 +336,54 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         },
     ];
 
-    const transformedFormat = data_option.map(item => {
+    const transformedFormat = data_option.map((item) => {
         return {
             ...item,
-            value: item.value.map(valueObj => valueObj.value)
+            value: item.value.map((valueObj) => valueObj.value),
         };
     });
 
     const variantsInputFiledsHandler = (value, index, type, name) => {
+        console.log("variantsInputFiledsHandler called", index, value,type,name);
+        let updatedState = [];
+
         setVariantsInputFileds((prevState) => {
-          const updatedState = [...prevState];
-          const updatedObject = { ...updatedState[index] };
+            updatedState = [...prevState];
 
-          updatedObject.title = name;
+            const updatedObject = { ...updatedState[index] };
+            updatedObject.title = name;
+            switch (type) {
 
-          switch (type) {
-            case "price":
-              updatedObject.price = value;
-              break;
-            case "sku":
-              updatedObject.sku = value;
-              break;
-            case "quantity":
-              updatedObject.quantity = value;
-              break;
-            case "compare_at_price":
-              updatedObject.compare_at_price = value;
-              break;
-            default:
-              break;
-          }
+                case "price":
 
-          updatedState[index] = updatedObject;
-          return updatedState;
-        })
+                    updatedObject.price = value;
+                    break;
+                case "sku":
+                    updatedObject.sku = value;
+                    break;
+                case "quantity":
+                    updatedObject.quantity = value;
+                    break;
+                case "compare_at_price":
+                    updatedObject.compare_at_price = value;
+                    break;
+                default:
 
-      };
+                    break;
+            }
 
-    const handleAddField = () => {
-        setInputFields([...inputFields, {value: ""}]);
+            updatedState[index] = updatedObject;
+
+            return updatedState;
+        });
+        console.log("setVariantsInputFileds updatedState", updatedState);
+        let markup = calculateMarkup(updatedState);
+        setVariantsMarkup(markup);
     };
 
-    useEffect(() => {
-        console.log('varinat', inputFields);
-    }, [inputFields]);
+    const handleAddField = () => {
+        setInputFields([...inputFields, { value: "" }]);
+    };
 
     const handleRemoveField = (index) => {
         const newInputFields = [...inputFields];
@@ -407,7 +402,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
     };
 
     const handleAddField2 = () => {
-        setInputFields2([...inputFields2, {value: ""}]);
+        setInputFields2([...inputFields2, { value: "" }]);
     };
 
     const handleRemoveField2 = (index) => {
@@ -427,7 +422,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
     };
 
     const handleAddField3 = () => {
-        setInputFields3([...inputFields3, {value: ""}]);
+        setInputFields3([...inputFields3, { value: "" }]);
     };
 
     const handleRemoveField3 = (index) => {
@@ -436,44 +431,33 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         setInputFields3(newInputFields);
     };
 
-    useEffect(() => {
-        console.log('ds',variantsInputFileds)
-    }, [variantsInputFileds]);
-
-
     const getCollectionData = async () => {
-
         const sessionToken = getAccessToken();
         try {
+            const response = await axios.get(`${apiUrl}/collections`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
 
-            const response = await axios.get(`${apiUrl}/collections`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-
-            let arr = response?.data.map(({title}) => ({value: title, label: title}))
-            setCollectionOptions(arr)
+            let arr = response?.data.map(({ title }) => ({
+                value: title,
+                label: title,
+            }));
+            setCollectionOptions(arr);
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
-
-
         } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
+            setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
         }
-    }
-
+    };
 
     useEffect(() => {
         getCollectionData();
-
     }, []);
-
 
     const tagString = newTags.join(",");
 
@@ -485,8 +469,6 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         }
 
         setPendingTag(value);
-
-
     };
     const addNewTag = (tag) => {
         const tagsSet = new Set(newTags);
@@ -510,7 +492,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         []
     );
 
-    const productTypeOptions = [{label: "Normal Product", value: "normal"}];
+    const productTypeOptions = [{ label: "Normal Product", value: "normal" }];
     const handleProductType = useCallback((value) => setProductType(value), []);
 
     const handleTrackInventory = useCallback(
@@ -518,8 +500,8 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         []
     );
     const trackInventoryOptions = [
-        {label: "Don't Track inventory", value: "not_track"},
-        {label: "Track This Product's inventory", value: "track"},
+        { label: "Don't Track inventory", value: "not_track" },
+        { label: "Track This Product's inventory", value: "track" },
     ];
 
     function handleDescription(event, editor) {
@@ -585,11 +567,10 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         handleQueryChange("");
     };
 
-    const makeState = (num) => {
+    const makeState = (num, variantsData) => {
         let arr = [];
 
-
-        for (let i = 0; i < num; i++) {
+        for (let i = variantsData.length; i < num; i++) {
             arr.push({
                 title: "",
                 sku: "",
@@ -599,196 +580,297 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
             });
         }
 
-        console.log("variantsInputFileds",variantsInputFileds)
-        console.log("arr",arr)
-        setVariantsInputFileds(arr);
-    };
+        // return [...variantsInputFileds, arr];
 
+        return [...variantsData, ...arr];
+
+        // setVariantsInputFileds((prevState)=> [...prevState, ...arr])
+    };
 
     // =================Products Modal Code Ends Here================
 
     // =================Collections Modal Code Ends Here================
 
-      const createRow = (text, priceIndex, skuIndex) => {
-                console.log("updatedState", variantsInputFileds);
-                setVariantsInputFileds((prevState) => {
-                    const updatedState = [...prevState];
-                    const updatedObject = {...updatedState[skuIndex]};
-                    updatedObject.title = text;
-                    // updatedObject.price = price;
-                    updatedState[skuIndex] = updatedObject;
-                    return updatedState;
-                });
+    const createRow = (text, priceIndex, skuIndex, data) => {
+        console.log(
+            "inside  create row",
+            priceIndex,
+            inputFields,
+            inputFields2,
+            inputFields3,
+            data
+        );
+        // setVariantsInputFileds((prevState) => {
+        //     const updatedState = [...prevState];
+        //     const updatedObject = { ...updatedState[skuIndex] };
+        //     updatedObject.title = text;
 
-                return (
-                    <>
+        //     updatedState[skuIndex] = updatedObject;
+        //     return updatedState;
+        // });
 
+        return (
+            <>
+                <IndexTable.Row key={priceIndex} position={priceIndex}>
+                    <IndexTable.Cell>
+                        <Text variant="bodyMd" fontWeight="bold" as="span">
+                            {data?.title}
+                        </Text>
+                    </IndexTable.Cell>
 
-                        <IndexTable.Row key={priceIndex} position={priceIndex}>
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.price}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    priceIndex,
+                                    "price",
+                                    text
+                                )
+                            }
+                            // prefix="$"
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.quantity}
+                            // value={variantsInputFileds[skuIndex]?.sku}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "quantity",
+                                    text
+                                )
+                            }
+                            // prefix="$"
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.sku}
+                            // value={variantsInputFileds[skuIndex]?.sku}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "sku",
+                                    text
+                                )
+                            }
+                            // prefix="$"
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
 
-                            <IndexTable.Cell>
-                                <Text variant="bodyMd" fontWeight="bold" as="span">
-                                    {text}
-                                </Text>
-                            </IndexTable.Cell>
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.compare_at_price}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "compare_at_price",
+                                    text
+                                )
+                            }
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+                </IndexTable.Row>
+            </>
+        );
+    };
 
-                            <IndexTable.Cell>
-                                <InputField
-                                    type="text"
-                                value={variantsInputFileds[priceIndex]?.price}
-                                    onChange={(e) =>
-                                        variantsInputFiledsHandler(
-                                             e.target.value,
-                                            priceIndex,
-                                            "price",
-                                            text
-                                        )
-                                    }
-                                    // prefix="$"
-                                    autoComplete="off"
-                                />
-                            </IndexTable.Cell>
-                            <IndexTable.Cell>
-                                <InputField
-                                    type="text"
-                                    value={variantsInputFileds[priceIndex]?.quantity}
-                                    // value={variantsInputFileds[skuIndex]?.sku}
-                                    onChange={(e) =>
-                                        variantsInputFiledsHandler(
-                                            e.target.value,
-                                            skuIndex,
-                                            "quantity",
-                                            text
-                                        )
-                                    }
-                                    // prefix="$"
-                                    autoComplete="off"
-                                />
-                            </IndexTable.Cell>
-                            <IndexTable.Cell>
-                                <InputField
-                                    type="text"
-                                    value={variantsInputFileds[priceIndex]?.sku}
-                                    // value={variantsInputFileds[skuIndex]?.sku}
-                                    onChange={(e) =>
-                                        variantsInputFiledsHandler(
-                                            e.target.value,
-                                            skuIndex,
-                                            "sku",
-                                            text
-                                        )
-                                    }
-                                    // prefix="$"
-                                    autoComplete="off"
-                                />
-                            </IndexTable.Cell>
+    const calculateMarkup = (data = null) => {
 
-                            <IndexTable.Cell>
-                                <InputField
-                                    type="text"
-                                    // value={variantsInputFileds[skuIndex]?.sku}
-                                    value={variantsInputFileds[priceIndex]?.compare_at_price}
-                                    onChange={(e) =>
-                                        variantsInputFiledsHandler(
-                                            e.target.value,
-                                            skuIndex,
-                                            "compare_at_price",
-                                            text
-                                        )
-                                    }
-                                    // prefix="$"
-                                    autoComplete="off"
-                                />
-                            </IndexTable.Cell>
-                        </IndexTable.Row>
-                    </>
-                );
+        console.log('variantsInputFileds_dsd',variantsInputFileds)
+        let variantsData = data ?? variantsInputFileds;
+        let copyData = data ?? variantsInputFileds;
+        let titles = copyData?.map((d) => d?.title);
+        console.log(
+            "inside calculateMarkup",
+            inputFields,
+            inputFields2,
+            inputFields3,
+            variantsData,
+            data
+        );
+        let globalIndex = -1;
+        let newMarkup = [];
+        if (
+            (variants === 1 || inputFields2[0].value.length === 0) &&
+            inputFields[0].value.length > 0
+        ) {
+            console.log("inputFields", inputFields);
+            {
+                variantsData.length < inputFields.length - 1 &&
+                (variantsData = makeState(
+                    inputFields.length - 1,
+                    variantsData
+                ));
+            }
+            newMarkup = inputFields.map((input, index) => {
+                if (input.value.length === 0) {
+                    return null;
+                } else {
+                    globalIndex++;
+                    const updatedState = [...variantsData];
+                    const updatedObject = { ...updatedState[globalIndex] };
+                    updatedObject.title = input.value;
+
+                    updatedState[globalIndex] = updatedObject;
+                    setVariantsInputFileds(updatedState);
+                    return createRow(
+                        input.value,
+                        globalIndex,
+                        globalIndex,
+                        updatedState[globalIndex]
+                    );
+                }
+            });
+        } else if (
+            (variants === 2 || inputFields3[0].value.length === 0) &&
+            inputFields2[0].value.length > 0
+        ) {
+            {
+                variantsData.length <
+                (inputFields.length - 1) * (inputFields2.length - 1) &&
+                (variantsData = makeState(
+                    (inputFields2.length - 1) * (inputFields.length - 1),
+                    variantsData
+                ));
             }
 
-            const calculateMarkup = () => {
-                let globalIndex = -1;
-                let newMarkup = [];
-                if (
-                    (variants === 1 || inputFields2[0].value.length === 0) &&
-                    inputFields[0].value.length > 0
-                ) {
-                   console.log("inputFields",inputFields);
-                    makeState(inputFields.length - 1);
-                    newMarkup = inputFields.map((input, index) => {
-                        if (input.value.length === 0) {
+            newMarkup = inputFields.flatMap((input, index) => {
+                return inputFields2.map((input2, index2) => {
+                    if (input2.value.length === 0 || input.value.length === 0) {
+                        return null;
+                    } else {
+                        globalIndex++;
+
+                        let updatedState = [...variantsData];
+                        let updatedObject = { ...updatedState[globalIndex] };
+                        updatedObject.title = `${input.value} / ${input2.value}`;
+
+                        if (titles.includes(updatedObject.title)) {
+                            let i = titles.indexOf(updatedObject.title);
+
+                            let copy = copyData[i];
+                            updatedObject = { ...copy };
+                        } else {
+                            updatedObject = {
+                                title: `${input.value} / ${input2.value}`,
+                                sku: "",
+                                price: "",
+                                quantity: "",
+                                compare_at_price: "",
+                            };
+                        }
+
+                        //             if (!(titles.includes(updatedObject.title))) {
+                        //                 updatedObject = {
+                        //     title: "",
+                        //     sku: "",
+                        //     price: "",
+                        //     quantity: "",
+                        //     compare_at_price: "",
+                        // }
+                        //             }
+
+                        //             for (let copy of copyData) {
+                        //                 if (copy.title == updatedObject.title) {
+                        //                     return (updatedObject = { ...copy });
+                        //                 }
+                        //                 }
+
+                        updatedState[globalIndex] = updatedObject;
+
+                        setVariantsInputFileds(updatedState);
+                        return createRow(
+                            `${input.value} / ${input2.value}`,
+                            globalIndex,
+                            globalIndex,
+                            updatedState[globalIndex]
+                        );
+                    }
+                });
+            });
+        } else if (variants === 3 && inputFields3[0].value.length > 0) {
+            {
+                variantsData.length <
+                (inputFields.length - 1) *
+                (inputFields2.length - 1) *
+                (inputFields3.length - 1) &&
+                (variantsData = makeState(
+                    (inputFields3.length - 1) *
+                    (inputFields2.length - 1) *
+                    (inputFields.length - 1),
+                    variantsData
+                ));
+            }
+            console.log(3);
+            newMarkup = inputFields.flatMap((input, index) => {
+                return inputFields2.flatMap((input2, index2) => {
+                    return inputFields3.map((input3, index3) => {
+                        if (
+                            input3.value.length === 0 ||
+                            input2.value.length === 0 ||
+                            input.value.length === 0
+                        ) {
                             return null;
                         } else {
                             globalIndex++;
-                            console.log("globalIndex", globalIndex);
-                            return createRow(input.value, globalIndex, globalIndex);
+                            let updatedState = [...variantsData];
+                            let updatedObject = {
+                                ...updatedState[globalIndex],
+                            };
+                            updatedObject.title = `${input.value} / ${input2.value} / ${input3.value}`;
+
+                            if (titles.includes(updatedObject.title)) {
+                                let i = titles.indexOf(updatedObject.title);
+
+                                let copy = copyData[i];
+                                updatedObject = { ...copy };
+                            } else {
+                                updatedObject = {
+                                    title: `${input.value} / ${input2.value} / ${input3.value}`,
+                                    sku: "",
+                                    price: "",
+                                    quantity: "",
+                                    compare_at_price: "",
+                                };
+                            }
+
+                            updatedState[globalIndex] = updatedObject;
+                            setVariantsInputFileds(updatedState);
+                            console.log("createRow se pehle", updatedState);
+                            return createRow(
+                                `${input.value} / ${input2.value} / ${input3.value}`,
+                                globalIndex,
+                                globalIndex,
+                                updatedState[globalIndex]
+                            );
                         }
                     });
-                } else if (
-                    (variants === 2 || inputFields3[0].value.length === 0) &&
-                    inputFields2[0].value.length > 0
-                ) {
-                    makeState((inputFields2.length - 1) * (inputFields.length - 1));
-                    console.log("inputFields",inputFields);
+                });
+            });
+        }
 
-                    newMarkup = inputFields.flatMap((input, index) => {
-                        return inputFields2.map((input2, index2) => {
-                            if (
-                                input2.value.length === 0 ||
-                                input.value.length === 0
-                            ) {
-                                return null;
-                            } else {
-                                globalIndex++;
-                                console.log(globalIndex);
-                                return createRow(
-                                    `${input.value}/${input2.value}`,
-                                    globalIndex,
-                                    globalIndex
-                                );
-                            }
-                        });
-                    });
-                } else if (variants === 3 && inputFields3[0].value.length > 0) {
-                    makeState(
-                        (inputFields3.length - 1) *
-                        (inputFields2.length - 1) *
-                        (inputFields.length - 1)
-                    );
-                    console.log(3);
-                    newMarkup = inputFields.flatMap((input, index) => {
-                        return inputFields2.flatMap((input2, index2) => {
-                            return inputFields3.map((input3, index3) => {
-                                if (
-                                    input3.value.length === 0 ||
-                                    input2.value.length === 0 ||
-                                    input.value.length === 0
-                                ) {
-                                    return null;
-                                } else {
-                                    globalIndex++;
-                                    console.log(globalIndex);
-                                    return createRow(
-                                        `${input.value}/${input2.value}/${input3.value}`,
-                                        globalIndex,
-                                        globalIndex
-                                    );
-                                }
-                            });
-                        });
-                    });
-                }
-
-                return newMarkup;
-            };
-
-
+        return newMarkup;
+    };
 
     useEffect(() => {
-
-
-         let markup = calculateMarkup();
+        let markup = calculateMarkup();
         setVariantsMarkup(markup);
-    }, [inputFields, inputFields2, inputFields3,refresh]);
+    }, [inputFields, inputFields2, inputFields3]);
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(
@@ -801,15 +883,15 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
     );
 
     const toastErrorMsg = errorToast ? (
-        <Toast content={toastMsg} error onDismiss={toggleErrorMsgActive}/>
+        <Toast content={toastMsg} error onDismiss={toggleErrorMsgActive} />
     ) : null;
 
     const toastSuccessMsg = sucessToast ? (
-        <Toast content={toastMsg} onDismiss={toggleSuccessMsgActive}/>
+        <Toast content={toastMsg} onDismiss={toggleSuccessMsgActive} />
     ) : null;
 
     const handleDiscount = (e) => {
-        setDiscount({...discount, [e.target.name]: e.target.value});
+        setDiscount({ ...discount, [e.target.name]: e.target.value });
     };
 
     function convertBooleanToNumber(value) {
@@ -880,7 +962,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         return string
             .toLowerCase()
             .split(" ")
-            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .map((word) => word.replace(word[0], word[0]?.toUpperCase()))
             .join("");
     }
 
@@ -889,8 +971,6 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
             const collectionOptions = [...collectionOptionsSelected];
             collectionOptions.splice(collectionOptions.indexOf(collection), 1);
             setCollectionOptionsSelected(collectionOptions);
-
-
         },
         [collectionOptionsSelected]
     );
@@ -1000,10 +1080,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         setImageFiles(temp_array);
     };
 
-
-    const handleRemoveMediaApi = (index) => {
-
-    };
+    const handleRemoveMediaApi = (index) => {};
 
     const validImageTypes = [
         "image/gif",
@@ -1012,7 +1089,6 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         "image/jpg",
         "image/svg",
     ];
-
 
     const handleProductHandle = (e) => {
         setProductHandle(e.target.value);
@@ -1103,9 +1179,9 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
     );
 
     const categories = [
-        {label: "Today", value: "today"},
-        {label: "Yesterday", value: "yesterday"},
-        {label: "Last 7 days", value: "lastWeek"},
+        { label: "Today", value: "today" },
+        { label: "Yesterday", value: "yesterday" },
+        { label: "Last 7 days", value: "lastWeek" },
     ];
 
     const options = useMemo(() => {
@@ -1258,70 +1334,65 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
         return string
             .toLowerCase()
             .split(" ")
-            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .map((word) => word.replace(word[0], word[0]?.toUpperCase()))
             .join("");
     }
 
-
     //SUbmit Data
     const addProduct = async () => {
-
-        setBtnLoading(true)
-        setLoading(true)
-
+        setBtnLoading(true);
         const sessionToken = getAccessToken();
 
         let formData = new FormData();
-        formData.append('product_id',params.edit_product_id)
-        formData.append('product_name', productName);
-        formData.append('description', descriptioncontent);
-        formData.append('product_price', price);
-        formData.append('product_compare_at_price', compareatPrice);
-        formData.append('taxable', chargeTaxChecked);
-        formData.append('inventory_management', trackQuantityIsChecked);
-        formData.append('product_quantity', quantity);
-        formData.append('inventory_policy', allowCustomer);
+        formData.append("product_id", params.edit_product_id);
+        formData.append("product_name", productName);
+        formData.append("description", descriptioncontent);
+        formData.append("product_price", price);
+        formData.append("product_compare_at_price", compareatPrice);
+        formData.append("taxable", chargeTaxChecked);
+        formData.append("inventory_management", trackQuantityIsChecked);
+        formData.append("product_quantity", quantity);
+        formData.append("inventory_policy", allowCustomer);
         mediaFiles.forEach((item, index) => {
             formData.append(`images[${index}]`, item);
         });
-        formData.append('product_sku', sku);
-        formData.append('barcode', barcode);
-        formData.append('weight', weight);
-        formData.append('weight_unit', unit);
-        formData.append('search_engine_title', pageTitle);
-        formData.append('search_engine_meta_description', pageDescription);
-        formData.append('options', JSON.stringify(transformedFormat));
-        formData.append('status', status);
-        formData.append('variants', JSON.stringify(variantsInputFileds));
-        formData.append('seller_email', sellerEmail);
-        formData.append('tags', newTags);
-        formData.append('product_type', productHandle);
-        formData.append('vendor', vendor);
-        formData.append('collections', collectionOptionsSelected);
-
+        formData.append("product_sku", sku);
+        formData.append("barcode", barcode);
+        formData.append("weight", weight);
+        formData.append("weight_unit", unit);
+        formData.append("search_engine_title", pageTitle);
+        formData.append("search_engine_meta_description", pageDescription);
+        formData.append("options", JSON.stringify(transformedFormat));
+        formData.append("status", status);
+        formData.append("variants", JSON.stringify(variantsInputFileds));
+        formData.append("seller_email", sellerEmail);
+        formData.append("tags", newTags);
+        formData.append("product_type", productHandle);
+        formData.append("vendor", vendor);
+        formData.append("collections", collectionOptionsSelected);
 
         try {
-            const response = await axios.post(`${apiUrl}/add-product`, formData,
+            const response = await axios.post(
+                `${apiUrl}/add-product`,
+                formData,
                 {
                     headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            console.log('res', response?.data?.message)
-            setBtnLoading(false)
-            setLoading(false)
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
+                        Authorization: "Bearer " + sessionToken,
+                    },
+                }
+            );
+            console.log("res", response?.data?.message);
+            setBtnLoading(false);
+            setToastMsg(response?.data?.message);
+            setSucessToast(true);
             // setSkeleton(false)
-
         } catch (error) {
             console.log(error);
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
+            setBtnLoading(false);
+            setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
         }
-    }
-
+    };
 
     return (
         <div className="Discount-Detail-Page">
@@ -1354,25 +1425,25 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                 <ContextualSaveBar
                     message="Unsaved changes"
                     saveAction={{
-                        onAction: addProduct,
-                        loading: btnLoading,
+                        onAction: () => console.log("add form submit logic"),
+                        loading: false,
                         disabled: false,
                     }}
                     discardAction={{
-                        onAction: handleDiscardModal,
+                        onAction: () => console.log("add clear form logic"),
                     }}
                 />
             )}
 
             {loading ? (
                 <span>
-                    <Loading/>
-                    <SkeltonPageForTable/>
+                    <Loading />
+                    <SkeltonPageForProductDetail />
                 </span>
             ) : (
                 <Page
                     breadcrumbs={[
-                        {content: "Discounts", onAction: handleDiscardModal},
+                        { content: "Discounts", onAction: handleDiscardModal },
                     ]}
                     title="Edit Product"
                     fullWidth
@@ -1403,7 +1474,6 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                     </span>
 
                                     <Card sectioned title="Product Details">
-
                                         {/* <Text variant="bodyMd" as="p" fontWeight="regular">
                       {`Add product details here `}
                     </Text> */}
@@ -1424,8 +1494,9 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                             marginTop
                                             name="productName"
                                             value={productName}
-                                            onChange={(e) => setProductName(e.target.value)}
-
+                                            onChange={(e) =>
+                                                setProductName(e.target.value)
+                                            }
                                         />
                                         <div className="label_editor">
                                             <label>Description *</label>
@@ -1455,7 +1526,6 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                         {listboxMarkup}
                       </Combobox>
                     </div> */}
-
                                     </Card>
 
                                     <Card
@@ -1467,71 +1537,111 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                             },
                                         ]}
                                     >
-
                                         <Stack id="jjj">
-                                            {mediaFilesUrl.map(({id , src}, index) => (
-
-                                                <Stack alignment="center" >
-                                                    <div className="Polaris-Product-Gallery">
-                                                        <Thumbnail
-                                                            size="large"
-                                                            alt={'header-img'}
-                                                            source={src}
-                                                        />
-                                                        <span
-                                                            className="media_hover"
-                                                            onClick={() => handleRemoveMediaApi(index)}
-                                                        >
-                            <Icon source={DeleteMinor}> </Icon>
-                        </span>
-                                                    </div>
-                                                </Stack>
-                                            ))}
-
-                                            {mediaFiles.length > 0 && (
-                                            <Stack id="jjj">
-                                                {mediaFiles.map((file, index) => (
-                                                    <Stack alignment="center" key={index}>
+                                            {mediaFilesUrl.map(
+                                                ({ id, src }, index) => (
+                                                    <Stack alignment="center">
                                                         <div className="Polaris-Product-Gallery">
                                                             <Thumbnail
                                                                 size="large"
-                                                                alt={file.name}
-                                                                source={
-                                                                    validImageTypes.indexOf(file.type) > -1
-                                                                        ? window.URL.createObjectURL(file)
-                                                                        : NoteMinor
+                                                                alt={
+                                                                    "header-img"
                                                                 }
+                                                                source={src}
                                                             />
                                                             <span
                                                                 className="media_hover"
-                                                                onClick={() => handleRemoveMedia(index)}
+                                                                onClick={() =>
+                                                                    handleRemoveMediaApi(
+                                                                        index
+                                                                    )
+                                                                }
                                                             >
-                            <Icon source={DeleteMinor}> </Icon>
-                        </span>
+                                                                <Icon
+                                                                    source={
+                                                                        DeleteMinor
+                                                                    }
+                                                                >
+                                                                    {" "}
+                                                                </Icon>
+                                                            </span>
                                                         </div>
                                                     </Stack>
-                                                ))}
+                                                )
+                                            )}
+                                            {mediaFiles.length > 0 && (
+                                                <Stack id="jjj">
+                                                    {mediaFiles.map(
+                                                        (file, index) => (
+                                                            <Stack
+                                                                alignment="center"
+                                                                key={index}
+                                                            >
+                                                                <div className="Polaris-Product-Gallery">
+                                                                    <Thumbnail
+                                                                        size="large"
+                                                                        alt={
+                                                                            file.name
+                                                                        }
+                                                                        source={
+                                                                            validImageTypes.indexOf(
+                                                                                file.type
+                                                                            ) >
+                                                                            -1
+                                                                                ? window.URL.createObjectURL(
+                                                                                    file
+                                                                                )
+                                                                                : NoteMinor
+                                                                        }
+                                                                    />
+                                                                    <span
+                                                                        className="media_hover"
+                                                                        onClick={() =>
+                                                                            handleRemoveMedia(
+                                                                                index
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Icon
+                                                                            source={
+                                                                                DeleteMinor
+                                                                            }
+                                                                        >
+                                                                            {" "}
+                                                                        </Icon>
+                                                                    </span>
+                                                                </div>
+                                                            </Stack>
+                                                        )
+                                                    )}
 
-                                                <div className="Polaris-Product-DropZone">
-                                                    <Stack alignment="center">
-                                                        <DropZone
-                                                            accept="image/*, video/*"
-                                                            type="image,video"
-                                                            openFileDialog={openFileDialog}
-                                                            onDrop={handleDropZoneDrop}
-                                                            onFileDialogClose={toggleOpenFileDialog}
-                                                        >
-                                                            <DropZone.FileUpload actionTitle={"Add files"}/>
-                                                        </DropZone>
-                                                    </Stack>
-                                                </div>
-                                            </Stack>
-                                            )};
+                                                    <div className="Polaris-Product-DropZone">
+                                                        <Stack alignment="center">
+                                                            <DropZone
+                                                                accept="image/*, video/*"
+                                                                type="image,video"
+                                                                openFileDialog={
+                                                                    openFileDialog
+                                                                }
+                                                                onDrop={
+                                                                    handleDropZoneDrop
+                                                                }
+                                                                onFileDialogClose={
+                                                                    toggleOpenFileDialog
+                                                                }
+                                                            >
+                                                                <DropZone.FileUpload
+                                                                    actionTitle={
+                                                                        "Add files"
+                                                                    }
+                                                                />
+                                                            </DropZone>
+                                                        </Stack>
+                                                    </div>
+                                                </Stack>
+                                            )}
+                                            ;
                                         </Stack>
-
-
-
-
                                     </Card>
 
                                     {/*
@@ -1710,7 +1820,9 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                                     required
                                                     marginTop
                                                     value={weight}
-                                                    onChange={(value) => setWeight(value)}
+                                                    onChange={(value) =>
+                                                        setWeight(value)
+                                                    }
                                                 />
                                             </FormLayout>
                                         </div>
@@ -1724,9 +1836,9 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                             product might appear in a search
                                             engine listing
                                         </Text>
-                                        <div className="margin-top"/>
-                                        <div className="margin-bottom"/>
-                                        <Divider/>
+                                        <div className="margin-top" />
+                                        <div className="margin-bottom" />
+                                        <Divider />
 
                                         <InputField
                                             label="Page Title"
@@ -1986,12 +2098,12 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                                             variantsMarkup?.length
                                                         }
                                                         headings={[
-                                                            {title: "Name"},
-                                                            {title: "Price"},
+                                                            { title: "Name" },
+                                                            { title: "Price" },
                                                             {
                                                                 title: "Quantity",
                                                             },
-                                                            {title: "Sku"},
+                                                            { title: "Sku" },
                                                             {
                                                                 title: "Compare At",
                                                             },
@@ -2017,12 +2129,15 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                             options={[
                                                 {
                                                     label: "Draft",
-                                                    value: 'draft',
+                                                    value: "draft",
                                                 },
-                                                {label: "Active", value: 'active'},
+                                                {
+                                                    label: "Active",
+                                                    value: "active",
+                                                },
                                             ]}
                                             onChange={() => setStatus(!status)}
-                                            value={status =='active'? 'active' : 'draft'}
+                                            value={status ? "active" : "draft"}
                                         />
                                     </div>
                                 </Card>
@@ -2039,8 +2154,11 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                                 marginTop
                                                 name="email"
                                                 value={sellerEmail}
-                                                onChange={(e) => setSellerEmail(e.target.value)}
-
+                                                onChange={(e) =>
+                                                    setSellerEmail(
+                                                        e.target.value
+                                                    )
+                                                }
                                             />
                                         </div>
                                     </div>
@@ -2054,7 +2172,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                                         {/* <Text variant="bodyMd" as="p" fontWeight="regular">
                       {`You can add product handle and product's metafields from here.`}
                     </Text> */}
-                                        <div className="margin-top"/>
+                                        <div className="margin-top" />
                                         <Autocomplete
                                             allowMultiple
                                             options={collectionOptions}
@@ -2072,7 +2190,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                       onChange={(value) => setCategorySelect(value)}
                       value={categorySelect}
                     /> */}
-                                        <div className="margin-top"/>
+                                        <div className="margin-top" />
                                         <div onKeyDown={handleKeyPress}>
                                             <TextField
                                                 id="pendingTag"
@@ -2107,7 +2225,7 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
                       value={titleMetafield}
                       onChange={handleTitleMetafield}
                     /> */}
-                                        <div className="margin-top"/>
+                                        <div className="margin-top" />
                                         <InputField
                                             label="Vendor"
                                             placeholder="Enter Vendor Name"
@@ -2171,5 +2289,4 @@ console.log("response?.data?.variants", response?.data?.selected_variant)
             {toastSuccessMsg}
         </div>
     );
-
 }

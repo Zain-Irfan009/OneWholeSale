@@ -231,7 +231,7 @@ export function AddProduct() {
 
 
 
-    const variantsInputFiledsHandler = (e, index, type, name) => {
+    const variantsInputFiledsHandler = (e, index, type, title) => {
         const { value } = e.target;
         console.log("value, index, type", value, index, type);
 
@@ -240,7 +240,7 @@ export function AddProduct() {
             console.log("updatedState", updatedState);
 
             const updatedObject = { ...updatedState[index] };
-            updatedObject.name = name;
+            updatedObject.title = title;
             switch (type) {
                 case "price":
                     updatedObject.price = value;

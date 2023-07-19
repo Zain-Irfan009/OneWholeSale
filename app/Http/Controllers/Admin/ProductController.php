@@ -94,20 +94,21 @@ class ProductController extends Controller
 
 if(isset($request->variants) ) {
     $variants=json_decode($request->variants);
+
     if( count($variants) > 0){
 
     foreach ($variants as $index => $variant) {
 
-        $title = explode("/", $variant->name);
+        $title = explode("/", $variant->title);
 
         $variant_option1 = (isset($title[0])) ? $title[0] : null;
         $variant_option2 = (isset($title[1])) ? $title[1] : null;
         $variant_option3 = (isset($title[2])) ? $title[2] : null;
 
-        if ($variant->name != null) {
+        if ($variant->title != null) {
 
             array_push($variants_array, [
-                'title' => $variant->name,
+                'title' => $variant->title,
                 'sku' => $variant->sku,
                 'option1' => $variant_option1,
                 'option2' => $variant_option2,
@@ -148,7 +149,6 @@ if(isset($request->variants) ) {
 }
 
 
-
         $images_array = array();
 if(isset($request->images)) {
 
@@ -186,11 +186,12 @@ if(isset($request->images)) {
             $collections='';
         }
 
-        if($request->status=="true"){
-            $status='active';
-        }else{
-            $status='draft';
-        }
+//        if($request->status=="true"){
+//            $status='active';
+//        }else{
+//            $status='draft';
+//        }
+
         $productdata = [
             "product" => [
                 "title" => $request->product_name,
@@ -203,7 +204,7 @@ if(isset($request->images)) {
                 "options" => $options_array,
                 "images" => $images_array,
 //                "published"=>  $published,
-                "status"=>  $status
+                "status"=>  $request->status
             ]
         ];
 
@@ -235,8 +236,10 @@ if(isset($request->images)) {
         $product->search_engine_title=$request->search_engine_title;
         $product->search_engine_meta_description=$request->search_engine_meta_description;
         $product->seller_email=$request->seller_email;
-        $product->seller_name=$user->name;
-        $product->user_id=$user->id;
+        if($user) {
+            $product->seller_name = $user->name;
+            $product->user_id = $user->id;
+        }
         $product->collections=$collections;
         $product->tags=$tags;
         $product->product_type=$request->product_type;
@@ -244,7 +247,7 @@ if(isset($request->images)) {
         $product->status=$response->status;
         $product->price=$response->variants[0]->price;
         $product->quantity=$response->variants[0]->inventory_quantity;
-        if($status=='draft') {
+        if($request->status=='draft') {
             $product->product_status = 'Approval Pending';
         }else{
             $product->product_status = 'Approved';
