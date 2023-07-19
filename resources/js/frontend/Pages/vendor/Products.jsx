@@ -240,6 +240,35 @@ console.log(error)
         getData();
     }, []);
 
+
+    const handleExportProduct = async () => {
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/seller/export-product`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            const downloadLink = document.createElement('a');
+            downloadLink.href = response?.data?.link; // Replace 'fileUrl' with the key containing the download link in the API response
+            downloadLink.download =response?.data?.name; // Specify the desired filename and extension
+            downloadLink.target = '_blank';
+            downloadLink.click();
+            setBtnLoading(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            // setSkeleton(false)
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg('Export Failed')
+            setErrorToast(true)
+        }
+
+    }
+
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(products);
 
@@ -456,7 +485,7 @@ console.log(error)
                     title="All Products"
                     primaryAction={{
                         content:  'Export',
-                        onAction:  handleAddProduct,
+                        onAction:  handleExportProduct,
 
                     }}
                 >
@@ -472,15 +501,15 @@ console.log(error)
                             <Card.Section>
                                 <div style={{ padding: '16px', display: 'flex' }}>
                                     <div style={{ flex: 1 }}>
-                                        <TextField
-                                            placeholder='Search Product'
-                                            value={queryValue}
-                                            onChange={handleFiltersQueryChange}
-                                            clearButton
-                                            onClearButtonClick={handleQueryValueRemove}
-                                            autoComplete="off"
-                                            prefix={<Icon source={SearchMinor} />}
-                                        />
+                                        {/*<TextField*/}
+                                        {/*    placeholder='Search Product'*/}
+                                        {/*    value={queryValue}*/}
+                                        {/*    onChange={handleFiltersQueryChange}*/}
+                                        {/*    clearButton*/}
+                                        {/*    onClearButtonClick={handleQueryValueRemove}*/}
+                                        {/*    autoComplete="off"*/}
+                                        {/*    prefix={<Icon source={SearchMinor} />}*/}
+                                        {/*/>*/}
                                     </div>
                                 </div>
 

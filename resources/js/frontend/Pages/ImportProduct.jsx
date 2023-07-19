@@ -208,8 +208,9 @@ export function ImportProduct() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            setBtnLoading(false)
             getData()
+            setBtnLoading(false)
+
             setModalAssignProduct(false)
             setSellerEmail('')
             setToastMsg(response?.data?.message)

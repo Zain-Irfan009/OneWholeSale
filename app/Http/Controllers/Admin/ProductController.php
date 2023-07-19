@@ -64,6 +64,12 @@ class ProductController extends Controller
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
 
+        $check_user=User::where('email',$request->seller_email)->where('role','seller')->first();
+        if($check_user==null){
+            return response()->json([
+                'message' => 'Seller Not Found',
+            ],422);
+        }
         $client = new Rest($session->shop, $session->access_token);
 
         $options_array = [];

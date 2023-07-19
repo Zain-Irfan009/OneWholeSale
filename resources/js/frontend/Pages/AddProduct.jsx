@@ -1177,7 +1177,7 @@ export function AddProduct() {
     //SUbmit Data
     const addProduct = async () => {
 
-        setLoading(true)
+
         const errors = {};
         if (productName.trim() === '') {
             errors.productName = 'Product Name is required';
@@ -1191,6 +1191,7 @@ export function AddProduct() {
             setBtnLoading(false)
             return;
         }
+        setLoading(true)
         setBtnLoading(true)
         const sessionToken = getAccessToken();
         let formData = new FormData();

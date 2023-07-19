@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\Session;
 use App\Models\User;
 use App\Models\Variant;
 use Illuminate\Http\Request;
@@ -92,5 +93,34 @@ class ProductController extends Controller
                 return response()->json($data);
             }
         }
+    }
+
+    public function ExportProduct(Request $request){
+        $user=auth()->user();
+//        $shop=Session::where('shop',$user->name)->first();
+        $products=Product::where('user_id',$user->id)->get();
+
+        $name = 'Product-' . time() . '.csv';
+        $file = fopen(public_path($name), 'w+');
+
+        // Add the CSV headers
+        fputcsv($file, ['Product Name', 'Status']);
+        foreach ($products as $product){
+
+            fputcsv($file, [
+                $product->product_name,
+//                $product->seller_name,
+                $product->product_status,
+            ]);
+        }
+
+        fclose($file);
+
+        return response()->json([
+            'success' => true,
+            'name'=>$name,
+            'message'=>'Export Successfully',
+            'link' => asset($name),
+        ]);
     }
 }

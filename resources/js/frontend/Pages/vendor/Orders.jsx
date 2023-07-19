@@ -276,6 +276,34 @@ export function Orders() {
     }
 
 
+    const handleExportOrder = async () => {
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/seller/export-order`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            const downloadLink = document.createElement('a');
+            downloadLink.href = response?.data?.link; // Replace 'fileUrl' with the key containing the download link in the API response
+            downloadLink.download =response?.data?.name; // Specify the desired filename and extension
+            downloadLink.target = '_blank';
+            downloadLink.click();
+            setBtnLoading(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            // setSkeleton(false)
+
+        } catch (error) {
+            setBtnLoading1(false)
+            setToastMsg('Export Failed')
+            setErrorToast(true)
+        }
+
+    }
+
     const getData = async () => {
 
         const sessionToken = getAccessToken();
@@ -411,35 +439,77 @@ export function Orders() {
         }
     }
 
-    const tabs = [
-        {
-            id: 'all-orders',
-            content: 'All',
-            accessibilityLabel: 'All orders',
-            panelID: 'all-orders-content',
-        },
-        {
-            id: 'active-orders',
-            content: 'Unfulfilled',
-            panelID: 'active-orders-content',
-        },
-        {
-            id: 'draft-orders',
-            content: 'Unpaid',
-            panelID: 'draft-orders-content',
-        },
-        {
-            id: 'open-orders',
-            content: 'Open',
-            panelID: 'open-orders-content',
-        },
-        {
-            id: 'closed-orders',
-            content: 'Closed',
-            panelID: 'closed-orders-content',
-        },
-    ];
+    const [itemStrings, setItemStrings] = useState([
+        "All",
+        "Paid",
+        "Pending",
 
+    ]);
+
+
+    const handleOrderFilter =async (value) =>  {
+        setSelected(value)
+        setLoading(true)
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/seller/order-filter?status=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setOrders(response?.data?.orders)
+            setLoading(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+    // const tabs = [
+    //     {
+    //         id: 'all-orders',
+    //         content: 'All',
+    //         accessibilityLabel: 'All orders',
+    //         panelID: 'all-orders-content',
+    //     },
+    //     {
+    //         id: 'active-orders',
+    //         content: 'Unfulfilled',
+    //         panelID: 'active-orders-content',
+    //     },
+    //     {
+    //         id: 'draft-orders',
+    //         content: 'Unpaid',
+    //         panelID: 'draft-orders-content',
+    //     },
+    //     {
+    //         id: 'open-orders',
+    //         content: 'Open',
+    //         panelID: 'open-orders-content',
+    //     },
+    //     {
+    //         id: 'closed-orders',
+    //         content: 'Closed',
+    //         panelID: 'closed-orders-content',
+    //     },
+    // ];
+
+    const tabs = itemStrings.map((item, index) => ({
+        content: item,
+        index,
+        onAction: () => {},
+        id: `${item}-${index}`,
+        isLocked: index === 0,
+
+    }));
 
     return (
         <div className='Products-Page IndexTable-Page Orders-page'>
@@ -483,7 +553,7 @@ export function Orders() {
                     title="All Orders"
                     primaryAction={{
                         content:  'Export',
-                        onAction:  handleExport,
+                        onAction:  handleExportOrder,
 
                     }}
 
@@ -493,7 +563,7 @@ export function Orders() {
                         <Tabs
                             tabs={tabs}
                             selected={selected}
-                            onSelect={handleTabChange}
+                            onSelect={handleOrderFilter}
                             disclosureText="More views"
                         >
                         <div className='Polaris-Table'>
@@ -514,7 +584,7 @@ export function Orders() {
 
                                 <IndexTable
                                     resourceName={resourceName}
-                                    itemCount={orders.length}
+                                    itemCount={orders?.length}
                                     hasMoreItems
                                     selectable={true}
                                     selectedItemsCount={

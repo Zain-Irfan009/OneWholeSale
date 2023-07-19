@@ -589,78 +589,79 @@ export function Dashboard() {
             </LegacyCard.Section>
           </LegacyCard>
           <div style={{ marginTop: "30px" }}></div>
-          <Layout>
-            <Layout.Section oneHalf>
-              <LegacyCard title="Top Sold Products">
-                <LegacyCard.Section>
-                  <Text color="subdued" as="span">
-                    Here you can check your top sold products
-                  </Text>
-                  <div className="margin-top"></div>
-                  <Text color="subdued" as="span">
-                    Top sold products will appear here
-                  </Text>
+          {/*<Layout>*/}
+          {/*  <Layout.Section oneHalf>*/}
+          {/*    <LegacyCard title="Top Sold Products">*/}
+          {/*      <LegacyCard.Section>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Here you can check your top sold products*/}
+          {/*        </Text>*/}
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Top sold products will appear here*/}
+          {/*        </Text>*/}
 
-                  <div className="margin-top"></div>
-                  <Button fullWidth primary>
-                    VIEW ALL PRODUCT
-                  </Button>
-                  <div className="margin-top"></div>
-                  <Text color="subdued" as="span">
-                    Click on the Button above to View all the Details for all
-                    Products.
-                  </Text>
-                </LegacyCard.Section>
-              </LegacyCard>
-            </Layout.Section>
-            {/* <Layout.Section oneHalf>
-              <LegacyCard title="Recent Orders">
-                <LegacyCard.Section>
-                  <Text color="subdued" as="span">
-                    Here you can check all recent Orders of your Marketplace
-                    Store.
-                  </Text>
-                  <div className="margin-top"></div>
-                  <Text color="subdued" as="span">
-                    Recent orders will appear here.{" "}
-                  </Text>
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Button fullWidth primary>*/}
+          {/*          VIEW ALL PRODUCT*/}
+          {/*        </Button>*/}
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Click on the Button above to View all the Details for all*/}
+          {/*          Products.*/}
+          {/*        </Text>*/}
+          {/*      </LegacyCard.Section>*/}
+          {/*    </LegacyCard>*/}
+          {/*  </Layout.Section>*/}
+          {/*  /!* <Layout.Section oneHalf>*/}
+          {/*    <LegacyCard title="Recent Orders">*/}
+          {/*      <LegacyCard.Section>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Here you can check all recent Orders of your Marketplace*/}
+          {/*          Store.*/}
+          {/*        </Text>*/}
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Recent orders will appear here.{" "}*/}
+          {/*        </Text>*/}
 
-                  <div className="margin-top"></div>
-                  <Button fullWidth primary>
-                    VIEW ALL ORDERS
-                  </Button>
-                  <div className="margin-top"></div>
-                  <Text color="subdued" as="span">
-                    Click on the Button above to View all the Details for all
-                    Orders.
-                  </Text>
-                </LegacyCard.Section>
-              </LegacyCard>
-            </Layout.Section> */}
-            <Layout.Section oneHalf>
-              <LegacyCard title="Out of Stock Products">
-                <LegacyCard.Section>
-                  <Text color="subdued" as="span">
-                    Here you can see Products which are out of stock .
-                  </Text>
-                  <div className="margin-top"></div>
-                  <Text color="subdued" as="span">
-                    Out of stock products will appear here.
-                  </Text>
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Button fullWidth primary>*/}
+          {/*          VIEW ALL ORDERS*/}
+          {/*        </Button>*/}
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Click on the Button above to View all the Details for all*/}
+          {/*          Orders.*/}
+          {/*        </Text>*/}
+          {/*      </LegacyCard.Section>*/}
+          {/*    </LegacyCard>*/}
+          {/*  </Layout.Section> *!/*/}
+          {/*    */}
+          {/*  <Layout.Section oneHalf>*/}
+          {/*    <LegacyCard title="Out of Stock Products">*/}
+          {/*      <LegacyCard.Section>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Here you can see Products which are out of stock .*/}
+          {/*        </Text>*/}
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Out of stock products will appear here.*/}
+          {/*        </Text>*/}
 
-                  <div className="margin-top"></div>
-                  <Button fullWidth primary>
-                    VIEW ALL PRODUCT
-                  </Button>
-                  <div className="margin-top"></div>
-                  <Text color="subdued" as="span">
-                    Click on the Button above to View all the Details for all
-                    Products.
-                  </Text>
-                </LegacyCard.Section>
-              </LegacyCard>
-            </Layout.Section>
-          </Layout>
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Button fullWidth primary>*/}
+          {/*          VIEW ALL PRODUCT*/}
+          {/*        </Button>*/}
+          {/*        <div className="margin-top"></div>*/}
+          {/*        <Text color="subdued" as="span">*/}
+          {/*          Click on the Button above to View all the Details for all*/}
+          {/*          Products.*/}
+          {/*        </Text>*/}
+          {/*      </LegacyCard.Section>*/}
+          {/*    </LegacyCard>*/}
+          {/*  </Layout.Section>*/}
+          {/*</Layout>*/}
 
           {/* <Card>
             <div className="Polaris-Table">

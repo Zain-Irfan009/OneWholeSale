@@ -46,8 +46,8 @@ class ProductPushJob implements ShouldQueue
 
         $product_id=$this->data;
         $shop=$this->shop;
-        $product_records=CsvImport::where('product_id',$product_id)->where('shop_id',$shop->id)->get();
-        $product_data_first_record=CsvImport::where('product_id',$product_id)->where('shop_id',$shop->id)->first();
+        $product_records=CsvImport::where('product_id',$product_id)->whereNull('product_shopify_id')->where('shop_id',$shop->id)->get();
+        $product_data_first_record=CsvImport::where('product_id',$product_id)->whereNull('product_shopify_id')->where('shop_id',$shop->id)->first();
         $session=Session::where('id',$product_data_first_record->shop_id)->first();
         $client = new Rest($session->shop, $session->access_token);
         $options_array = [];
@@ -180,7 +180,7 @@ class ProductPushJob implements ShouldQueue
             $product->featured_image = $image;
             $product->save();
 
-            $import_csv=CsvImport::where('product_id',$product_id)->update([
+            $import_csv=CsvImport::where('product_id',$product_id)->whereNull('product_shopify_id')->update([
                 'imported'=>1,
                 'product_shopify_id'=>$response->id
                 ]);
@@ -232,7 +232,7 @@ class ProductPushJob implements ShouldQueue
                 $product_image->save();
             }
 
-        }
+
 
         $user=User::where('email',$product_data_first_record->seller_email)->first();
         if($user) {
@@ -251,6 +251,7 @@ class ProductPushJob implements ShouldQueue
                 $product->seller_email = $user->email;
                 $product->save();
             }
+        }
         }
     }
 }

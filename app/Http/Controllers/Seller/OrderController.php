@@ -62,4 +62,57 @@ class OrderController extends Controller
         return response()->json($data);
 
     }
+
+    public function ExportOrder(Request $request){
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        $orders=Order::where('user_id',$user->id)->get();
+
+        $name = 'Order-' . time() . '.csv';
+        $file = fopen(public_path($name), 'w+');
+
+        // Add the CSV headers
+        fputcsv($file, ['Order Number','Shipping Name', 'Email','Financial Status']);
+        foreach ($orders as $order){
+
+            fputcsv($file, [
+                $order->order_number,
+                $order->shipping_name,
+                $order->email,
+                $order->financial_status,
+//                $order->user_name,
+            ]);
+        }
+
+        fclose($file);
+
+        return response()->json([
+            'success' => true,
+            'name'=>$name,
+            'message'=>'Export Successfully',
+            'link' => asset($name),
+        ]);
+    }
+
+    public function OrderFilter(Request $request)
+    {
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        if ($shop) {
+            if($request->status==0) {
+                $orders = Order::where('financial_status', $request->status)->where('user', $user->id)->get();
+            }else if($request->status==1){
+                $orders = Order::where('financial_status','paid')->where('user', $user->id)->get();
+            }else if($request->status==2){
+                $orders = Order::where('financial_status','pending')->where('user', $user->id)->get();
+            }
+            if (count($orders) > 0) {
+                $data = [
+                    'orders' => $orders
+                ];
+                return response()->json($data);
+            }
+        }
+
+    }
 }

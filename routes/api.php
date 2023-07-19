@@ -116,11 +116,13 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('product-filter',[\App\Http\Controllers\Seller\ProductController::class,'ProductFilter']);
         Route::get('product-view/{id}',[\App\Http\Controllers\Seller\ProductController::class,'ProductView']);
         Route::delete('product-delete',[\App\Http\Controllers\Seller\ProductController::class,'Productdelete']);
-
+        Route::get('export-product',[\App\Http\Controllers\Seller\ProductController::class,'ExportProduct']);
 
         //orders
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
         Route::get('view-order/{id}',[\App\Http\Controllers\Seller\OrderController::class,'ViewOrder']);
+        Route::get('export-order',[\App\Http\Controllers\Seller\OrderController::class,'ExportOrder']);
+        Route::get('order-filter',[\App\Http\Controllers\Seller\OrderController::class,'OrderFilter']);
 
    //commissions
         Route::get('commission-listing',[\App\Http\Controllers\Seller\CommissionController::class,'CommissionListing']);
