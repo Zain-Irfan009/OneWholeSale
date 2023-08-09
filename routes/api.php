@@ -32,6 +32,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('store-stats',[\App\Http\Controllers\Admin\DashboardController::class,'StoreStats']);
     Route::get('store-earning',[\App\Http\Controllers\Admin\DashboardController::class,'StoreEarning']);
     Route::get('store-earning-filter',[\App\Http\Controllers\Admin\DashboardController::class,'StoreEarningFilter']);
+    Route::get('top-sold-products',[\App\Http\Controllers\Admin\DashboardController::class,'TopSoldProduct']);
+    Route::get('out-of-stock-products',[\App\Http\Controllers\Admin\DashboardController::class,'OutOfStockProduct']);
+    Route::get('get-graph-data',[\App\Http\Controllers\Admin\DashboardController::class,'GetGraphData']);
 
         //Seller
     Route::get('sellers',[\App\Http\Controllers\Admin\SellerController::class,'Sellers']);

@@ -68,3 +68,107 @@
 }
 
 
+.store_stats .Polaris-Text--root{
+    color:#777777;
+    font-weight:700;
+    font-size:13px;
+
+}
+.store_stats .product_stats {
+    display:block;
+}
+
+.store_stats .product_stats p{
+    display:inline-block;
+}
+
+.store_stats .product_stats .product_status_disabled{
+    margin-left:54px;
+}
+
+.store_stats .product_stats .product_status_aprroved{
+    margin-left:103px;
+}
+
+.store_stats .product_stats .seller_status_aprroved{
+    margin-left:122px;
+}
+.product_stats .Polaris-Badge{
+    border-radius:unset;
+    background:rgb(141 214 255);
+
+}
+
+.product_stats .Polaris-Badge .Polaris-Text--root {
+    color:white ;
+    font-weight:500;
+}
+
+.product_stats .Polaris-Badge{
+    border-radius:unset;
+    background:rgb(141 214 255);
+
+}
+
+.product_stats .approval_pending .Polaris-Badge .Polaris-Text--root {
+    color:white ;
+    font-weight:500;
+}
+
+.product_stats .approval_pending .Polaris-Badge{
+    border-radius:unset;
+    background: rgb(255, 186, 89);
+
+}
+
+
+.product_stats .product_status_aprroved .Polaris-Badge .Polaris-Text--root {
+    color:white ;
+    font-weight:500;
+}
+
+.product_stats .product_status_aprroved .Polaris-Badge{
+    border-radius:unset;
+    background: rgb(105, 173, 103);
+
+}
+
+.product_stats .product_status_disabled .Polaris-Badge .Polaris-Text--root {
+    color:white ;
+    font-weight:500;
+}
+
+.product_stats .product_status_disabled .Polaris-Badge{
+    border-radius:unset;
+    background: rgb(143, 143, 143);
+
+}
+
+.store_stats .product_stats:nth-child(2){
+    margin-top:7px;
+}
+
+.store_stats .product_stats_span{
+    margin-left:7px;
+}
+
+.earning_stats .Polaris-Badge {
+    border-radius:unset;
+    background: #2662B3
+}
+
+.earning_stats .Polaris-Badge .Polaris-Text--root {
+   color:white;
+    font-weight:500;
+
+}
+
+.earning_stats .product_stats_span {
+   margin-left:7px;
+
+}
+
+.store_stats .product_stats .seller_status_disabled {
+    margin-left:60px;
+
+}

@@ -13,12 +13,14 @@ import checkifyLogo from "../../assets/1.png";
 import { useLocation, useNavigate } from "react-router-dom";
 // import { setAccessToken, getAccessToken } from '../../components'
 import axios from "axios";
+import {useAuthState} from "../../assets/AuthProvider";
 
 export function VendorLayout(props) {
   const apiUrl = "https://workingproject.test";
 
   // const dispatch = useAuthDispatch();
   // const { user } = useAuthState();
+    const { name } = useAuthState();
   const navigate = useNavigate();
   const location = useLocation();
   const { locationChange, setLocationChange } = useContext(AppContext);
@@ -26,8 +28,8 @@ export function VendorLayout(props) {
   const [userMenuActive, setUserMenuActive] = useState(false);
   const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
   const [userDetails, setUserDetails] = useState({
-    name: "Seller",
-    initials: "s",
+      name: name,
+      initials: `${name.charAt(0)}`,
   });
 
   const [errorToast, setErrorToast] = useState(false);

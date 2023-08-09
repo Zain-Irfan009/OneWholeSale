@@ -142,6 +142,7 @@ export function EditProduct() {
         ],
         []
     );
+
     const [skeleton, setSkeleton] = useState(false);
     const [productsLoading, setProductsLoading] = useState(false);
     const [queryValue, setQueryValue] = useState("");
@@ -169,6 +170,7 @@ export function EditProduct() {
     const [pendingTag, setPendingTag] = useState("");
     const [categorySelect, setCategorySelect] = useState("today");
     const [vendorSelect, setVendorSelect] = useState("today");
+    const [currency, setCurrency] = useState("");
 
     const [selectedOptions, setSelectedOptions] = useState(["rustic"]);
     const [inputValue, setInputValue] = useState("");
@@ -202,6 +204,7 @@ export function EditProduct() {
             console.log("getProductData response", response.data);
 
             setSellerEmail(response?.data?.product?.seller_email);
+            setCurrency(response?.data?.currency);
             setProductName(response?.data?.product?.product_name);
             setDescriptionContent(response?.data?.product?.description);
             setValue(response?.data?.product?.tags);
@@ -1676,7 +1679,7 @@ export function EditProduct() {
                                                         type="number"
                                                         required
                                                         marginTop
-                                                        prefix={`$`}
+                                                        prefix={currency}
                                                         value={price}
                                                         onChange={handlePrice}
                                                     />
@@ -1688,7 +1691,7 @@ export function EditProduct() {
                                                         type="number"
                                                         required
                                                         marginTop
-                                                        prefix={`$`}
+                                                        prefix={currency}
                                                         value={compareatPrice}
                                                         onChange={
                                                             handleCompareatPrice

@@ -185,6 +185,7 @@ export function AddProduct() {
 
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
+    const [currency, setCurrency] = useState('');
 
     const [formErrors, setFormErrors] = useState({});
 
@@ -331,9 +332,9 @@ export function AddProduct() {
                     }
                 })
 
-            let arr = response?.data.map(({title})=> ({value: title, label: title}))
+            let arr = response?.data?.data.map(({title})=> ({value: title, label: title}))
             setCollectionOptions(arr)
-
+            setCurrency(response?.data?.currency)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -1428,7 +1429,7 @@ export function AddProduct() {
                                                         type="number"
                                                         required
                                                         marginTop
-                                                        prefix={`$`}
+                                                        prefix={currency}
                                                         value={price}
                                                         onChange={handlePrice}
                                                     />
@@ -1440,7 +1441,7 @@ export function AddProduct() {
                                                         type="number"
                                                         required
                                                         marginTop
-                                                        prefix={`$`}
+                                                        prefix={currency}
                                                         value={compareatPrice}
                                                         onChange={
                                                             handleCompareatPrice

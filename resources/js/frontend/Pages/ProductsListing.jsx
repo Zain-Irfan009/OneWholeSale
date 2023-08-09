@@ -64,6 +64,7 @@ export function ProductsListing() {
     const [skeleton, setSkeleton] = useState(false)
 
   const [products, setProducts] = useState([]);
+  const [currency, setCurrency] = useState('');
   const [hasNextPage, setHasNextPage] = useState(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [pageCursor, setPageCursor] = useState("next");
@@ -217,6 +218,8 @@ export function ProductsListing() {
 
             console.log(response?.data?.data)
             setProducts(response?.data?.data)
+
+            setCurrency(response?.data?.currency)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -443,7 +446,7 @@ export function ProductsListing() {
           <CustomBadge value={"NORMAL"} type="products" />
         </IndexTable.Cell>
 
-        <IndexTable.Cell>{price != null ? price : "---"}</IndexTable.Cell>
+          <IndexTable.Cell>{price != null ? `${currency} ${price}` : '---'}</IndexTable.Cell>
         <IndexTable.Cell>{quantity != null ? quantity : "---"}</IndexTable.Cell>
         <IndexTable.Cell>
           <CustomBadge value={product_status}  type="products" />

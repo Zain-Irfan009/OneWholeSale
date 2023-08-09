@@ -15,7 +15,11 @@ class CollectionController extends Controller
         $user = auth()->user();
         $session = Session::where('shop', $user->name)->first();
         $collections=Collection::where('shop_id',$session->id)->get();
-        return response()->json($collections);
+        $data = [
+            'data'=>$collections,
+            'currency'=>$session->money_format,
+        ];
+        return response()->json($data);
     }
     public function SyncCollection(Request $request, $next = null){
 //        $user = auth()->user();

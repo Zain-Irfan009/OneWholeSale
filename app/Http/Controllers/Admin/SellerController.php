@@ -83,7 +83,7 @@ class SellerController extends Controller
             $seller->seller_shop_image=$request->seller_shop_image;
             $seller->password=Hash::make($request->password);
             $seller->role='seller';
-            $seller->status=1;
+//            $seller->status=1;
             $seller->shop_id=$shop->id;
             $seller->save();
             $data = [

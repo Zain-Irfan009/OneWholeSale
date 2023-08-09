@@ -165,7 +165,7 @@ class CommissionController extends Controller
 
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->orWhere('seller_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
         $data = [
             'data' => $commissions
         ];

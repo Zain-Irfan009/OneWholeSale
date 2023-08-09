@@ -43,6 +43,7 @@ import { InputField } from "../components/Utils";
 import { AreaChart, XAxis, YAxis, CartesianGrid, Area } from "recharts";
 import { DateRangePicker } from "rsuite";
 import {getAccessToken} from "../assets/cookies";
+import {Loader} from "../components/Loader";
 
 
 
@@ -57,6 +58,7 @@ export function Dashboard() {
   // const { user } = useAuthState();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [loadingTab, setLoadingTab] = useState(true);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [selected, setSelected] = useState(0);
   const [queryValue, setQueryValue] = useState("");
@@ -67,6 +69,26 @@ export function Dashboard() {
   const [storeUrl, setStoreUrl] = useState("");
   const [active, setActive] = useState(false);
   const [productStats, setProductsStats] = useState(0);
+  const [ApprovedproductsStats, setApprovedProductsStats] = useState(0);
+  const [ApprovalPendingStats, setApprovalPendingStats] = useState(0);
+  const [DisabledStats, setDisabledStats] = useState(0);
+  const [sellersCount, setSellersCount] = useState(0);
+  const [approvedSellersCount, setApprovedSellersCount] = useState(0);
+  const [disabledSellersCount, setDisabledSellersCount] = useState(0);
+  const [approvalPendingSellersCount, setApprovalPendingSellersCount] = useState(0);
+  const [graphData, setGraphData] = useState([]);
+
+
+
+    const [skeleton, setSkeleton] = useState(false)
+    const [skeleton1, setSkeleton1] = useState(false)
+
+  const [currency, setCurrency] = useState('');
+  const [totalCommission, setTotalCommission] = useState(0);
+
+
+
+
   const [storeEarning, setStoreEarning] = useState(0);
 
     const [orders, setOrders] = useState([])
@@ -90,6 +112,10 @@ export function Dashboard() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [dateRange, setDateRange] = useState([]);
 
+  const [outofStockProduct, setOutofStockProduct] = useState([]);
+
+  const [topSoldProduct, setTopSoldProduct] = useState([]);
+
   const handleSelect = async (ranges) => {
     // console.log(ranges);
     let formattedDate = [];
@@ -99,7 +125,7 @@ export function Dashboard() {
       console.log(formattedDate);
     });
     setDateRange(formattedDate);
-
+        setSkeleton1(true)
       const sessionToken = getAccessToken();
       try {
 
@@ -110,8 +136,10 @@ export function Dashboard() {
                   }
               })
 
-          setStoreEarning(response?.data)
-
+          setStoreEarning(response?.data?.store_earning)
+          setCurrency(response?.data?.currency)
+          setTotalCommission(response?.data?.total_commission)
+          setSkeleton1(false)
 
 
       } catch (error) {
@@ -130,6 +158,8 @@ export function Dashboard() {
     const getStoreStats =async (selectedTabIndex) =>  {
         console.log(selectedTabIndex)
         setSelected(selectedTabIndex)
+        setSkeleton(true)
+
 
         const sessionToken = getAccessToken();
         try {
@@ -141,7 +171,16 @@ export function Dashboard() {
                     }
                 })
 
-            setProductsStats(response?.data)
+            setProductsStats(response?.data?.products)
+            setProductsStats(response?.data?.products)
+            setApprovedProductsStats(response?.data?.approved_products)
+            setApprovalPendingStats(response?.data?.approval_pending_products)
+            setDisabledStats(response?.data?.disabled_products)
+            setSellersCount(response?.data?.sellers)
+            setApprovedSellersCount(response?.data?.approved_sellers)
+            setDisabledSellersCount(response?.data?.disabled_sellers)
+            setApprovalPendingSellersCount(response?.data?.approval_pending_sellers)
+            setSkeleton(false)
 
 
 
@@ -165,7 +204,14 @@ export function Dashboard() {
                     }
                 })
 
-    setProductsStats(response?.data)
+    setProductsStats(response?.data?.products)
+    setApprovedProductsStats(response?.data?.approved_products)
+    setApprovalPendingStats(response?.data?.approval_pending_products)
+    setDisabledStats(response?.data?.disabled_products)
+     setSellersCount(response?.data?.sellers)
+     setApprovedSellersCount(response?.data?.approved_sellers)
+     setDisabledSellersCount(response?.data?.disabled_sellers)
+       setApprovalPendingSellersCount(response?.data?.approval_pending_sellers)
             // setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -191,11 +237,53 @@ export function Dashboard() {
                     }
                 })
 
-            setStoreEarning(response?.data)
+            setStoreEarning(response?.data?.store_earning)
+            setCurrency(response?.data?.currency)
+            setTotalCommission(response?.data?.total_commission)
             // setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    const getTopSoldProduct =async () =>  {
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/top-sold-products`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setTopSoldProduct(response?.data)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    const getOutofStockProduct =async () =>  {
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/out-of-stock-products`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setOutofStockProduct(response?.data)
 
 
         } catch (error) {
@@ -248,33 +336,38 @@ export function Dashboard() {
   ) : null;
 
   const data = [
-    { name: "Jan", uv: 4000, pv: 2400, amt: 2400 },
-    { name: "Feb", uv: 3000, pv: 1398, amt: 2210 },
-    { name: "Mar", uv: 2000, pv: 9800, amt: 2290 },
-    { name: "Apr", uv: 2780, pv: 3908, amt: 2000 },
-    { name: "May", uv: 1890, pv: 4800, amt: 2181 },
-    { name: "Jun", uv: 2390, pv: 3800, amt: 2500 },
-    { name: "Jul", uv: 3490, pv: 4300, amt: 2100 },
-    { name: "Aug", uv: 3490, pv: 4300, amt: 2100 },
-    { name: "Sep", uv: 3490, pv: 4300, amt: 2100 },
-    { name: "Oct", uv: 3490, pv: 4300, amt: 2100 },
-    { name: "Nov", uv: 3490, pv: 4300, amt: 2100 },
-    { name: "Dec", uv: 3490, pv: 4300, amt: 2100 },
+    { name: "Jan", uv: 4000 },
+    { name: "Feb", uv: 3000 },
+    { name: "Mar", uv: 2000 },
+    { name: "Apr", uv: 2780 },
+    { name: "May", uv: 1890 },
+    { name: "Jun", uv: 2390 },
+    { name: "Jul", uv: 3490 },
+    { name: "Aug", uv: 3490 },
+    { name: "Sep", uv: 3490 },
+    { name: "Oct", uv: 3490 },
+    { name: "Nov", uv: 3490 },
+    { name: "Dec", uv: 3490 },
   ];
+
 
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(sellers);
 
 
-    const formatDate=(created_at)=>{
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
         const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
         const day = date.getDate();
-        const month = date.getMonth() + 1;
         const year = date.getFullYear();
-        const formatedDate = `${month.toString().padStart(2, "0")}-${day
-            .toString()
-            .padStart(2, "0")}-${year}`;
-        return formatedDate;
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
     }
 
     const rowMarkup = sellers.map(
@@ -314,13 +407,12 @@ export function Dashboard() {
     (
       {
         id,
-        order_id,
+        shop_id,
         order_number,
           user_name,
-          gateway,
+          total_price,
           financial_status,
-          fulfillment_status,
-        tracking_id,
+          created_at,
       },
       index
     ) => (
@@ -335,6 +427,11 @@ export function Dashboard() {
             {id != null ? id : "---"}
           </Text>
         </IndexTable.Cell>
+          <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
+              <Text variant="bodyMd" fontWeight="semibold" as="span">
+                  {shop_id != null ? shop_id : "---"}
+              </Text>
+          </IndexTable.Cell>
 
         <IndexTable.Cell>
           <Text variant="bodyMd" fontWeight="semibold" as="span">
@@ -347,24 +444,123 @@ export function Dashboard() {
         </IndexTable.Cell>
 
         <IndexTable.Cell>
-          {gateway != null ? gateway : "---"}
+            {total_price !== null ? `${currency} ${total_price}` : "---"}
         </IndexTable.Cell>
 
           <IndexTable.Cell>
               <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
           </IndexTable.Cell>
 
-
           <IndexTable.Cell>
-              <CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />
+             {created_at != null ? formatDate(created_at) : "---"}
           </IndexTable.Cell>
 
-          <IndexTable.Cell>
-              {tracking_id != null ? tracking_id : "N/A"}
-          </IndexTable.Cell>
+
       </IndexTable.Row>
     )
   );
+
+    const rowMarkup3 = topSoldProduct.map(
+        (
+            {
+                id,
+                image,
+                name,
+                seller_name,
+                quantity,
+                number_of_sales,
+
+
+            },
+            index
+        ) => (
+            <IndexTable.Row
+                id={id}
+                key={id}
+                selected={selectedResources.includes(id)}
+                position={index}
+            >
+
+                    <IndexTable.Cell>
+                        {/*<Avatar size="small" shape="square" name="title" source={image} />*/}
+                        <Text variant="bodyMd" fontWeight="semibold" as="span" key={index}>
+                            {`#${index + 1}`}
+                        </Text>
+                </IndexTable.Cell>
+                <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {name != null ? name : "---"}
+                    </Text>
+                </IndexTable.Cell>
+
+                <IndexTable.Cell>
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {seller_name != null ? seller_name : "---"}
+                    </Text>
+                </IndexTable.Cell>
+
+                <IndexTable.Cell className="Capitalize-Cell">
+                    {quantity !== null ? `${quantity} pcs` : '0 pcs'}
+                </IndexTable.Cell>
+
+                <IndexTable.Cell>
+                    {number_of_sales !== null ?  `${number_of_sales} sales` : "---"}
+                </IndexTable.Cell>
+
+
+
+
+            </IndexTable.Row>
+        )
+    );
+
+
+    const rowMarkup4 = outofStockProduct.map(
+        (
+            {
+                id,
+                product_id,
+                name,
+                total_sale,
+                status
+
+
+            },
+            index
+        ) => (
+            <IndexTable.Row
+                id={id}
+                key={id}
+                selected={selectedResources.includes(id)}
+                position={index}
+            >
+
+                <IndexTable.Cell>
+                    {product_id != null ? product_id : "---"}
+
+                </IndexTable.Cell>
+                <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {name != null ? name : "---"}
+                    </Text>
+                </IndexTable.Cell>
+
+                <IndexTable.Cell>
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {total_sale !== null ? `${total_sale} sales` : '---'}
+                    </Text>
+                </IndexTable.Cell>
+
+                <IndexTable.Cell>
+                    <CustomBadge value="Out of Stock" type="orders" variant={"financial"} />
+                </IndexTable.Cell>
+
+
+
+
+            </IndexTable.Row>
+        )
+    );
 
 
     const getData = async () => {
@@ -417,11 +613,40 @@ export function Dashboard() {
         }
     }
 
+    const getGraphData = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/get-graph-data`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+        console.log(response?.data)
+            setGraphData(response?.data)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
     useEffect(() => {
         getData();
         getSellerData();
         getStoreStatsFirst()
         getStoreEarning()
+        getTopSoldProduct()
+        getOutofStockProduct()
+        getGraphData()
+        console.log(data)
     }, []);
 
 
@@ -433,17 +658,17 @@ export function Dashboard() {
           <SkeltonPageForTable />
         </span>
       ) : (
-        <Page fullWidth title="Dashboard">
+        <Page  title="Dashboard">
           <Layout>
             <Layout.Section oneThird>
               <LegacyCard title="Sales">
                 <LegacyCard.Section>
                   <Text color="subdued" as="span">
-                    Here you can see graph of your sales.
+                      Here you can check all recent Orders of your Marketplace Store.
                   </Text>
                 </LegacyCard.Section>
                 <LegacyCard.Section>
-                  <AreaChart width={300} height={200} data={data}>
+                  <AreaChart width={900} height={200} data={graphData}>
                     <XAxis dataKey="name" />
                     <YAxis />
                     <CartesianGrid strokeDasharray="3 3" />
@@ -457,59 +682,127 @@ export function Dashboard() {
                 </LegacyCard.Section>
               </LegacyCard>
             </Layout.Section>
-            <Layout.Section oneThird>
-              <LegacyCard title="Store Statistics">
-                <LegacyCard.Section>
-                  <Text color="subdued" as="span">
-                    Here you can check Statistics of your Marketplace Store.
-                  </Text>
-                </LegacyCard.Section>
-                <LegacyCard>
-                  <Tabs
-                    tabs={tabs}
-                    selected={selected}
-                    onSelect={getStoreStats}
-                  >
-                    <LegacyCard.Section title={tabs[selected].content}>
-                      <p>Products {productStats} selected</p>
-                    </LegacyCard.Section>
-                    <LegacyCard.Section>
-                      <div className="margin-top"></div>{" "}
-                      <Text>
-                        Products that are currently Activated on your
-                        Marketplace Store.
-                      </Text>
-                    </LegacyCard.Section>
-                  </Tabs>
-                </LegacyCard>
-              </LegacyCard>
-            </Layout.Section>
-            <Layout.Section oneThird>
-              <LegacyCard title="Store Earning">
-                <LegacyCard.Section>
-                  <Text color="subdued" as="span">
-                    Here you can check your earning
-                  </Text>
-                </LegacyCard.Section>
-                <LegacyCard.Section>
-                  <DateRangePicker
-                    onChange={handleSelect}
-                    ranges={[dateRange]}
-                    placeholder="Select Date Range"
-                    showOneCalendar
-                  />
-                </LegacyCard.Section>
-                <LegacyCard.Section>
-                  <Text>Total earning: {storeEarning}</Text>
-                  <div className="margin-top"> </div>
-                  <Text>
-                    This is the Overall Earning Amount of your Marketplace
-                    Store.
-                  </Text>
-                </LegacyCard.Section>
-              </LegacyCard>
-            </Layout.Section>
           </Layout>
+            <div style={{ marginTop: "30px" }}></div>
+            <Layout>
+                <Layout.Section oneThird>
+
+                    <LegacyCard title="Store Statistics">
+                        <LegacyCard.Section>
+                            <Text color="subdued" as="span">
+                                Here you can check Statistics of your Marketplace Store.
+                            </Text>
+                        </LegacyCard.Section>
+                        {skeleton ?
+                            <Loader/>
+                            :
+                            <LegacyCard>
+                                <Tabs
+                                    tabs={tabs}
+                                    selected={selected}
+                                    onSelect={getStoreStats}
+                                    loading={loadingTab}
+                                >
+                                    {/*<LegacyCard.Section title={tabs[selected].content}>*/}
+                                    <LegacyCard.Section >
+                                        <div className="store_stats">
+                                            <div class="product_stats">
+                                                <p> <CustomBadge value={"Sellers"} type="products" /> <span className="product_stats_span">{sellersCount}</span></p>
+                                                <p className="product_status_aprroved seller_status_aprroved" ><CustomBadge value="Approved" type="orders" variant={"fulfillment"} /> <span className="product_stats_span">{approvedSellersCount}</span></p>
+                                            </div>
+                                            <div className="product_stats">
+                                                <p className="approval_pending"> <CustomBadge value="Approval Pending" type="orders" variant={"fulfillment"} />
+                                                    <span className="product_stats_span">{approvalPendingSellersCount}</span></p>
+                                                <p className="product_status_disabled seller_status_disabled"> <CustomBadge value="Disabled" type="orders" variant={"fulfillment"} /><span className="product_stats_span">{disabledSellersCount}</span></p>
+                                            </div>
+                                            <div className="margin-top "></div>{" "}
+                                            <div>
+                                                <Text>
+                                                    Sellers that are currently on your Marketplace.
+                                                </Text>
+                                            </div>
+                                        </div>
+
+                                    </LegacyCard.Section>
+                                    <LegacyCard.Section >
+                                        <div className="store_stats">
+                                            <div class="product_stats">
+                                                <p> <CustomBadge value={"Products"} type="products" /> <span className="product_stats_span">{productStats}</span></p>
+                                                <p className="product_status_aprroved" ><CustomBadge value="Approved" type="orders" variant={"fulfillment"} /> <span className="product_stats_span">{ApprovedproductsStats}</span></p>
+                                            </div>
+                                            <div className="product_stats">
+                                                <p className="approval_pending"> <CustomBadge value="Approval Pending" type="orders" variant={"fulfillment"} />
+                                                    <span className="product_stats_span">{ApprovalPendingStats}</span></p>
+                                                <p className="product_status_disabled"> <CustomBadge value="Disabled" type="orders" variant={"fulfillment"} /><span className="product_stats_span">{DisabledStats}</span></p>
+                                            </div>
+                                            <div className="margin-top "></div>{" "}
+                                            <div>
+                                                <Text>
+                                                    Products that are currently on your
+                                                    Marketplace Store.
+                                                </Text>
+                                            </div>
+                                        </div>
+
+                                    </LegacyCard.Section>
+
+
+                                </Tabs>
+                            </LegacyCard>
+                        }
+                    </LegacyCard>
+
+                </Layout.Section>
+                <Layout.Section oneThird>
+                    <LegacyCard title="Store Earning">
+                        <LegacyCard.Section>
+                            <Text color="subdued" as="span">
+                                Here you can check your earning
+                            </Text>
+                        </LegacyCard.Section>
+                        <LegacyCard.Section>
+                            <DateRangePicker
+                                onChange={handleSelect}
+                                ranges={[dateRange]}
+                                placeholder="Select Date Range"
+                                showOneCalendar
+                            />
+                        </LegacyCard.Section>
+
+                        {skeleton1 ? (
+                            <Loader />
+                        ) : (
+                            <>
+                                <LegacyCard.Section>
+                                    <div className="earning_stats">
+                                        <text>
+                                            <CustomBadge value={"Total earning"} type="products" />{" "}
+                                            <span className="product_stats_span">
+                        {currency} {storeEarning}
+                    </span>
+                                        </text>
+                                    </div>
+                                    <div className="margin-top"></div>
+                                    <Text>This is sellers' overall earning amount of your Marketplace</Text>
+                                </LegacyCard.Section>
+                                <LegacyCard.Section>
+                                    <div className="earning_stats">
+                                        <text>
+                                            <CustomBadge value={"Admin Commission"} type="products" />{" "}
+                                            <span className="product_stats_span">
+                        {currency} {totalCommission}
+                    </span>
+                                        </text>
+                                    </div>
+                                    <div className="margin-top"></div>
+                                    <Text>This is the overall commission amount of your Marketplace.</Text>
+                                </LegacyCard.Section>
+                            </>
+                        )}
+
+                    </LegacyCard>
+                </Layout.Section>
+            </Layout>
 
           <div style={{ marginTop: "30px" }}></div>
           <LegacyCard title="Recent Orders">
@@ -521,31 +814,18 @@ export function Dashboard() {
                 headings={[
                   { title: "Order Id" },
                   { title: "Store Order Id" },
-                  { title: "Seller" },
-                  { title: "Payment Mode" },
+                  { title: "Order Number" },
+                  { title: "Seller Name" },
+                  { title: "Order Total" },
                   { title: "Payment Status" },
-                  { title: "Order Status" },
-                  { title: "Tracking Id" },
+                  { title: "Order Date" },
+
                 ]}
               >
                 {rowMarkup2}
               </IndexTable>
 
-              {/* <Text color="subdued" as="span">
-                Here you can check all recent Orders of your Marketplace Store.
-              </Text>
-              <div className="margin-top"></div>
-              <Text color="subdued" as="span">
-                Recent orders will appear here.{" "}
-              </Text>
 
-              <div className="margin-top"></div>
-              <Button primary>VIEW ALL ORDERS</Button>
-              <div className="margin-top"></div>
-              <Text color="subdued" as="span">
-                Click on the Button above to View all the Details for all
-                Orders.
-              </Text> */}
             </LegacyCard.Section>
           </LegacyCard>
           <div style={{ marginTop: "30px" }}></div>
@@ -589,6 +869,85 @@ export function Dashboard() {
             </LegacyCard.Section>
           </LegacyCard>
           <div style={{ marginTop: "30px" }}></div>
+
+            <LegacyCard title="Top Sold Products">
+                <LegacyCard.Section>
+                    <IndexTable
+                        resourceName={resourceName}
+                        selectable={false}
+                        itemCount={sellers.length}
+                        selectedItemsCount={
+                            allResourcesSelected ? "All" : selectedResources.length
+                        }
+                        onSelectionChange={handleSelectionChange}
+                        headings={[
+                            { title: "" },
+                            { title: "Product Name" },
+                            { title: "Seller Name" },
+                            { title: "Current Quantity" },
+                            { title: "No. of Sales" },
+
+                        ]}
+                    >
+                        {rowMarkup3}
+                    </IndexTable>
+                    {/* <Text color="subdued" as="span">
+                Here you can check all recent Orders of your Marketplace Store.
+              </Text>
+              <div className="margin-top"></div>
+              <Text color="subdued" as="span">
+                Recent orders will appear here.{" "}
+              </Text>
+
+              <div className="margin-top"></div>
+              <Button primary>VIEW ALL ORDERS</Button>
+              <div className="margin-top"></div>
+              <Text color="subdued" as="span">
+                Click on the Button above to View all the Details for all
+                Orders.
+              </Text> */}
+                </LegacyCard.Section>
+            </LegacyCard>
+            <div style={{ marginTop: "30px" }}></div>
+
+            <LegacyCard title="Out of Stock Products">
+                <LegacyCard.Section>
+                    <IndexTable
+                        resourceName={resourceName}
+                        selectable={false}
+                        itemCount={sellers.length}
+                        selectedItemsCount={
+                            allResourcesSelected ? "All" : selectedResources.length
+                        }
+                        onSelectionChange={handleSelectionChange}
+                        headings={[
+                            { title: "Product Id" },
+                            { title: "Product Name" },
+                            { title: "Total Sales" },
+                            { title: "Status" },
+
+                        ]}
+                    >
+                        {rowMarkup4}
+                    </IndexTable>
+                    {/* <Text color="subdued" as="span">
+                Here you can check all recent Orders of your Marketplace Store.
+              </Text>
+              <div className="margin-top"></div>
+              <Text color="subdued" as="span">
+                Recent orders will appear here.{" "}
+              </Text>
+
+              <div className="margin-top"></div>
+              <Button primary>VIEW ALL ORDERS</Button>
+              <div className="margin-top"></div>
+              <Text color="subdued" as="span">
+                Click on the Button above to View all the Details for all
+                Orders.
+              </Text> */}
+                </LegacyCard.Section>
+            </LegacyCard>
+            <div style={{ marginTop: "30px" }}></div>
           {/*<Layout>*/}
           {/*  <Layout.Section oneHalf>*/}
           {/*    <LegacyCard title="Top Sold Products">*/}

@@ -30,8 +30,10 @@ class ProductController extends Controller
         if($session){
             $products=Product::where('shop_id',$session->id)->get();
             $data = [
-                'data'=>$products
+                'data'=>$products,
+                'currency'=>$session->money_format,
             ];
+
             return response()->json($data);
         }
     }
@@ -53,6 +55,7 @@ class ProductController extends Controller
             'options'=>$options,
             'product_images'=>$product_images,
             'selected_variant'=>$selected_variant,
+            'currency'=>$shop->money_format,
 
         ];
         return response()->json($data);
@@ -372,6 +375,7 @@ if(isset($request->images)) {
                     'product'=>$product,
                     'variants'=>$variants,
                     'options'=>$options,
+                    'currency'=>$session->money_format,
                 ];
                 return response()->json($data);
             }
