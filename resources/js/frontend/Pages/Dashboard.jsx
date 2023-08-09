@@ -57,6 +57,7 @@ export function Dashboard() {
   const { apiUrl } = useContext(AppContext);
   // const { user } = useAuthState();
   const navigate = useNavigate();
+    const [graphLoading, setGraphLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingTab, setLoadingTab] = useState(true);
   const [customersLoading, setCustomersLoading] = useState(false);
@@ -614,7 +615,7 @@ export function Dashboard() {
     }
 
     const getGraphData = async () => {
-
+        setGraphLoading(true)
         const sessionToken = getAccessToken();
         try {
             const response = await axios.get(`${apiUrl}/get-graph-data`,
@@ -625,6 +626,7 @@ export function Dashboard() {
                 })
         console.log(response?.data)
             setGraphData(response?.data)
+            setGraphLoading(false)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -652,7 +654,7 @@ export function Dashboard() {
 
     return (
     <div className="Products-Page IndexTable-Page Orders-page">
-      {!loading ? (
+      {graphLoading ? (
         <span>
           <Loading />
           <SkeltonPageForTable />
@@ -667,19 +669,20 @@ export function Dashboard() {
                       Here you can check all recent Orders of your Marketplace Store.
                   </Text>
                 </LegacyCard.Section>
-                <LegacyCard.Section>
-                  <AreaChart width={900} height={200} data={graphData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <Area
-                      type="monotone"
-                      dataKey="uv"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                    />
-                  </AreaChart>
-                </LegacyCard.Section>
+
+                      <LegacyCard.Section>
+                          <AreaChart width={900} height={200} data={graphData}>
+                              <XAxis dataKey="name"/>
+                              <YAxis/>
+                              <CartesianGrid strokeDasharray="3 3"/>
+                              <Area
+                                  type="monotone"
+                                  dataKey="uv"
+                                  stroke="#8884d8"
+                                  fill="#8884d8"
+                              />
+                          </AreaChart>
+                      </LegacyCard.Section>
               </LegacyCard>
             </Layout.Section>
           </Layout>
