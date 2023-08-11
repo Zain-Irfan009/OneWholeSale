@@ -9,7 +9,7 @@ import {
 } from "@shopify/polaris-icons";
 import { AppContext } from "../providers/ContextProvider";
 // import { useAuthDispatch, useAuthState } from '../providers/AuthProvider'
-import checkifyLogo from "../../assets/1.png";
+import checkifyLogo from "../../assets/onewholesale.webp";
 import { useLocation, useNavigate } from "react-router-dom";
 // import { setAccessToken, getAccessToken } from '../../components'
 import axios from "axios";

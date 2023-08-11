@@ -172,3 +172,19 @@
     margin-left:60px;
 
 }
+
+.top_toggle_div{
+    display: inline-flex;
+    border: 1px solid #ebe1e1;
+    padding: 6px;
+}
+
+
+.top_toggle_div .div_label{
+    margin-left: 10px;
+}
+
+
+.top_toggle_div .tgl-btn{
+    background: #ebe8e8;
+}

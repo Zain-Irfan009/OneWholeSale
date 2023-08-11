@@ -51,6 +51,12 @@ export function SellersListing() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [customersLoading, setCustomersLoading] = useState(false);
+  const [deleteBtnLoading, setDeleteBtnLoading] = useState(false);
+  const [resetBtnLoading, setResetBtnLoading] = useState(false);
+  const [disableBtnLoading, setDisableBtnLoading] = useState(false);
+  const [enableBtnLoading, setEnableBtnLoading] = useState(false);
+
+    const [sendBtnLoading, setSendBtnLoading] = useState(false);
   const [selected, setSelected] = useState(0);
   const [queryValue, setQueryValue] = useState("");
   const [toggleLoadData, setToggleLoadData] = useState(true);
@@ -136,7 +142,7 @@ export function SellersListing() {
 
 
     const getData = async () => {
-
+            setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -147,7 +153,7 @@ export function SellersListing() {
                     }
                 })
             setCustomers(response?.data)
-
+            setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -224,23 +230,41 @@ export function SellersListing() {
   // ---------------------Tag/Filter Code Start Here----------------------
   const handleQueryValueRemove = () => {
     setPageCursorValue("");
+      getData()
     setQueryValue("");
     setToggleLoadData(true);
   };
 
   let timeoutId = null;
-  const handleFiltersQueryChange = (value) => {
-    clearTimeout(timeoutId);
-    setPageCursorValue("");
-    setQueryValue(value);
-    timeoutId = setTimeout(() => {
-      let newCustomers = data.filter((customer) =>
-        customer.seller_id.includes(value)
-      );
-      setCustomers(newCustomers);
-      // setToggleLoadData(true);
-    }, 1000);
-  };
+    const handleFiltersQueryChange = async (value)  => {
+        setPageCursorValue('')
+        // setLoading(true)
+        setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/search-seller?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            // setLoading(false)
+            setCustomers(response?.data?.data)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+        setTimeout(() => {
+            setToggleLoadData(true)
+        }, 1000);
+    }
 
   const handlePagination = (value) => {
     if (value == "next") {
@@ -258,6 +282,8 @@ export function SellersListing() {
     singular: "Customer",
     plural: "Customers",
   };
+
+
 
   const handleEditAction = (id) => {
     navigate(`/edit-seller/${id}`);
@@ -280,9 +306,80 @@ export function SellersListing() {
     };
 
 
-    const updateEnableStatus=async () => {
+    const handleMultipleStatusEnableAll=async () => {
 
+
+        setLoading(true)
+        setDisableModal(false);
         setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/update-seller-status-multiple?ids=${selectedResources}&status=1`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setDisableModal(false);
+
+
+            getData()
+
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+
+    const handleMultipleStatusDisableAll=async () => {
+
+
+        setLoading(true)
+        setDisableModal(false);
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/update-seller-status-multiple?ids=${selectedResources}&status=0`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setDisableModal(false);
+            getData()
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+
+
+    const updateEnableStatus=async () => {
+        // setLoading(true)
+
+        setDisableBtnLoading(true)
         const sessionToken = getAccessToken();
 
         try {
@@ -296,8 +393,9 @@ export function SellersListing() {
             setDisableModal(false);
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            setBtnLoading(false)
+            setDisableBtnLoading(false)
             getData()
+            setLoading(false)
 
 
         } catch (error) {
@@ -307,8 +405,11 @@ export function SellersListing() {
             setBtnLoading(false)
         }
     }
+
     const updateDisableStatus=async () => {
-        setBtnLoading(true)
+
+
+        setEnableBtnLoading(true)
         const sessionToken = getAccessToken();
         try {
             const response = await axios.get(`${apiUrl}/update-seller-status?id=${sellerId}&status=1`,
@@ -317,13 +418,16 @@ export function SellersListing() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            setEnableModal(false);
 
-            // setBtnLoading(false)
-            setBtnLoading(false)
+            setEnableModal(false);
+            setEnableBtnLoading(false);
             setToastMsg(response?.data?.message)
             setSucessToast(true)
+            setDisableBtnLoading(false)
             getData()
+            setLoading(false)
+
+
 
         } catch (error) {
 
@@ -364,26 +468,41 @@ export function SellersListing() {
   const allResourcesSelect = customers?.every(({ id }) =>
     selectedResources.includes(id)
   );
+    const promotedBulkActions = [
+        {
+            content: 'Status',
 
+        },
+    ];
   const bulkActions = [
-    {
-      content: selectedResources.length > 0 && "Disable",
-      onAction: () => {
-        const newSelection = selectedResources.filter(
-          (id) => !customers?.find((customer) => customer.id === id)
-        );
-        handleSelectionChange(newSelection);
+    // {
+    //   content: selectedResources.length > 0 && "Disable",
+    //   // content: selectedResources.length > 0 && "Enable all",
+    //   onAction: () => {
+    //     const newSelection = selectedResources.filter(
+    //       (id) => !customers?.find((customer) => customer.id === id)
+    //     );
+    //     handleSelectionChange(newSelection);
+    //   },
+    // },
+      {
+          // content: allResourcesSelect ? "Disable all" : "Enable all",
+          content:  "Enable all" ,
+          onAction: () => handleMultipleStatusEnableAll(),
       },
-    },
     {
-      content: allResourcesSelect ? "Disable all" : "Enable all",
-      onAction: () => {
-        const newSelection = allResourcesSelect
-          ? []
-          : customers.filter((o) => o.id);
-        handleSelectionChange(newSelection);
-      },
+      // content: allResourcesSelect ? "Disable all" : "Enable all",
+      content:  "Disable all",
+      // onAction: () => {
+      //   const newSelection = allResourcesSelect
+      //     ? []
+      //     : customers.filter((o) => o.id);
+      //   handleSelectionChange(newSelection);
+      // },
+        onAction: () => handleMultipleStatusDisableAll(),
     },
+
+
   ];
 
   function handleRowClick(id) {
@@ -403,17 +522,20 @@ export function SellersListing() {
     }
   }
 
-  const formatDate=(created_at)=>{
-      const date = new Date(created_at);
-      const day = date.getDate();
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();
-      const formatedDate = `${month.toString().padStart(2, "0")}-${day
-          .toString()
-          .padStart(2, "0")}-${year}`;
-      return formatedDate;
-  }
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
 
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
+    }
 
     const handleExportSeller = async () => {
         setBtnLoading(true)
@@ -742,13 +864,16 @@ export function SellersListing() {
     if (toggleLoadData) {
       // getCustomers()
     }
-    setLoading(false);
-    setCustomersLoading(false);
+    // setLoading(false);
+    // setCustomersLoading(false);
   }, [toggleLoadData]);
 
 
     const sendMessage = async () => {
-        setBtnLoading(true)
+        setSendBtnLoading(true)
+
+        // setLoading(true)
+
         const sessionToken = getAccessToken();
         const errors = {};
 
@@ -774,9 +899,12 @@ export function SellersListing() {
                     }
                 })
 
-            setBtnLoading(false)
+            setSendBtnLoading(false)
+            setModalReassign(false)
+            setLoading(false)
             setToastMsg('Message Send Successfully')
             setSucessToast(true)
+            setSellerMessage('')
             // setSkeleton(false)
 
         } catch (error) {
@@ -788,7 +916,7 @@ export function SellersListing() {
     }
 
     const changePassword = async () => {
-        setBtnLoading(true)
+
         const sessionToken = getAccessToken();
         const errors = {};
 
@@ -810,7 +938,7 @@ export function SellersListing() {
             password_confirmation:confirmPassword,
             id:uniqueId
         }
-
+        setResetBtnLoading(true)
         try {
             const response = await axios.post(`${apiUrl}/change-password`,data,
                 {
@@ -819,15 +947,23 @@ export function SellersListing() {
                     }
                 })
 
-            setBtnLoading(false)
+
+            setResetBtnLoading(false)
             setToastMsg(response?.data?.message)
+            setModalChangePassword(false)
             setSucessToast(true)
+            setPassword('')
+            setConfirmPassword('')
+
             // setSkeleton(false)
 
         } catch (error) {
             setBtnLoading(false)
+            setResetBtnLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
+            setPassword('')
+            setConfirmPassword('')
         }
 
     }
@@ -835,7 +971,7 @@ export function SellersListing() {
 
     const deleteSeller  = async () => {
 
-        setBtnLoading(true)
+        setDeleteBtnLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -845,11 +981,12 @@ export function SellersListing() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            getData();
+
             setDeleteSellerModal(false);
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            setBtnLoading(false)
+            getData();
+            setDeleteBtnLoading(false)
 
         } catch (error) {
 
@@ -866,11 +1003,12 @@ export function SellersListing() {
         open={modalReassign}
         onClose={handleSendMessageCloseAction}
         title="Send Message to Seller"
-        loading={btnLoading}
+        // loading={sendBtnLoading}
         primaryAction={{
           content: "Send",
           destructive: true,
           disabled: btnLoading,
+            loading:sendBtnLoading,
             onAction: sendMessage,
         }}
         secondaryActions={[
@@ -904,7 +1042,7 @@ export function SellersListing() {
           destructive: true,
           style: { backgroundColor: "red" },
             onAction: deleteSeller,
-            loading: btnLoading,
+            loading: deleteBtnLoading,
         }}
         secondaryActions={[
           {
@@ -945,7 +1083,7 @@ export function SellersListing() {
         primaryAction={{
           content: "Disable",
           destructive: true,
-            loading: btnLoading,
+            loading: disableBtnLoading,
             onAction:updateEnableStatus,
         }}
         secondaryActions={[
@@ -967,8 +1105,8 @@ export function SellersListing() {
             title="Update Seller Status"
             primaryAction={{
                 content: "Enable",
-                disabled: btnLoading[2],
-                loading: btnLoading,
+                // disabled: btnLoading[2],
+                loading: enableBtnLoading,
                 onAction:updateDisableStatus,
             }}
             secondaryActions={[
@@ -987,11 +1125,13 @@ export function SellersListing() {
         open={modalChangePassword}
         onClose={handleChangePasswordCloseAction}
         title="Reset Password For Seller"
-        loading={btnLoading}
+        // loading={resetBtnLoading}
         primaryAction={{
           content: "Change",
           destructive: true,
-          disabled: btnLoading,
+            loading:resetBtnLoading,
+
+          // disabled: {resetBtnLoading},
             onAction:changePassword,
 
         }}
@@ -1049,69 +1189,54 @@ export function SellersListing() {
         >
           <Card>
             <div className="Polaris-Table">
-              <Card.Section fullWidth subdued hasPaddingTop={false}>
-                {/* <div>
+              <Card.Section fullWidth  hasPaddingTop={false}>
+                 <div>
                   <Tabs
                     tabs={tabs}
                     selected={selected}
-                    onSelect={handleTabChange}
+                    onSelect={handleSellerFilter}
                   ></Tabs>
                 </div>
-                <div style={{ padding: "16px" }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "flex-end",
-                    }}
-                  >
-                    <div style={{ width: "50%", padding: "0 10px" }}>
-                      <Select
-                        options={options}
-                        onChange={handleSelectChange2}
-                        value={selected2}
-                      />
-                    </div>
-                    <div style={{ width: "50%", padding: "0 10px" }}>
-                      <TextField
-                        placeholder="Search Seller"
-                        value={queryValue}
-                        onChange={handleFiltersQueryChange}
-                        clearButton
-                        onClearButtonClick={handleQueryValueRemove}
-                        autoComplete="off"
-                        prefix={<Icon source={SearchMinor} />}
-                      />
-                    </div>
+                  <div style={{ padding: '16px', display: 'flex' }}>
+                      <div style={{ flex: 1 }}>
+                          <TextField
+                              placeholder='Search Seller'
+                              value={queryValue}
+                              onChange={handleFiltersQueryChange}
+                              clearButton
+                              onClearButtonClick={handleQueryValueRemove}
+                              autoComplete="off"
+                              prefix={<Icon source={SearchMinor} />}
+                          />
+                      </div>
                   </div>
-                </div> */}
 
 
-                <IndexFilters
-                  // sortOptions={sortOptions}
-                  // sortSelected={sortSelected}
-                  // queryValue={queryValue}
-                  // queryPlaceholder="Searching in all"
-                  // onQueryChange={handleFiltersQueryChange}
-                  // onQueryClear={() => {}}
-                  onSort={setSortSelected}
-                  primaryAction={primaryAction}
-                  cancelAction={{
-                    onAction: () => {},
-                    disabled: false,
-                    loading: false,
-                  }}
-                  tabs={tabs}
-                  selected={selected}
-                  onSelect={handleSellerFilter}
-                  canCreateNewView
-                  onCreateNewView={onCreateNewView}
-                  filters={filters}
-                  // appliedFilters={appliedFilters}
-                  // onClearAll={handleFiltersClearAll}
-                  mode={mode}
-                  // setMode={setMode}
-                />
+                {/*<IndexFilters*/}
+                {/*  // sortOptions={sortOptions}*/}
+                {/*  // sortSelected={sortSelected}*/}
+                {/*  queryValue={queryValue}*/}
+                {/*  // queryPlaceholder="Searching in all"*/}
+                {/*  onQueryChange={handleFiltersQueryChange}*/}
+                {/*  onQueryClear={() => {}}*/}
+                {/*  onSort={setSortSelected}*/}
+                {/*  primaryAction={primaryAction}*/}
+                {/*  cancelAction={{*/}
+                {/*    onAction: () => {},*/}
+                {/*    disabled: false,*/}
+                {/*    loading: false,*/}
+                {/*  }}*/}
+                {/*  tabs={tabs}*/}
+                {/*  selected={selected}*/}
+                {/*  onSelect={handleSellerFilter}*/}
+                {/*  // canCreateNewView*/}
+                {/*  // onCreateNewView={onCreateNewView}*/}
+                {/*  filters={filters}*/}
+                {/*  // appliedFilters={appliedFilters}*/}
+                {/*  // onClearAll={handleFiltersClearAll}*/}
+                {/*  setMode={setMode}*/}
+                {/*  mode={mode}*/}
+                {/*/>*/}
 
 
                 <IndexTable
@@ -1124,7 +1249,7 @@ export function SellersListing() {
                   }
                   onSelectionChange={handleSelectionChange}
                   loading={customersLoading}
-                  // emptyState={emptyStateMarkup}
+                  emptyState={emptyStateMarkup}
                   headings={[
                     { title: "Seller ID" },
                     { title: "Seller Name" },
@@ -1135,6 +1260,7 @@ export function SellersListing() {
                     { title: "Action" },
                   ]}
                   bulkActions={bulkActions}
+                  promotedBulkActions={promotedBulkActions}
                 >
                   {rowMarkup}
                 </IndexTable>

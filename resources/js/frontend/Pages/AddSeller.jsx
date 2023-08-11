@@ -142,8 +142,7 @@ export function AddSeller() {
   //SUbmit Data
     const submitData = async () => {
 
-        setBtnLoading(true)
-        setLoading(true)
+
         const sessionToken = getAccessToken();
 
         const errors = {};
@@ -182,7 +181,8 @@ export function AddSeller() {
             setBtnLoading(false)
             return;
         }
-
+        setBtnLoading(true)
+        setLoading(true)
         let data = {
             seller_name:name,
             seller_shopname:shopName,
@@ -205,12 +205,13 @@ export function AddSeller() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+            navigate(`/edit-seller/${response?.data?.seller?.id}`);
             setBtnLoading(false)
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             setSkeleton(false)
+
 
         } catch (error) {
             setBtnLoading(false)
@@ -257,18 +258,18 @@ export function AddSeller() {
           breadcrumbs={[{ content: "Discounts", onAction: handleDiscardModal }]}
           title="Add Seller"
           fullWidth
-          actionGroups={[
-            {
-              title: "Actions",
-              actions: [
-                {
-                  content: "Share on Facebook",
-                  accessibilityLabel: "Individual action label",
-                  onAction: () => alert("Share on Facebook action"),
-                },
-              ],
-            },
-          ]}
+          // actionGroups={[
+          //   {
+          //     title: "Actions",
+          //     actions: [
+          //       {
+          //         content: "Share on Facebook",
+          //         accessibilityLabel: "Individual action label",
+          //         onAction: () => alert("Share on Facebook action"),
+          //       },
+          //     ],
+          //   },
+          // ]}
         >
           {showSaveBar && (
             <ContextualSaveBar

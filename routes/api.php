@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('send-message',[\App\Http\Controllers\Admin\SellerController::class,'SendMessage'])->middleware('smtp');
     Route::get('update-seller-status-multiple',[\App\Http\Controllers\Admin\SellerController::class,'UpdateSellerStatusMultiple']);
     Route::get('export-seller',[\App\Http\Controllers\Admin\SellerController::class,'ExportSeller']);
-
+    Route::get('search-seller',[\App\Http\Controllers\Admin\SellerController::class,'SearchSeller']);
 
 
 

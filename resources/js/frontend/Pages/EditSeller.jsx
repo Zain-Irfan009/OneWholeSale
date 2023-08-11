@@ -107,6 +107,7 @@ export function EditSeller() {
 
 
   const getSellerData = async (id) => {
+      setLoading(true)
       const sessionToken = getAccessToken();
       try {
 
@@ -130,7 +131,9 @@ export function EditSeller() {
           setFileUrl3(response?.data?.seller_image)
           setFileUrl4(response?.data?.seller_shop_image)
           setPublishSellerPageProfile(response?.data?.publish_seller_profile)
-          setHandle(response?.data?.seller_handle)
+          setHandle(response?.data?.collection_handle)
+
+          setLoading(false)
 
 
           // setCustomers(response?.data)
@@ -149,6 +152,7 @@ console.log('error',error)
   };
 
   useEffect(() => {
+      setLoading(true)
     getSellerData(params.edit_seller_id);
   }, []);
 
@@ -286,7 +290,7 @@ console.log('error',error)
     //SUbmit Data
     const submitData = async () => {
 
-        setBtnLoading(true)
+
         const sessionToken = getAccessToken();
 
         const errors = {};
@@ -317,6 +321,8 @@ console.log('error',error)
             setBtnLoading(false)
             return;
         }
+        setBtnLoading(true)
+        setLoading(true)
 
         let formData = new FormData();
         formData.append('store_banner_image', file5 ? file5 : fileUrl5);
@@ -345,6 +351,7 @@ console.log('error',error)
                 })
 
             setBtnLoading(false)
+            setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             // setSkeleton(false)
@@ -384,27 +391,36 @@ console.log('error',error)
       {loading ? (
         <span>
           <Loading />
-          <SkeltonPageForProductDetail />
+          <SkeltonPageForTable />
         </span>
       ) : (
         <Page
           breadcrumbs={[{ content: "Discounts", onAction: handleDiscardModal }]}
           title="Edit Seller"
           fullWidth
-          actionGroups={[
-            {
-              title: "Actions",
-              actions: [
-                {
-                  content: "Share on Facebook",
-                  accessibilityLabel: "Individual action label",
-                  onAction: () => alert("Share on Facebook action"),
-                },
-              ],
-            },
-          ]}
+          primaryAction={
+              <div className="top_toggle_div">
+              <input
+                  id="toggle"
+                  type="checkbox"
+                  className="tgl tgl-light"
+                  checked={publishSellerPageProfile}
+                  onChange={handleSellerPageProfile}
+              />
+              <label htmlFor="toggle" className="tgl-btn"></label>
+                  <div className="div_label">Publish</div>
+              </div>
+          }
         >
 
+
+
+            {loading ? (
+                <span>
+          <Loading />
+          <SkeltonPageForTable />
+        </span>
+            ) : (
           <Form >
             <Layout>
               <Layout.Section>
@@ -424,6 +440,7 @@ console.log('error',error)
                         name="code"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        error={formErrors.name}
                       />
                     </div>
 
@@ -435,6 +452,7 @@ console.log('error',error)
                       name="title"
                       value={shopName}
                       onChange={(e) => setShopName(e.target.value)}
+                      error={formErrors.shopName}
                     />
                     <InputField
                       label="Email *"
@@ -444,6 +462,7 @@ console.log('error',error)
                       name="title"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      error={formErrors.email}
                     />
 
                     <InputField
@@ -455,6 +474,7 @@ console.log('error',error)
                       name="title"
                       value={storeAddress}
                       onChange={(e) => setStoreAddress(e.target.value)}
+                      error={formErrors.storeAddress}
                     />
 
                     <InputField
@@ -464,6 +484,7 @@ console.log('error',error)
                       name="title"
                       value={zipcode}
                       onChange={(e) => setZipcode(e.target.value)}
+                      error={formErrors.zipcode}
                     />
                     <InputField
                       label="Seller Contact *"
@@ -472,6 +493,8 @@ console.log('error',error)
                       name="title"
                       value={contact}
                       onChange={(e) => setcontact(e.target.value)}
+                      error={formErrors.contact}
+
                     />
                     <div className="label_editor">
                       <label>Store Description *</label>
@@ -643,19 +666,22 @@ console.log('error',error)
                             ""
                         )}
 
-                      <p>{`Publish Seller Profile Page`}</p>
-                      <div className="edit_seller_page_toggle">
-                        <span>
-                          <input
-                            id="toggle"
-                            type="checkbox"
-                            className="tgl tgl-light"
-                            checked={publishSellerPageProfile}
-                            onChange={handleSellerPageProfile}
-                          />
-                          <label htmlFor="toggle" className="tgl-btn"></label>
-                        </span>
-                      </div>
+                      {/*<p>{`Publish Seller Profile Page`}</p>*/}
+                      {/*<div className="edit_seller_page_toggle">*/}
+                      {/*  <span>*/}
+                      {/*    <input*/}
+                      {/*      id="toggle"*/}
+                      {/*      type="checkbox"*/}
+                      {/*      className="tgl tgl-light"*/}
+                      {/*      checked={publishSellerPageProfile}*/}
+                      {/*      onChange={handleSellerPageProfile}*/}
+                      {/*    />*/}
+                      {/*    <label htmlFor="toggle" className="tgl-btn"></label>*/}
+                      {/*     <div>*/}
+                      {/*         Active*/}
+                      {/*     </div>*/}
+                      {/*  </span>*/}
+                      {/*</div>*/}
                     </Card.Section>
                   </Card>
 
@@ -739,7 +765,8 @@ console.log('error',error)
                         marginTop
                         name="title"
                         value={handle}
-                        onChange={(e) => setHandle(e.target.value)}
+                        readOnly
+                          // onChange={(e) => setHandle(e.target.value)}
                       />
                     </Card.Section>
                   </Card>
@@ -747,6 +774,7 @@ console.log('error',error)
               </Layout.Section>
             </Layout>
           </Form>
+            )}
           <div className="Polaris-Product-Actions">
             <PageActions
               primaryAction={{
