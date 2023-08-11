@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Shopify\Clients\Rest;
+use Carbon;
 
 class SellerController extends Controller
 {
@@ -21,7 +22,7 @@ class SellerController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
 
-        $sellers=User::where('shop_id',$shop->id)->where('role','seller')->get();
+        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->get();
 
         return response()->json($sellers);
     }
@@ -86,6 +87,8 @@ class SellerController extends Controller
 //            $seller->status=1;
             $seller->shop_id=$shop->id;
             $seller->save();
+
+                $this->SellerDetailMetafield($seller,$client);
             $data = [
                 'message' => 'Seller Added Successfully',
                 'seller'=>$seller
@@ -167,7 +170,7 @@ class SellerController extends Controller
                 $seller->seller_handle = $request->seller_handle;
                 $seller->shop_id = $shop->id;
                 $seller->save();
-
+            $this->SellerDetailMetafield($seller,$client);
                 $data = [
                     'message' => 'Seller Updated Successfully',
                     'seller' => $seller
@@ -232,6 +235,7 @@ class SellerController extends Controller
                     $collection_metafield = $collection_metafield->getDecodedBody();
                 }
 
+                $this->ActiveSellerMetafield($shop,$client);
                 $data = [
                     'message' => 'Seller Updated Successfully',
                     'seller'=>$seller
@@ -364,16 +368,20 @@ class SellerController extends Controller
     }
 
     public function UpdateSellerStatusMultiple(Request $request){
-
-        $shop=Session::where('shop',$request->shop)->first();
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
         if($shop){
-            foreach ($request->ids as $id) {
+            $client = new Rest($shop->shop, $shop->access_token);
+            $ids=explode(',',$request->ids);
+            foreach ($ids as $id) {
                 $seller = User::where('id', $id)->where('role', 'seller')->first();
                 if ($seller) {
                     $seller->status = $request->status;
                     $seller->save();
                 }
             }
+
+            $this->ActiveSellerMetafield($shop,$client);
             $data = [
                 'message' => 'Seller Updated Successfully',
             ];
@@ -423,5 +431,113 @@ class SellerController extends Controller
     }
 
 
+    public function SearchSeller(Request $request)
+    {
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $sellers=User::where('name', 'like', '%' . $request->value . '%')->orWhere('email','like', '%' . $request->value . '%')->orWhere('seller_shopname','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $data = [
+            'data' => $sellers
+        ];
+        return response()->json($data);
+    }
 
+
+    public function SellerDetailMetafield($seller,$client){
+        $seller_detail=array();
+        $seller_detail['publish_profile']=$seller->publish_seller_profile;
+        $seller_detail['name']=$seller->name;
+        $seller_detail['seller_shopname']=$seller->seller_shopname;
+        $seller_detail['email']=$seller->email;
+        $seller_detail['seller_store_address']=$seller->seller_store_address;
+        $seller_detail['seller_zipcode']=$seller->seller_zipcode;
+        $seller_detail['seller_contact']=$seller->seller_contact;
+        $seller_detail['seller_store_description']=$seller->seller_store_description;
+        $seller_detail['seller_description']=$seller->seller_description;
+        $seller_detail['seller_policy']=$seller->seller_policy;
+        $seller_detail['seller_image']=$seller->seller_image;
+        $seller_detail['seller_shop_image']=$seller->seller_shop_image;
+        $seller_detail['store_banner_image']=$seller->store_banner_image;
+        $seller_detail['seller_handle']=$seller->collection_handle;
+
+
+
+
+        if($seller->metafield==null) {
+            $seller_metafield = $client->post('/admin/api/2023-04/custom_collections/' . $seller->collection_id . '/metafields.json', [
+                "metafield" => [
+                    "key" => 'seller_detail',
+                    "value" => json_encode($seller_detail),
+                    "type" => "json_string",
+                    "namespace" => "seller"
+                ],
+            ]);
+        }else{
+
+            $shop_metafield =$client->put('/admin/api/2023-04/metafields/'.$seller->metafield_id.'.json', [
+
+                "metafield" =>
+
+                    array(
+                        "value" => json_encode($seller_detail),
+                        "type" => "json_string",
+                    ),
+            ]);
+        }
+        $res= $seller_metafield->getDecodedBody();
+
+        if(!isset($res['errors'])){
+
+        $seller->metafield_id=$res['metafield']['id'];
+        $seller->save();
+        }
+
+    }
+
+    public function ActiveSellerMetafield($shop,$client){
+
+
+        $users=User::where('status',1)->where('shop_id',$shop->id)->orderBy('id','DESC')->get();
+        $active_users_array=array();
+
+        foreach ($users as $user){
+            $active_users = [
+                "name" => $user->seller_shopname,
+                "url" => '/collections/'.$user->collection_handle,
+                "date" => $user->created_at->format('Y-m-d'),
+                "image" => $user->seller_shop_image,
+            ];
+            array_push($active_users_array, $active_users);
+
+        }
+        if($shop->active_seller_metafield_id==null) {
+
+            $shop_metafield = $client->post('/metafields.json', [
+                "metafield" => array(
+                    "key" => 'active_seller',
+                    "value" => json_encode($active_users_array),
+                    "type" => "json_string",
+                    "namespace" => "onewholesale"
+                )
+            ]);
+
+        }
+        else{
+
+            $shop_metafield = $client->put('/metafields/' . $shop->active_seller_metafield_id . '.json', [
+                "metafield" => [
+                    "value" => json_encode($active_users_array),
+                       "type" => "json_string",
+                ]
+            ]);
+
+        }
+        $res = $shop_metafield->getDecodedBody();
+        if(!isset($res['errors'])){
+
+            $shop->active_users_metafield_id=$res['metafield']['id'];
+            $shop->save();
+        }
+
+    }
 }
