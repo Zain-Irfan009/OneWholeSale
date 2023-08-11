@@ -115,12 +115,16 @@ export function MainLayout(props) {
                         icon: OrdersMinor,
                         url: "/sellerslisting",
                         onClick: () => setLocationChange("/sellerslisting"),
+
                         subNavigationItems: [
                             {
                                 url: "/sellerslisting",
                                 label: "Sellers Listing",
                                 onClick: () =>
                                     setLocationChange("/sellerslisting"),
+
+
+
                             },
 
                             {

@@ -22,7 +22,7 @@ class SellerController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
 
-        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->get();
+        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->paginate(20);
 
         return response()->json($sellers);
     }

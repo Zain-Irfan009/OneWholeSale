@@ -60,6 +60,8 @@ export function SellersListing() {
   const [selected, setSelected] = useState(0);
   const [queryValue, setQueryValue] = useState("");
   const [toggleLoadData, setToggleLoadData] = useState(true);
+
+  const [toggleLoadData1, setToggleLoadData1] = useState(true);
   const [errorToast, setErrorToast] = useState(false);
   const [sucessToast, setSucessToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
@@ -76,6 +78,12 @@ export function SellersListing() {
   const [orderStatus, setOrderStatus] = useState("");
 
     const [sellerId, setSellerId] = useState("");
+
+
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
 
   //modal code
   const [modalReassign, setModalReassign] = useState(false);
@@ -123,9 +131,10 @@ export function SellersListing() {
                       Authorization: "Bearer " + sessionToken
                   }
               })
-          console.log('3',response?.data?.seller)
+
           console.log('443',response?.data)
           setCustomers(response?.data?.seller)
+
           setLoading(false)
 
           // setBtnLoading(false)
@@ -146,13 +155,24 @@ export function SellersListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/sellers`,
+            const response = await axios.get(`${apiUrl}/sellers?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            setCustomers(response?.data)
+
+
+            setCustomers(response?.data?.data)
+            setPaginationUrl(response?.data?.links);
+            if (
+                response?.data?.total >
+                response?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
             setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -197,6 +217,13 @@ export function SellersListing() {
 
   };
 
+
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
   const toggleActive = (id) => {
     setActive((prev) => {
       let toggleId;
@@ -464,6 +491,12 @@ export function SellersListing() {
   useEffect(() => {
     console.log(selectedResources, "eqeeeqeqeq");
   }, [selectedResources]);
+
+    useEffect(() => {
+        getData()
+    }, [toggleLoadData1]);
+
+
 
   const allResourcesSelect = customers?.every(({ id }) =>
     selectedResources.includes(id)
@@ -1265,7 +1298,7 @@ export function SellersListing() {
                   {rowMarkup}
                 </IndexTable>
               </Card.Section>
-
+                {showPagination && (
               <Card.Section>
                 <div
                   className="data-table-pagination"
@@ -1276,14 +1309,22 @@ export function SellersListing() {
                     paddingBottom: "20px",
                   }}
                 >
-                  <Pagination
-                    hasPrevious={hasPreviousPage ? true : false}
-                    onPrevious={() => handlePagination("prev")}
-                    hasNext={hasNextPage ? true : false}
-                    onNext={() => handlePagination("next")}
-                  />
+                  {/*<Pagination*/}
+                  {/*  hasPrevious={hasPreviousPage ? true : false}*/}
+                  {/*  onPrevious={() => handlePagination("prev")}*/}
+                  {/*  hasNext={hasNextPage ? true : false}*/}
+                  {/*  onNext={() => handlePagination("next")}*/}
+                  {/*/>*/}
+
+                    <Pagination
+                        hasPrevious={pagination > 1}
+                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                        hasNext={pagination < paginationUrl.length}
+                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                    />
                 </div>
               </Card.Section>
+                )}
             </div>
           </Card>
         </Page>
