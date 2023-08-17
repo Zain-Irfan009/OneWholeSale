@@ -6,6 +6,7 @@ import {
   Link,
   TextField,
   IndexTable,
+
   Loading,
   Icon,
   Text,
@@ -31,6 +32,7 @@ import {
   ExternalMinor,
   DeleteMinor,
   HorizontalDotsMinor,
+    ViewMajor
 } from "@shopify/polaris-icons";
 import { AppContext } from "../components/providers/ContextProvider";
 import { SkeltonPageForTable } from "../components/global/SkeltonPage";
@@ -40,6 +42,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { InputField } from "../components/Utils";
 import {getAccessToken} from "../assets/cookies";
+
+import ReactSelect from 'react-select';
 // import dateFormat from "dateformat";
 
 
@@ -78,7 +82,14 @@ export function OrdersListing() {
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(orders);
 
-  const toggleActive = (id) => {
+
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
+
+
+    const toggleActive = (id) => {
     setActive((prev) => {
       let toggleId;
       if (prev[id]) {
@@ -89,11 +100,20 @@ export function OrdersListing() {
       return { ...toggleId };
     });
   };
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
+
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
 
   const [itemStrings, setItemStrings] = useState([
     "All",
-    "Paid",
-    "Pending",
+    "Unfulfilled",
+    "Partially Fulfilled",
+    "Fulfilled",
 
   ]);
 
@@ -109,9 +129,16 @@ export function OrdersListing() {
     return true;
   };
 
+
+    const handleClearButtonClick = () => {
+        setShowSelect(false);
+        setShowClearButton(false);
+        getData();
+    };
     const handleOrderFilter =async (value) =>  {
         setSelected(value)
         setLoading(true)
+
         const sessionToken = getAccessToken();
         try {
 
@@ -136,7 +163,40 @@ export function OrdersListing() {
         }
     }
 
-  const primaryAction =
+
+    const fetchProducts =async (filter_type,selectedValue) =>  {
+
+        // setSelected(value)
+        setLoading(true)
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/order-filter-payment?value=${selectedValue.value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setOrders(response?.data?.orders)
+            setLoading(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+            console.log(error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
+
+
+    const primaryAction =
     selected === 0
       ? {
           type: "save-as",
@@ -193,22 +253,44 @@ export function OrdersListing() {
   );
   const handleQueryValueRemove = () => {
     setPageCursorValue("");
+      getData()
     setQueryValue("");
     setToggleLoadData(true);
   };
   let timeoutId = null;
-  const handleFiltersQueryChange = (value) => {
-    clearTimeout(timeoutId);
-    setPageCursorValue("");
-    setQueryValue(value);
-    timeoutId = setTimeout(() => {
-      let newCustomers = data.filter((customer) =>
-        customer.order_id.includes(value)
-      );
-      setCustomers(newCustomers);
-      // setToggleLoadData(true);
-    }, 1000);
-  };
+
+    const handleFiltersQueryChange = async (value)  => {
+
+        setPageCursorValue('')
+        setCustomersLoading(true)
+        // setLoading(true)
+        setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/search-order?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            // setLoading(false)
+            setOrders(response?.data?.data)
+            setCustomersLoading(false)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+        setTimeout(() => {
+            setToggleLoadData(true)
+        }, 1000);
+    }
 
   const handlePagination = (value) => {
     if (value == "next") {
@@ -252,6 +334,31 @@ export function OrdersListing() {
     setUniqueId(id);
     setModalReassign(true);
   };
+
+
+    const handleSelectChange = (selectedOption) => {
+        const selectedValue =  selectedOption; // Access the value property of the selected option
+        if (filterType === 'payment') {
+            setSelectedStatus(selectedValue);
+        }
+
+        fetchProducts( filterType, selectedValue); // Pass the query, filter type, and selected value as arguments
+    };
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [filterType, setFilterType] = useState('');
+    const [showSelect, setShowSelect] = useState(false);
+    const [showClearButton, setShowClearButton] = useState(false);
+
+    const handleFilterClick = (type) => {
+        setFilterType(type);
+        setSelectedStatus('');
+        setSelectedBrand('');
+        setSelectedCategory('');
+        setShowSelect(true);
+        setShowClearButton(true);
+    };
 
   const handleReassignCloseAction = () => {
     setUniqueId();
@@ -395,6 +502,21 @@ export function OrdersListing() {
     },
   ];
 
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
+    }
+
   const rowMarkup = orders?.map(
     (
       {
@@ -402,7 +524,7 @@ export function OrdersListing() {
         order_id,
           order_number,
         user_name,
-        gateway,
+        created_at,
           financial_status,
           fulfillment_status,
         tracking_id,
@@ -432,49 +554,69 @@ export function OrdersListing() {
           {user_name != null ? user_name : "---"}
         </IndexTable.Cell>
 
-        <IndexTable.Cell>
-          {gateway != null ? gateway : "---"}
-        </IndexTable.Cell>
+          <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
         <IndexTable.Cell>
           <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
         </IndexTable.Cell>
 
+          {fulfillment_status === 'fulfilled' ? (
+          <IndexTable.Cell className="fulfilled">
+              {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
+              <Badge progress='complete'>{fulfillment_status === 'fulfilled' ? 'Fulfilled' : ''}</Badge>
+
+
+          </IndexTable.Cell>
+          ) : fulfillment_status === 'partial' ? (
+              <IndexTable.Cell className="partial">
+                  <Badge progress='complete'>{fulfillment_status === 'partial' ? 'Partially fulfilled' : ''}</Badge>
+              </IndexTable.Cell>
+          ) : (
+              <IndexTable.Cell className="unfulfilled">
+                  <Badge progress='complete'>{fulfillment_status==null ? 'Unfulfilled' : fulfillment_status}</Badge>
+
+              </IndexTable.Cell>
+          )}
+
+        {/*<IndexTable.Cell>*/}
+        {/*  {tracking_id != null ? tracking_id : "N/A"}*/}
+        {/*</IndexTable.Cell>*/}
+
+        {/*<IndexTable.Cell>*/}
+        {/*  <Popover*/}
+        {/*    active={active[id]}*/}
+        {/*    activator={*/}
+        {/*      <Button onClick={() => toggleActive(id)} plain>*/}
+        {/*        <Icon source={HorizontalDotsMinor}></Icon>*/}
+        {/*      </Button>*/}
+        {/*    }*/}
+        {/*    autofocusTarget="first-node"*/}
+        {/*    onClose={() => setActive(false)}*/}
+        {/*  >*/}
+        {/*    <ActionList*/}
+        {/*      actionRole="menuitem"*/}
+        {/*      items={[*/}
+        {/*        {*/}
+        {/*          content: "View",*/}
+        {/*          onAction: () => handleViewAction(id),*/}
+        {/*        },*/}
+        {/*        // {*/}
+        {/*        //   content: "Sync with your Store",*/}
+        {/*        //   onAction: handleViewinStoreAction,*/}
+        {/*        // },*/}
+        {/*      ]}*/}
+        {/*    />*/}
+        {/*  </Popover>*/}
+        {/*</IndexTable.Cell>*/}
+
 
           <IndexTable.Cell>
-              <CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />
+              <Tooltip content="View Order">
+                  <Button size="micro" onClick={() => handleViewAction(id)( id )}>
+                      <Icon source={ViewMajor}></Icon>
+                  </Button>
+              </Tooltip>
           </IndexTable.Cell>
-
-        <IndexTable.Cell>
-          {tracking_id != null ? tracking_id : "N/A"}
-        </IndexTable.Cell>
-
-        <IndexTable.Cell>
-          <Popover
-            active={active[id]}
-            activator={
-              <Button onClick={() => toggleActive(id)} plain>
-                <Icon source={HorizontalDotsMinor}></Icon>
-              </Button>
-            }
-            autofocusTarget="first-node"
-            onClose={() => setActive(false)}
-          >
-            <ActionList
-              actionRole="menuitem"
-              items={[
-                {
-                  content: "View",
-                  onAction: () => handleViewAction(id),
-                },
-                // {
-                //   content: "Sync with your Store",
-                //   onAction: handleViewinStoreAction,
-                // },
-              ]}
-            />
-          </Popover>
-        </IndexTable.Cell>
       </IndexTable.Row>
     )
   );
@@ -579,7 +721,7 @@ export function OrdersListing() {
     if (toggleLoadData) {
       // getCustomers()
     }
-    setLoading(false);
+    // setLoading(false);
     setCustomersLoading(false);
   }, [toggleLoadData]);
 
@@ -703,14 +845,24 @@ export function OrdersListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/orders`,
+            const response = await axios.get(`${apiUrl}/orders?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            setOrders(response?.data)
-
+            console.log('dsds',response)
+            setOrders(response?.data?.data)
+            setPaginationUrl(response?.data?.links);
+            if (
+                response?.data?.total >
+                response?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
+            setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -725,7 +877,7 @@ export function OrdersListing() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData1]);
 
   return (
     <div className="Products-Page IndexTable-Page Orders-page">
@@ -787,7 +939,14 @@ export function OrdersListing() {
             > */}
             <div className="Polaris-Table">
               <Card.Section>
-                {/* <div style={{ padding: "16px", display: "flex" }}>
+                  <div>
+                      <Tabs
+                          tabs={tabs}
+                          selected={selected}
+                          onSelect={handleOrderFilter}
+                      ></Tabs>
+                  </div>
+              <div style={{ padding: "16px", display: "flex" }}>
                     <div style={{ flex: 1 }}>
                       <TextField
                         placeholder="Search Order"
@@ -799,39 +958,94 @@ export function OrdersListing() {
                         prefix={<Icon source={SearchMinor} />}
                       />
                     </div>
-                  </div> */}
 
-                <IndexFilters
-                  sortOptions={sortOptions}
-                  sortSelected={sortSelected}
-                  queryValue={queryValue}
-                  queryPlaceholder="Searching in all"
-                  onQueryChange={handleFiltersQueryChange}
-                  onQueryClear={() => {}}
-                  onSort={setSortSelected}
-                  primaryAction={primaryAction}
-                  cancelAction={{
-                    onAction: () => {},
-                    disabled: false,
-                    loading: false,
-                  }}
-                  tabs={tabs}
-                  selected={selected}
-                  onSelect={handleOrderFilter}
-                  canCreateNewView
-                  onCreateNewView={onCreateNewView}
-                  filters={filters}
-                  appliedFilters={appliedFilters}
-                  onClearAll={handleFiltersClearAll}
-                  mode={mode}
-                  setMode={setMode}
-                />
+                  <div style={{ padding: '0px', display: 'flex' }}>
+                      {showSelect ? (
+                          <div style={{ flex: '1' }}>
+                              {filterType === 'payment' ? (
+                                  <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
+                                      <ReactSelect
+                                          name='pushed_status'
+                                          options={[
+                                              { value: 'all', label: 'All' },
+                                              { value: 'paid', label: 'Paid' },
+                                              { value: 'unpaid', label: 'Unpaid' },
+                                          ]}
+                                          placeholder="Select Payment Status"
+                                          value={selectedStatus}
+                                          onChange={(selectedOption) => handleSelectChange(selectedOption)}
+                                          styles={{
+                                              menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                                          }}
+                                      />
+                                  </div>
+                              )  : null}
+                              {showClearButton && (
+                                  <Button onClick={handleClearButtonClick} plain>
+                                      Clear
+                                  </Button>
+                              )}
+                          </div>
+                      ) :null}
+                      <div style={{ marginLeft: '10px' }}>
+                          <Popover
+                              active={active}
+                              activator={
+                                  <Button onClick={toggleActive} disclosure>
+                                      <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512" style={{ fill: '#303236' }}>
+                                          <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z" />
+                                      </svg>
+                                  </Button>
+                              }
+                              onClose={toggleActive}
+                          >
+                              <ActionList
+                                  actionRole="menuitem"
+                                  items={[
+                                      {
+                                          content: 'Payment Status',
+                                          helpText: 'Filter By Payment Status',
+                                          onAction: () => handleFilterClick('payment'),
+                                      },
+
+                                  ]}
+                              />
+                          </Popover>
+                      </div>
+                  </div>
+                  </div>
+
+                {/*<IndexFilters*/}
+                {/*  sortOptions={sortOptions}*/}
+                {/*  sortSelected={sortSelected}*/}
+                {/*  queryValue={queryValue}*/}
+                {/*  queryPlaceholder="Searching in all"*/}
+                {/*  onQueryChange={handleFiltersQueryChange}*/}
+                {/*  onQueryClear={() => {}}*/}
+                {/*  onSort={setSortSelected}*/}
+                {/*  primaryAction={primaryAction}*/}
+                {/*  cancelAction={{*/}
+                {/*    onAction: () => {},*/}
+                {/*    disabled: false,*/}
+                {/*    loading: false,*/}
+                {/*  }}*/}
+                {/*  tabs={tabs}*/}
+                {/*  selected={selected}*/}
+                {/*  onSelect={handleOrderFilter}*/}
+                {/*  canCreateNewView*/}
+                {/*  onCreateNewView={onCreateNewView}*/}
+                {/*  filters={filters}*/}
+                {/*  appliedFilters={appliedFilters}*/}
+                {/*  onClearAll={handleFiltersClearAll}*/}
+                {/*  mode={mode}*/}
+                {/*  setMode={setMode}*/}
+                {/*/>*/}
 
                 <IndexTable
                   resourceName={resourceName}
                   itemCount={orders?.length}
                   hasMoreItems
-                  selectable={true}
+                  selectable={false}
                   selectedItemsCount={
                     allResourcesSelected ? "All" : selectedResources.length
                   }
@@ -842,18 +1056,18 @@ export function OrdersListing() {
                     { title: "Order Id" },
                     { title: "Store Order Num" },
                     { title: "Seller" },
-                    { title: "Payment Mode" },
+                    { title: "Date" },
                     { title: "Payment Status" },
                     { title: "Order Status" },
-                    { title: "Tracking Id" },
+                    // { title: "Tracking Id" },
                     { title: "Action" },
                   ]}
-                  bulkActions={bulkActions}
+                  // bulkActions={bulkActions}
                 >
                   {rowMarkup}
                 </IndexTable>
               </Card.Section>
-
+                {showPagination && (
               <Card.Section>
                 <div
                   className="data-table-pagination"
@@ -864,14 +1078,15 @@ export function OrdersListing() {
                     paddingBottom: "20px",
                   }}
                 >
-                  <Pagination
-                    hasPrevious={hasPreviousPage ? true : false}
-                    onPrevious={() => handlePagination("prev")}
-                    hasNext={hasNextPage ? true : false}
-                    onNext={() => handlePagination("next")}
-                  />
+                    <Pagination
+                        hasPrevious={pagination > 1}
+                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                        hasNext={pagination < paginationUrl.length}
+                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                    />
                 </div>
               </Card.Section>
+                )}
             </div>
             {/* </Tabs> */}
           </Card>

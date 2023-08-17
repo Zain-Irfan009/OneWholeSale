@@ -63,6 +63,12 @@ export function ProductsListing() {
 
     const [skeleton, setSkeleton] = useState(false)
 
+
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
+
   const [products, setProducts] = useState([]);
   const [currency, setCurrency] = useState('');
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -72,6 +78,7 @@ export function ProductsListing() {
   const [nextPageCursor, setNextPageCursor] = useState("");
   const [previousPageCursor, setPreviousPageCursor] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
+  const [tableLoading, setTableLoading] = useState(false);
 
   //modal code
   const [modalReassign, setModalReassign] = useState(false);
@@ -87,7 +94,7 @@ export function ProductsListing() {
   const [deleteSellerModal, setDeleteSellerModal] = useState(false);
   const [checked, setChecked] = useState(false);
   const [sellerEmail, setSellerEmail] = useState("");
-
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
     const [formErrors, setFormErrors] = useState({});
 
   const handleChange = useCallback((newChecked) => setChecked(newChecked), []);
@@ -154,6 +161,15 @@ export function ProductsListing() {
     });
   };
 
+
+
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
+
   // ------------------------Toasts Code start here------------------
   const toggleErrorMsgActive = useCallback(
     () => setErrorToast((errorToast) => !errorToast),
@@ -175,23 +191,45 @@ export function ProductsListing() {
   // ---------------------Tag/Filter Code Start Here----------------------
   const handleQueryValueRemove = () => {
     setPageCursorValue("");
+      getData()
     setQueryValue("");
     setToggleLoadData(true);
   };
 
   let timeoutId = null;
-  const handleFiltersQueryChange = (value) => {
-    clearTimeout(timeoutId);
-    setPageCursorValue("");
-    setQueryValue(value);
-    timeoutId = setTimeout(() => {
-      let newCustomers = data.filter((customer) =>
-        customer.product_id.includes(value)
-      );
-        setProducts(newCustomers);
-      // setToggleLoadData(true);
-    }, 1000);
-  };
+
+
+    const handleFiltersQueryChange = async (value)  => {
+        setTableLoading(true)
+        setPageCursorValue('')
+
+        setQueryValue(value)
+
+        const sessionToken = getAccessToken();
+
+
+        try {
+            const response = await axios.get(`${apiUrl}/search-product?value=${value}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setProducts(response?.data?.data)
+            setTableLoading(false)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+        setTimeout(() => {
+            setToggleLoadData(true)
+        }, 1000);
+    }
 
   const handlePagination = (value) => {
     if (value == "next") {
@@ -209,18 +247,28 @@ export function ProductsListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/products`,
+            const response = await axios.get(`${apiUrl}/products?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
 
-            console.log(response?.data?.data)
-            setProducts(response?.data?.data)
+            console.log(response?.data)
+            setProducts(response?.data?.products?.data)
 
             setCurrency(response?.data?.currency)
 
+            setPaginationUrl(response?.data?.products?.links);
+            if (
+                response?.data?.products?.total >
+                response?.data?.products?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
+            setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -233,9 +281,6 @@ export function ProductsListing() {
         }
     }
 
-    useEffect(() => {
-        getData();
-    }, []);
 
 
   // ---------------------Index Table Code Start Here----------------------
@@ -366,7 +411,12 @@ export function ProductsListing() {
     selectedResources.includes(id)
   );
 
-  const bulkActions = [
+    useEffect(() => {
+        getData()
+    }, [toggleLoadData1]);
+
+
+    const bulkActions = [
     {
       content: selectedResources.length > 0 && "Disable",
       onAction: () => {
@@ -446,12 +496,24 @@ export function ProductsListing() {
           <CustomBadge value={"NORMAL"} type="products" />
         </IndexTable.Cell>
 
-          <IndexTable.Cell>{price != null ? `${currency} ${price}` : '---'}</IndexTable.Cell>
+          <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
         <IndexTable.Cell>{quantity != null ? quantity : "---"}</IndexTable.Cell>
-        <IndexTable.Cell>
-          <CustomBadge value={product_status}  type="products" />
-        </IndexTable.Cell>
 
+          {product_status === 'Approved' ? (
+        <IndexTable.Cell className="approved">
+          <CustomBadge  value={product_status}  type="products" />
+        </IndexTable.Cell>
+              ) : product_status === 'Approval Pending' ? (
+              <IndexTable.Cell className="approval_pending">
+                  <CustomBadge  value={product_status}  type="products" />
+              </IndexTable.Cell>
+          ) : (
+
+              <IndexTable.Cell className="disabled">
+                  <CustomBadge  value={product_status}  type="products" />
+              </IndexTable.Cell>
+
+          )}
         <IndexTable.Cell>
           <Popover
             active={active[id]}
@@ -786,7 +848,7 @@ export function ProductsListing() {
     if (toggleLoadData) {
       // getCustomers()
     }
-    setLoading(false);
+
     setCustomersLoading(false);
   }, [toggleLoadData]);
 
@@ -842,18 +904,15 @@ export function ProductsListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/product-filter?status=${value}`,
+            const response = await axios.get(`${apiUrl}/product-filter?status=${value}&page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
             setProducts(response?.data?.products)
             setLoading(false)
-            // setBtnLoading(false)
-            // setToastMsg(response?.data?.message)
-            // setSucessToast(true)
+
 
 
         } catch (error) {
@@ -1045,46 +1104,68 @@ export function ProductsListing() {
           }
         >
           <Card>
-            <div className="Polaris-Table">
+            <div className="Polaris-Table product_listing">
                 {skeleton ? <SkeletonBodyText/> :
                     <>
               <Card.Section fullWidth subdued hasPaddingTop={false}>
 
-                <IndexFilters
-                  // sortOptions={sortOptions}
-                  // sortSelected={sortSelected}
-                  // queryValue={queryValue}
-                  // queryPlaceholder="Searching in all"
-                  // onQueryChange={handleFiltersQueryChange}
-                  // onQueryClear={() => {}}
-                  onSort={setSortSelected}
-                  primaryAction={primaryAction}
-                  cancelAction={{
-                    onAction: () => {},
-                    disabled: false,
-                    loading: false,
-                  }}
-                  tabs={tabs}
-                  selected={selected}
-                  onSelect={handleProductFilter}
-                  canCreateNewView
-                  onCreateNewView={onCreateNewView}
-                  filters={filters}
-                  // appliedFilters={appliedFilters}
-                  // onClearAll={handleFiltersClearAll}
-                  mode={mode}
-                  // setMode={setMode}
-                />
+                {/*<IndexFilters*/}
+                {/*  // sortOptions={sortOptions}*/}
+                {/*  // sortSelected={sortSelected}*/}
+                {/*  // queryValue={queryValue}*/}
+                {/*  // queryPlaceholder="Searching in all"*/}
+                {/*  // onQueryChange={handleFiltersQueryChange}*/}
+                {/*  // onQueryClear={() => {}}*/}
+                {/*  onSort={setSortSelected}*/}
+                {/*  primaryAction={primaryAction}*/}
+                {/*  cancelAction={{*/}
+                {/*    onAction: () => {},*/}
+                {/*    disabled: false,*/}
+                {/*    loading: false,*/}
+                {/*  }}*/}
+                {/*  tabs={tabs}*/}
+                {/*  selected={selected}*/}
+                {/*  onSelect={handleProductFilter}*/}
+                {/*  canCreateNewView*/}
+                {/*  onCreateNewView={onCreateNewView}*/}
+                {/*  filters={filters}*/}
+                {/*  // appliedFilters={appliedFilters}*/}
+                {/*  // onClearAll={handleFiltersClearAll}*/}
+                {/*  mode={mode}*/}
+                {/*  // setMode={setMode}*/}
+                {/*/>*/}
+
+                  <div>
+                      <Tabs
+                          tabs={tabs}
+                          selected={selected}
+                          onSelect={handleProductFilter}
+                      ></Tabs>
+                  </div>
+                  <div style={{ padding: '16px', display: 'flex' }}>
+                      <div style={{ flex: 1 }}>
+                          <TextField
+                              placeholder='Search Product'
+                              value={queryValue}
+                              onChange={handleFiltersQueryChange}
+                              clearButton
+                              onClearButtonClick={handleQueryValueRemove}
+                              autoComplete="off"
+                              prefix={<Icon source={SearchMinor} />}
+                          />
+                      </div>
+                  </div>
                 <IndexTable
                   resourceName={resourceName}
                   itemCount={products?.length}
+                  loading={tableLoading}
                   hasMoreItems
                   selectable={true}
                   selectedItemsCount={
                     allResourcesSelected ? "All" : selectedResources.length
                   }
                   onSelectionChange={handleSelectionChange}
-                  loading={customersLoading}
+
                   emptyState={emptyStateMarkup}
                   headings={[
                     { title: "Product Id" },
@@ -1107,6 +1188,7 @@ export function ProductsListing() {
               </Card.Section>
                     </>
                 }
+                {showPagination && (
               <Card.Section>
                 <div
                   className="data-table-pagination"
@@ -1118,15 +1200,16 @@ export function ProductsListing() {
                   }}
                 >
 
-                  <Pagination
-                    hasPrevious={hasPreviousPage ? true : false}
-                    onPrevious={() => handlePagination("prev")}
-                    hasNext={hasNextPage ? true : false}
-                    onNext={() => handlePagination("next")}
-                  />
+                    <Pagination
+                        hasPrevious={pagination > 1}
+                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                        hasNext={pagination < paginationUrl.length}
+                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                    />
                 </div>
 
               </Card.Section>
+                )}
 
             </div>
           </Card>

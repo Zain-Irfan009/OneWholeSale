@@ -22,7 +22,7 @@ class OrderController extends Controller
     {
         $user = auth()->user();
         $shop = Session::where('shop', $user->name)->first();
-        $orders = Order::where('shop_id', $shop->id)->get();
+        $orders = Order::where('shop_id', $shop->id)->orderBy('id','Desc')->paginate(20);
         return response()->json($orders);
     }
 
@@ -34,10 +34,13 @@ class OrderController extends Controller
         $shop = new Rest($session->shop, $session->access_token);
         $result = $shop->get('orders', [], ['limit' => 250]);
         $orders = $result->getDecodedBody();
+
         foreach ($orders['orders'] as $order) {
             $order = json_decode(json_encode($order));
+
             $this->singleOrder($order, $session->shop);
         }
+
         $data = [
             'message' => "Order Sync Successfully",
             'data' => $orders
@@ -51,6 +54,7 @@ class OrderController extends Controller
 
         $shop = Session::where('shop', $shop)->first();
         if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {
+
 
             $newOrder = Order::where('shopify_order_id', $order->id)->where('shop_id', $shop->id)->first();
 
@@ -212,9 +216,12 @@ class OrderController extends Controller
             if($request->status==0) {
                 $orders = Order::where('shop_id', $shop->id)->get();
             }else if($request->status==1){
-                $orders = Order::where('financial_status','paid')->where('shop_id', $shop->id)->get();
+                $orders = Order::whereNull('fulfillment_status')->where('shop_id', $shop->id)->get();
             }else if($request->status==2){
-                $orders = Order::where('financial_status','pending')->where('shop_id', $shop->id)->get();
+                $orders = Order::where('fulfillment_status','partial')->where('shop_id', $shop->id)->get();
+            }
+            else if($request->status==3){
+                $orders = Order::where('fulfillment_status','fulfilled')->where('shop_id', $shop->id)->get();
             }
             if (count($orders) > 0) {
                 $data = [
@@ -297,5 +304,37 @@ class OrderController extends Controller
         }
 
 
+        public function SearchOrder(Request $request){
+
+            $user=auth()->user();
+            $session=Session::where('shop',$user->name)->first();
+            $orders=Order::where('order_number', 'like', '%' . $request->value . '%')->orWhere('user_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+            $data = [
+                'data' => $orders
+            ];
+            return response()->json($data);
+        }
+
+public function OrderFilterPayment(Request $request){
+
+    $user=auth()->user();
+    $shop=Session::where('shop',$user->name)->first();
+    if ($shop) {
+        if($request->value=='all') {
+            $orders = Order::where('shop_id', $shop->id)->get();
+        }else if($request->value=='paid'){
+            $orders = Order::where('financial_status','paid')->where('shop_id', $shop->id)->get();
+        }else if($request->value=='unpaid'){
+            $orders = Order::where('financial_status','unpaid')->where('shop_id', $shop->id)->get();
+        }
+
+        if (count($orders) > 0) {
+            $data = [
+                'orders' => $orders
+            ];
+            return response()->json($data);
+        }
+    }
+}
 
 }

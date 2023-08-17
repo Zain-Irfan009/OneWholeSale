@@ -28,9 +28,10 @@ class ProductController extends Controller
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
         if($session){
-            $products=Product::where('shop_id',$session->id)->get();
+            $products=Product::where('shop_id',$session->id)->orderBy('id','Desc')->paginate(20);
+
             $data = [
-                'data'=>$products,
+                'products'=>$products,
                 'currency'=>$session->money_format,
             ];
 
@@ -58,6 +59,7 @@ class ProductController extends Controller
             'currency'=>$shop->money_format,
 
         ];
+
         return response()->json($data);
 
     }
@@ -365,6 +367,7 @@ if(isset($request->images)) {
     }
 
     public function EditProduct(Request $request,$id){
+
         $session=Session::where('shop',$request->shop)->first();
         if($session){
             $product=Product::find($id);
@@ -770,7 +773,7 @@ if(isset($request->images)) {
         $user = auth()->user();
         $session = Session::where('shop', $user->name)->first();
         if ($session) {
-            $products = CsvImport::where('shop_id', $session->id)->groupBy('product_shopify_id')->get();
+            $products = CsvImport::where('shop_id', $session->id)->groupBy('product_shopify_id')->paginate(20);
 
             $data = [
                 'data' => $products
@@ -793,6 +796,7 @@ if(isset($request->images)) {
 
                 $user=User::where('email',$request->email)->first();
 
+
                 if($user->id==$product->user_id){
                     return response()->json([
                         'message' => 'Product is Already Assigned to this Seller',
@@ -803,7 +807,7 @@ if(isset($request->images)) {
                     $delete_collect_product = $client->delete('/collects/'.$product->collect_id.'.json');
                     $delete_collect_product = $delete_collect_product->getDecodedBody();
 
-                    if(!isset($delete_collect_product['errors']) || $delete_collect_product['errors']=='Not Found') {
+                    if(!isset($delete_collect_product['errors']) || $delete_collect_product['errors']=='Not Found' || $delete_collect_product==null) {
 
                         $collect_product = $client->post('/collects.json', [
                             'collect' => [
@@ -814,6 +818,7 @@ if(isset($request->images)) {
                     }
 
                     $collect_product = $collect_product->getDecodedBody();
+
 
                     if(!isset($collect_product['errors'])) {
 
@@ -848,7 +853,7 @@ if(isset($request->images)) {
 
     }
 
-    public function SearchProducts(Request $request){
+    public function SearchImportProducts(Request $request){
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
         $products=CsvImport::where('title', 'like', '%' . $request->value . '%')->groupBy('product_shopify_id')->get();
@@ -857,4 +862,17 @@ if(isset($request->images)) {
         ];
         return response()->json($data);
     }
+
+    public function SearchProduct(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $products=Product::where('product_name', 'like', '%' . $request->value . '%')->orWhere('seller_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $data = [
+            'data' => $products
+        ];
+        return response()->json($data);
+    }
+
+
+
     }

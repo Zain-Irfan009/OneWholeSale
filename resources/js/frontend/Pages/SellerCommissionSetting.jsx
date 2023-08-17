@@ -43,6 +43,19 @@ export function SellerCommissionSetting() {
     const [sellerEmail, setSellerEmail] = useState('')
     const [uniqueId, setUniqueId] = useState()
 
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
+
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
+
     const toggleActive=(id)=>{
 
         setActive((prev) => {
@@ -164,15 +177,25 @@ export function SellerCommissionSetting() {
         setLoading(true)
         try {
 
-            const response = await axios.get(`${apiUrl}/seller-commission`,
+            const response = await axios.get(`${apiUrl}/seller-commission?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
-            setSellerCommission(response?.data?.data)
+        console.log(response)
+            setSellerCommission(response?.data?.data?.data)
             setLoading(false)
+
+            setPaginationUrl(response?.data?.data?.links);
+            if (
+                response?.data?.data?.total >
+                response?.data?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -187,7 +210,7 @@ export function SellerCommissionSetting() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData1]);
 
     function handleRowClick(id) {
         const target = event.target;
@@ -277,9 +300,9 @@ export function SellerCommissionSetting() {
                 <IndexTable.Cell>
                     {first_commission != null ? first_commission : '---'}
                 </IndexTable.Cell>
-                <IndexTable.Cell>
-                    {second_commission != null ? second_commission : '---'}
-                </IndexTable.Cell>
+                {/*<IndexTable.Cell>*/}
+                {/*    {second_commission != null ? second_commission : '---'}*/}
+                {/*</IndexTable.Cell>*/}
 
                 <IndexTable.Cell>
                     <Popover
@@ -408,7 +431,7 @@ export function SellerCommissionSetting() {
         if (toggleLoadData) {
             // getCustomers()
         }
-        setLoading(false)
+        // setLoading(false)
         setCustomersLoading(false)
     }, [toggleLoadData])
 
@@ -446,6 +469,8 @@ export function SellerCommissionSetting() {
                         name='seller_email'
                         value={sellerEmail}
                         onChange={handleSellerEmail}
+
+
                     />
                 </Modal.Section>
             </Modal>
@@ -484,7 +509,7 @@ export function SellerCommissionSetting() {
                                     resourceName={resourceName}
                                     itemCount={sellerCommission?.length}
                                     hasMoreItems
-                                    selectable={true}
+                                    selectable={false}
                                     selectedItemsCount={
                                         allResourcesSelected ? 'All' : selectedResources.length
                                     }
@@ -498,7 +523,7 @@ export function SellerCommissionSetting() {
                                         { title: 'Email Id' },
                                         { title: 'Commission Type' },
                                         { title: 'First Commission' },
-                                        { title: 'Second Commission' },
+                                        // { title: 'Second Commission' },
                                         { title: 'Action' },
                                     ]}
                                 >
@@ -507,7 +532,7 @@ export function SellerCommissionSetting() {
 
                             </Card.Section>
 
-
+                            {showPagination && (
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -519,13 +544,14 @@ export function SellerCommissionSetting() {
                                 >
 
                                     <Pagination
-                                        hasPrevious={hasPreviousPage ? true : false}
-                                        onPrevious={() => handlePagination('prev')}
-                                        hasNext={hasNextPage ? true : false}
-                                        onNext={() => handlePagination('next')}
+                                        hasPrevious={pagination > 1}
+                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                                        hasNext={pagination < paginationUrl.length}
+                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
                                     />
                                 </div>
                             </Card.Section>
+                            )}
 
                         </div>
 
