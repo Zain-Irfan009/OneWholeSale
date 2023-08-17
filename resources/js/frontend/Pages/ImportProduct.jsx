@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from 'react';
+import React, {useState, useCallback, useEffect, useContext, useMemo} from 'react';
 import {
     Page,
     Card,
@@ -25,7 +25,7 @@ import {
     ButtonGroup,
     useIndexResourceState,
     Modal,
-    Select
+    Select, Autocomplete, Stack, Tag
 } from '@shopify/polaris';
 import { SearchMinor, ExternalMinor,DeleteMinor,HorizontalDotsMinor,NoteMinor,EditMinor } from '@shopify/polaris-icons';
 import { AppContext } from '../components/providers/ContextProvider'
@@ -56,6 +56,8 @@ export function ImportProduct() {
     const [storeUrl, setStoreUrl] = useState('')
     const [active, setActive] = useState(false);
 
+    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+
     //pagination
     const [pagination, setPagination] = useState(1);
     const [showPagination, setShowPagination] = useState(false);
@@ -80,6 +82,14 @@ export function ImportProduct() {
     const [sellerMessage, setSellerMessage] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [formErrors, setFormErrors] = useState({});
+
+
+    const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
+
+    const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
 
     const toggleActive=(id)=>{
 
@@ -126,6 +136,14 @@ export function ImportProduct() {
 
     // ---------------------Tag/Filter Code Start Here----------------------
 
+    const [optionsLoading, setOptionsLoading] = useState(false);
+    const CollectionsOptionsData = useMemo(
+        () => [
+            { value: "Catalogs", label: "catalog" },
+            { value: "Zippo Display", label: "zippo" },
+        ],
+        []
+    );
     const validImageTypes = [
         'text/csv',
         'application/vnd.ms-excel',
@@ -205,17 +223,17 @@ export function ImportProduct() {
         const sessionToken = getAccessToken();
         const errors = {};
 
-        if (sellerEmail.trim() === '') {
-            errors.sellerEmail = 'Email is required';
-        }
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return;
-        }
+        // if (sellerEmail.trim() === '') {
+        //     errors.sellerEmail = 'Email is required';
+        // }
+        // if (Object.keys(errors).length > 0) {
+        //     setFormErrors(errors);
+        //     return;
+        // }
         setBtnLoading(true)
         let data = {
             id: uniqueId,
-            email:sellerEmail
+            email:sellerEmailListSelected
         }
         try {
             const response = await axios.post(`${apiUrl}/assign-import-products`,data,
@@ -234,6 +252,7 @@ export function ImportProduct() {
 
 
         } catch (error) {
+            console.log(error)
             setBtnLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
@@ -269,6 +288,7 @@ export function ImportProduct() {
             }
 
             setImportData(response?.data?.data?.data)
+
             setLoading(false)
 
             // setBtnLoading(false)
@@ -306,6 +326,128 @@ export function ImportProduct() {
             }
         }
     }
+
+    function tagTitleCase(string) {
+        return string
+            .toLowerCase()
+            .split(" ")
+            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .join("");
+    }
+
+
+    const sellerUpdateText = useCallback(
+        (value) => {
+
+
+            setSellerEmailInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    setSellerEmailList(CollectionsOptionsData);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = CollectionsOptionsData.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+                setSellerEmailList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+    );
+
+
+    const [collectionOptionsSelected, setCollectionOptionsSelected] =
+        useState("");
+    const removeSellerEmail = useCallback(
+        (collection) => () => {
+            const collectionOptions = [...sellerEmailListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setSellerListSelected(collectionOptions);
+        },
+        [collectionOptionsSelected]
+    );
+
+    const sellerContentMarkup =
+        sellerEmailListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {sellerEmailListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeSellerEmail(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+
+    const sellerEmailTextField = (
+        <Autocomplete.TextField
+            onChange={sellerUpdateText}
+            label="Seller Email*"
+            value={sellerEmailInputValue}
+            placeholder="Select Seller"
+            verticalContent={sellerContentMarkup}
+        />
+    );
+
+
+    const getCollectionData = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/collections`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            console.log('response',response?.data)
+
+            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            setSellerEmailList(arr_seller)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+            console.log(error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
+    useEffect(() => {
+        getCollectionData();
+
+    }, []);
+
+
 
     const rowMarkup = importData?.map(
         ({ id, product_shopify_id,title,vendor_name }, index) => (
@@ -578,15 +720,28 @@ export function ImportProduct() {
                     {/*    />*/}
                     {/*</div>*/}
 
-                    <InputField
-                        label='Seller Email *'
-                        marginTop
-                        type='text'
-                        name='seller_email'
-                        value={sellerEmail}
-                        onChange={handleSellerEmail}
+                    {/*<InputField*/}
+                    {/*    label='Seller Email *'*/}
+                    {/*    marginTop*/}
+                    {/*    type='text'*/}
+                    {/*    name='seller_email'*/}
+                    {/*    value={sellerEmail}*/}
+                    {/*    onChange={handleSellerEmail}*/}
 
+                    {/*/>*/}
+
+                    <Autocomplete
+                        marginTop
+                        options={sellerEmailList}
+                        selected={sellerEmailListSelected}
+                        textField={sellerEmailTextField}
+                        loading={optionsLoading}
+                        onSelect={
+                            setSellerListSelected
+                        }
+                        listTitle="Sellers"
                     />
+
                 </Modal.Section>
             </Modal>
 

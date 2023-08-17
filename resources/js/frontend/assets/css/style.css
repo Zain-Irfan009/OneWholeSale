@@ -197,11 +197,11 @@
 }
 
 .approval_pending .Polaris-Badge{
-    background-color: rgb(255 225 131);
+    background-color: #FAC9A8;
 }
 
 .disabled .Polaris-Badge{
-    background-color: rgb(255 71 75);
+    background-color:#FBC5BC;
 }
 
 .unfulfilled .Polaris-Badge{

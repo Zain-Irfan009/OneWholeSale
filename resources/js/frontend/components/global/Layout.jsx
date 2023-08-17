@@ -5,7 +5,7 @@ import {
     SettingsMinor,
     ProductsMinor,
     CustomersMinor,
-    OrdersMinor,
+    OrdersMinor, FinancesMinor,
 } from "@shopify/polaris-icons";
 import { AppContext } from "../providers/ContextProvider";
 // import { useAuthDispatch, useAuthState } from '../providers/AuthProvider'
@@ -112,7 +112,7 @@ export function MainLayout(props) {
                     },
                     {
                         label: "Sellers",
-                        icon: OrdersMinor,
+                        icon: CustomersMinor,
                         url: "/sellerslisting",
                         onClick: () => setLocationChange("/sellerslisting"),
 
@@ -137,7 +137,7 @@ export function MainLayout(props) {
                     },
                     {
                         label: "Products",
-                        icon: OrdersMinor,
+                        icon: ProductsMinor,
                         url: "/productslisting",
                         onClick: () => setLocationChange("/productslisting"),
                         subNavigationItems: [
@@ -172,7 +172,7 @@ export function MainLayout(props) {
                     },
                     {
                         label: "Commission",
-                        icon: OrdersMinor,
+                        icon: FinancesMinor,
                         url: "/commissionslisting",
                         onClick: () => setLocationChange("/commissionslisting"),
                         subNavigationItems: [
