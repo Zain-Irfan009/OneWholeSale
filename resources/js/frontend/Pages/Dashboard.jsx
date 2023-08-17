@@ -408,7 +408,7 @@ export function Dashboard() {
     (
       {
         id,
-        shop_id,
+          shopify_id,
         order_number,
           user_name,
           total_price,
@@ -430,7 +430,7 @@ export function Dashboard() {
         </IndexTable.Cell>
           <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
               <Text variant="bodyMd" fontWeight="semibold" as="span">
-                  {shop_id != null ? shop_id : "---"}
+                  {shopify_id != null ? shopify_id : "---"}
               </Text>
           </IndexTable.Cell>
 
