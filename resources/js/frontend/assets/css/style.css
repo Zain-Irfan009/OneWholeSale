@@ -215,3 +215,7 @@
 .unfulfilled .Polaris-Badge .Polaris-Badge__PipContainer .polaris-Badge-Pip--progressComplete{
     background:#FFEF9D;
 }
+
+.seller-list .Polaris-Labelled__LabelWrapper .Polaris-Label{
+    margin-top:10px
+}

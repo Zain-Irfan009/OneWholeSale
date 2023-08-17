@@ -87,6 +87,7 @@ export function ViewOrder() {
 
     const [abandonedCheckout, setAbandonedCheckout] = useState(data1);
     const [lineItems, setLineItems] = useState([]);
+    const [orderSellers, setOrderSellers] = useState([]);
     const [cartPrices, setCartPrices] = useState(cart_data);
     const [shippingDetails, setShippingDetails] = useState();
     const [billingDetails, setBillingDetails] = useState();
@@ -148,16 +149,19 @@ export function ViewOrder() {
         return booleanValue;
     }
 
-    const formatDate=(created_at)=>{
-        const date = new Date(created_at);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const formatedDate = `${month.toString().padStart(2, "0")}-${day
-            .toString()
-            .padStart(2, "0")}-${year}`;
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
 
-        return formatedDate ;
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
     }
 
 
@@ -172,14 +176,19 @@ export function ViewOrder() {
                     }
                 })
 
-            console.log('yes')
+            console.log(response?.data?.order_sellers)
             setSubtotalPrice(response?.data?.order?.subtotal_price)
             setTotalTax(response?.data?.order?.total_tax)
             setTotalPrice(response?.data?.order?.total_price)
-            setSellerName(response?.data?.order?.user_name)
-            setShopName(response?.data?.order?.seller_shopname)
+            // setSellerName(response?.data?.order?.user_name)
+            // setShopName(response?.data?.order?.seller_shopname)
             setLineItems(response?.data?.line_items)
-            setEmail(response?.data?.order?.user_email)
+            setOrderSellers(response?.data?.order_sellers)
+
+
+
+
+            // setEmail(response?.data?.order?.user_email)
             setTotalOrderCommission(response?.data?.order_commission)
             setTotalAdminEarning(response?.data?.admin_earning)
             setOrderNum(response?.data?.order?.order_number)
@@ -243,7 +252,13 @@ console.log('check',cartPrices)
 
     useEffect(() => {
         getOrderData(params.order_id);
+
     }, []);
+
+    useEffect(() => {
+        console.log('orderSellers',orderSellers)
+
+    }, [orderSellers]);
 
 
     const discardAbandonedCheckout = () => {
@@ -406,31 +421,36 @@ console.log('check',cartPrices)
 
                             </Card>
 
-                            <div className="seller_detail_div">
-                            <Card title="Seller Details">
+                            {orderSellers?.map((item) => {
+                                return (
+                                <div className="seller_detail_div">
+                                    <Card title="Seller Details">
 
-                                    <Card.Section>
+                                        <Card.Section>
                                             <div className="order_detail_status">
                                                 <Text variant="headingXs" as="h6">
                                                     Here are seller details
                                                 </Text>
 
                                                 <p className="order_status_p seller_status">
-                                                    Seller Name -<span className="order_status_span"> {sellerName}</span>
+                                                    Seller Name -<span
+                                                    className="order_status_span"> {item.name}</span>
                                                 </p>
                                                 <p className="order_status_p">
-                                                    Seller Shop Name -<span className="order_status_span">  {shopName}</span>
+                                                    Seller Shop Name -<span
+                                                    className="order_status_span">  {item.seller_shopname}</span>
                                                 </p>
                                                 <p className="order_status_p">
-                                                    Seller Email -<span className="order_status_span"> {email}</span>
+                                                    Seller Email -<span className="order_status_span"> {item.email}</span>
                                                 </p>
                                             </div>
 
-                                    </Card.Section>
+                                        </Card.Section>
 
-                            </Card>
-                            </div>
-
+                                    </Card>
+                                </div>
+                                )
+                            })}
                             <div className="seller_detail_div">
                                 <Card title="Seller Earning">
 

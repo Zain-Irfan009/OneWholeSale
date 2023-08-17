@@ -550,9 +550,9 @@ export function OrdersListing() {
           </Text>
         </IndexTable.Cell>
 
-        <IndexTable.Cell className="Capitalize-Cell">
-          {user_name != null ? user_name : "---"}
-        </IndexTable.Cell>
+        {/*<IndexTable.Cell className="Capitalize-Cell">*/}
+        {/*  {user_name != null ? user_name : "---"}*/}
+        {/*</IndexTable.Cell>*/}
 
           <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
@@ -612,7 +612,7 @@ export function OrdersListing() {
 
           <IndexTable.Cell>
               <Tooltip content="View Order">
-                  <Button size="micro" onClick={() => handleViewAction(id)( id )}>
+                  <Button size="micro" onClick={() => handleViewAction(id)}>
                       <Icon source={ViewMajor}></Icon>
                   </Button>
               </Tooltip>
@@ -1055,7 +1055,7 @@ export function OrdersListing() {
                   headings={[
                     { title: "Order Id" },
                     { title: "Store Order Num" },
-                    { title: "Seller" },
+                    // { title: "Seller" },
                     { title: "Date" },
                     { title: "Payment Status" },
                     { title: "Order Status" },

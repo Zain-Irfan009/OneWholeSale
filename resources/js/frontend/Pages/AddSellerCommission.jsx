@@ -1,31 +1,31 @@
-import React, { useState, useCallback, useEffect, useContext } from "react";
+import React, {useState, useCallback, useEffect, useContext, useMemo} from "react";
 import {
-  Page,
-  Layout,
-  Card,
-  Modal,
-  Text,
-  Stack,
-  ButtonGroup,
-  Button,
-  PageActions,
-  Form,
-  FormLayout,
-  Toast,
-  List,
-  TextContainer,
-  Banner,
-  Loading,
-  Scrollable,
-  Avatar,
-  EmptyState,
-  TextField,
-  Listbox,
-  EmptySearchResult,
-  AutoSelection,
-  Tabs,
-  Icon,
-  Select,
+    Page,
+    Layout,
+    Card,
+    Modal,
+    Text,
+    Stack,
+    ButtonGroup,
+    Button,
+    PageActions,
+    Form,
+    FormLayout,
+    Toast,
+    List,
+    TextContainer,
+    Banner,
+    Loading,
+    Scrollable,
+    Avatar,
+    EmptyState,
+    TextField,
+    Listbox,
+    EmptySearchResult,
+    AutoSelection,
+    Tabs,
+    Icon,
+    Select, Autocomplete, Tag,
 } from "@shopify/polaris";
 import {
   SearchMinor,
@@ -60,7 +60,16 @@ export function AddSellerCommission() {
   const [sellerDescriptioncontent, setSellerDescriptionContent] = useState("");
   const [sellerPolicycontent, setSellerPolicyContent] = useState("");
 
-  // =================Products Modal Code Start Here================
+
+    const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
+
+    const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
+
+
+    // =================Products Modal Code Start Here================
   const [productsLoading, setProductsLoading] = useState(false);
   const [queryValue, setQueryValue] = useState("");
   const [toggleLoadProducts, setToggleLoadProducts] = useState(true);
@@ -175,7 +184,44 @@ export function AddSellerCommission() {
     setCollectionModal(true);
   };
 
-  const handleCollectionsCancelModal = () => {
+
+    const getCollectionData = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/get-seller-list`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            console.log('response',response?.data)
+
+            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            setSellerEmailList(arr_seller)
+
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+            console.log(error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
+    useEffect(() => {
+        getCollectionData();
+
+    }, []);
+
+
+    const handleCollectionsCancelModal = () => {
     setCollectionModal(false);
     setCheckedVariantsCollections(previousCheckedVariantsCollections);
   };
@@ -184,6 +230,98 @@ export function AddSellerCommission() {
     setCollectionModal(false);
     setPreviousCheckedVariantsCollections(checkedVariantsCollections);
   };
+
+    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+    const [optionsLoading, setOptionsLoading] = useState(false);
+
+    const CollectionsOptionsData = useMemo(
+        () => [
+            { value: "Catalogs", label: "catalog" },
+            { value: "Zippo Display", label: "zippo" },
+        ],
+        []
+    );
+
+    const sellerUpdateText = useCallback(
+        (value) => {
+
+
+            setSellerEmailInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    setSellerEmailList(CollectionsOptionsData);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = CollectionsOptionsData.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+                setSellerEmailList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+    );
+    function tagTitleCase(string) {
+        return string
+            .toLowerCase()
+            .split(" ")
+            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .join("");
+    }
+
+    const [collectionOptionsSelected, setCollectionOptionsSelected] =
+        useState("");
+
+    const removeSellerEmail = useCallback(
+        (collection) => () => {
+            const collectionOptions = [...sellerEmailListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setSellerListSelected(collectionOptions);
+        },
+        [collectionOptionsSelected]
+    );
+
+    const sellerContentMarkup =
+        sellerEmailListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {sellerEmailListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeSellerEmail(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+    const sellerEmailTextField = (
+        <Autocomplete.TextField
+            onChange={sellerUpdateText}
+            label="Seller Email*"
+            value={sellerEmailInputValue}
+            placeholder="Select Seller"
+            verticalContent={sellerContentMarkup}
+        />
+    );
 
   const collectionsModalClose = () => {
     setCollectionModal(false);
@@ -385,7 +523,7 @@ export function AddSellerCommission() {
 
 
         let data = {
-            seller_email:sellerEmail,
+            seller_email:sellerEmailListSelected,
             commission_type:commissionType,
             first_commission:firstCommission,
             second_commission:secondCommission,
@@ -457,17 +595,29 @@ export function AddSellerCommission() {
                                 {`Enter Commission Details You Want To add. `}
                             </Text>
 
-                            <div>
-                                <InputField
+                            <div className="seller-list">
+                                <Autocomplete
                                     marginTop
-                                    label="Seller Email*"
-                                    placeholder="Enter Seller Email Here"
-                                    type="email"
-                                    required
-                                    name="code"
-                                    value={sellerEmail}
-                                    onChange={handleSellerEmail}
+                                    options={sellerEmailList}
+                                    selected={sellerEmailListSelected}
+                                    textField={sellerEmailTextField}
+                                    loading={optionsLoading}
+                                    onSelect={
+                                        setSellerListSelected
+                                    }
+                                    listTitle="Sellers"
                                 />
+
+                                {/*<InputField*/}
+                                {/*    marginTop*/}
+                                {/*    label="Seller Email*"*/}
+                                {/*    placeholder="Enter Seller Email Here"*/}
+                                {/*    type="email"*/}
+                                {/*    required*/}
+                                {/*    name="code"*/}
+                                {/*    value={sellerEmail}*/}
+                                {/*    onChange={handleSellerEmail}*/}
+                                {/*/>*/}
 
                                 <div className="add_product_select">
                                     <Select

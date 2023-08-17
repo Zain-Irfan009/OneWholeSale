@@ -100,10 +100,12 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommission']);
     Route::get('seller-commission/{id}',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommissionFind']);
     Route::post('seller-commission-save',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommissionSave']);
+
     Route::delete('delete-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'DeleteSellerCommission']);
     Route::get('commission-listing',[\App\Http\Controllers\Admin\CommissionController::class,'CommissionListing']);
     Route::get('search-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchCommission']);
     Route::get('search-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchSellerCommission']);
+    Route::get('get-seller-list',[\App\Http\Controllers\Admin\CommissionController::class,'GetCommissionSellerList']);
 
 
     //Mail Configuration

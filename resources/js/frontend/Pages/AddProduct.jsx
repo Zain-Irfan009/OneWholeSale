@@ -342,8 +342,8 @@ export function AddProduct() {
                     }
                 })
 
-            console.log(response?.data)
-            let arr = response?.data?.data.map(({title})=> ({value: title, label: title}))
+          console.log('response',response?.data)
+            const arr = response?.data?.data.map(title => ({ value: title, label: title }));
             setCollectionOptions(arr)
             let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
             setSellerEmailList(arr_seller)

@@ -525,11 +525,9 @@ export function EditProduct() {
                 },
             });
 
-            let arr = response?.data?.data?.map(({ title }) => ({
-                value: title,
-                label: title,
-            }));
+            const arr = response?.data?.data.map(title => ({ value: title, label: title }));
             setCollectionOptions(arr);
+
             let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)

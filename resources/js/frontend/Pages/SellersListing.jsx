@@ -467,10 +467,11 @@ export function SellersListing() {
             setBtnLoading(false)
         }
     }
-  const handleViewinStoreAction = useCallback(
-    () => console.log("View in Store action"),
-    []
-  );
+    const handleViewinStoreAction = (id,collection_handle) => {
+        // The link will open in a new tab
+        // window.open(`https://tlx-new-brand.myshopify.com/collections/${collection_handle}`, '_blank');
+        window.open(`https://onewholesalelive.myshopify.com/collections/${collection_handle}`, '_blank');
+    };
 
   const handleSendMessageAction = (id) => {
       setModalReassign(true);
@@ -603,7 +604,7 @@ export function SellersListing() {
   }
 
   const rowMarkup =customers ?  customers?.map(
-      ({ id, seller_id, name, seller_shopname, email, created_at, status }, index) => (
+      ({ id, seller_id, name, seller_shopname, email, created_at, status,collection_handle }, index) => (
 
           <IndexTable.Row
               id={id}
@@ -657,7 +658,8 @@ export function SellersListing() {
                               },
                               {
                                   content: "View in Store",
-                                  onAction: handleViewinStoreAction,
+                                  onAction: () => handleViewinStoreAction(id,collection_handle),
+
                               },
                               {
                                   content: "Send Message",

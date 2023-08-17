@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Shopify\Clients\Rest;
 
+
 class CollectionController extends Controller
 {
 
@@ -16,8 +17,8 @@ class CollectionController extends Controller
         $user = auth()->user();
         $session = Session::where('shop', $user->name)->first();
         $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
-        $collections=Collection::where('shop_id',$session->id)->get();
-        $collections = $collections->unique('title');
+        $collections=Collection::where('shop_id', $session->id)->distinct('title')->pluck('title')->toArray();
+
         $data = [
             'data'=>$collections,
             'currency'=>$session->money_format,

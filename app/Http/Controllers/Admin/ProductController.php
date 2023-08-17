@@ -197,11 +197,11 @@ if(isset($request->images)) {
             $collections='';
         }
 
-//        if($request->status=="true"){
-//            $status='active';
-//        }else{
-//            $status='draft';
-//        }
+        if($request->status=="true"){
+            $status='active';
+        }else{
+            $status='draft';
+        }
 
         $productdata = [
             "product" => [
@@ -215,7 +215,7 @@ if(isset($request->images)) {
                 "options" => $options_array,
                 "images" => $images_array,
 //                "published"=>  $published,
-                "status"=>  $request->status
+                "status"=>  $status
             ]
         ];
 
@@ -227,6 +227,7 @@ if(isset($request->images)) {
             $response = $client->post('/products.json', $productdata);
         }
         $response=$response->getDecodedBody();
+
 
 
         $response=$response['product'];

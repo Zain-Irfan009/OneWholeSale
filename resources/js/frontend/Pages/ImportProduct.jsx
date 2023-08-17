@@ -634,7 +634,7 @@ export function ImportProduct() {
                                     resourceName={resourceName}
                                     itemCount={importData.length}
                                     hasMoreItems
-                                    selectable={true}
+                                    selectable={false}
                                     selectedItemsCount={
                                         allResourcesSelected ? 'All' : selectedResources.length
                                     }

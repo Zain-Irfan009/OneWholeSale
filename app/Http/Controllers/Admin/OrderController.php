@@ -7,6 +7,7 @@ use App\Models\CommissionLog;
 use App\Models\GlobalCommission;
 use App\Models\LineItem;
 use App\Models\Order;
+use App\Models\OrderSeller;
 use App\Models\Product;
 use App\Models\SellerCommission;
 use App\Models\Session;
@@ -62,6 +63,7 @@ class OrderController extends Controller
             if ($newOrder == null) {
                 $newOrder = new Order();
                 $flag=1;
+
             }
             $newOrder->shopify_order_id = $order->id;
             $newOrder->email = $order->email;
@@ -113,7 +115,7 @@ class OrderController extends Controller
             $newOrder->shop_id = $shop->id;
             $newOrder->save();
 
-
+            $unique_user_array=array();
             foreach ($order->line_items as $item) {
 
                 $new_line = LineItem::where('lineitem_id', $item->id)->where('order_id', $newOrder->id)->where('shop_id', $shop->id)->first();
@@ -143,8 +145,13 @@ class OrderController extends Controller
 
 
                 $product = Product::where('shopify_id', $item->product_id)->where('shop_id', $shop->id)->first();
-                if ($product) {
-                    $user = \App\Models\User::find($product->user_id);
+
+               if ($product) {
+                   $product->quantity=$product->quantity -$item->quantity;
+                   $product->save();
+                   $user = \App\Models\User::find($product->user_id);
+
+                    array_push($unique_user_array,$user->id);
                     if ($user) {
                         $seller_commission = SellerCommission::where('user_id', $user->id)->where('shop_id', $shop->id)->first();
                         if ($seller_commission) {
@@ -205,6 +212,19 @@ class OrderController extends Controller
 
                 }
             }
+
+
+            if($flag==1) {
+                $unique_records =array_unique($unique_user_array);
+                foreach ($unique_records as $unique_record) {
+
+                    $order_seller = new OrderSeller();
+                    $order_seller->order_id = $newOrder->id;
+                    $order_seller->user_id = $unique_record;
+                    $order_seller->save();
+
+                }
+            }
         }
     }
 
@@ -246,6 +266,17 @@ class OrderController extends Controller
             $admin_earning=CommissionLog::where('order_id',$id)->sum('total_admin_earning');
 
             $line_items=LineItem::where('shopify_order_id',$order->shopify_order_id)->get();
+
+            $order_sellers=OrderSeller::where('order_id',$order->id)->get();
+            $order_seller_array=array();
+            foreach ($order_sellers as $order_seller){
+            $user_data=\App\Models\User::find($order_seller->user_id);
+                $order_seller_data['name']=$user_data->name;
+                $order_seller_data['email']=$user_data->email;
+                $order_seller_data['seller_shopname']=$user_data->seller_shopname;
+                array_push($order_seller_array,$order_seller_data);
+            }
+
             $line_item_array=array();
             $line_item_data=array();
             $total_items=0;
@@ -266,7 +297,8 @@ class OrderController extends Controller
               'admin_earning'=>(string)((float)$admin_earning),
                 'line_items'=>$line_item_data,
                 'date'=>$date,
-                'total_items'=>$total_items
+                'total_items'=>$total_items,
+                'order_sellers'=>$order_seller_array
             ];
             return response()->json($data);
 

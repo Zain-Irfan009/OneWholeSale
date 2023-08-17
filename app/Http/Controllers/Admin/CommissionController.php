@@ -9,6 +9,7 @@ use App\Models\SellerCommission;
 use App\Models\Session;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CommissionController extends Controller
 {
@@ -75,13 +76,13 @@ class CommissionController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         if($shop) {
 
-//            $seller_exist=SellerCommission::where('shop_id',$shop->id)->where('seller_email',$request->seller_email)->first();
-//            if($seller_exist){
-//                $data = [
-//                    'message' => 'This Seller Already Exists',
-//                ];
-//                return response()->json($data,422);
-//            }
+            $seller_exist=SellerCommission::where('shop_id',$shop->id)->where('seller_email',$request->seller_email)->first();
+            if($seller_exist){
+                $data = [
+                    'message' => 'This Seller Already Exists',
+                ];
+                return response()->json($data,422);
+            }
             $user=User::where('email',$request->seller_email)->first();
             if($user){
             $seller_commission = SellerCommission::where('shop_id', $shop->id)->where('user_id',$user->id)->first();
@@ -93,7 +94,7 @@ class CommissionController extends Controller
                 $seller_commission->user_id =$user->id;
                 $seller_commission->seller_name =$user->name;
                 $seller_commission->store_name =$user->seller_shopname;
-                $seller_commission->seller_email =$request->seller_email;
+                $seller_commission->seller_email =$user->email;
                 $seller_commission->commission_type =$request->commission_type;
                 $seller_commission->first_commission =$request->first_commission;
                 $seller_commission->second_commission =$request->second_commission;
@@ -118,6 +119,7 @@ class CommissionController extends Controller
         }
 
     }
+
 
     public function SellerCommissionFind($id, Request $request){
         $user=auth()->user();
@@ -184,4 +186,19 @@ class CommissionController extends Controller
         return response()->json($data);
     }
 
+
+    public function GetCommissionSellerList(Request $request){
+        $user = auth()->user();
+        $session = Session::where('shop', $user->name)->first();
+        $sellers = User::where('role', 'seller')
+            ->where('users.shop_id', $session->id)
+            ->leftJoin('seller_commissions', 'users.id', '=', 'seller_commissions.user_id')
+            ->whereNull('seller_commissions.id')
+            ->get();
+        $data = [
+            'currency'=>$session->money_format,
+            'sellers'=>$sellers,
+        ];
+        return response()->json($data);
+    }
 }
