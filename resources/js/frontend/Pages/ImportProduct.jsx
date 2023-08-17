@@ -27,7 +27,7 @@ import {
     Modal,
     Select
 } from '@shopify/polaris';
-import { SearchMinor, ExternalMinor,DeleteMinor,HorizontalDotsMinor,NoteMinor } from '@shopify/polaris-icons';
+import { SearchMinor, ExternalMinor,DeleteMinor,HorizontalDotsMinor,NoteMinor,EditMinor } from '@shopify/polaris-icons';
 import { AppContext } from '../components/providers/ContextProvider'
 import { SkeltonPageForTable } from '../components/global/SkeltonPage'
 import { CustomBadge } from '../components/Utils/CustomBadge'
@@ -55,6 +55,12 @@ export function ImportProduct() {
     const [toastMsg, setToastMsg] = useState('')
     const [storeUrl, setStoreUrl] = useState('')
     const [active, setActive] = useState(false);
+
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
+
     //modal code
     const [modalReassign, setModalReassign] = useState(false);
     const [files, setFiles] = useState([]);
@@ -88,6 +94,14 @@ export function ImportProduct() {
         });
     }
 
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
+
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(() => setErrorToast((errorToast) => !errorToast), []);
@@ -131,12 +145,14 @@ export function ImportProduct() {
 
 
         try {
-            const response = await axios.get(`${apiUrl}/search-product?value=${value}`,
+            const response = await axios.get(`${apiUrl}/search-import-product?value=${value}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+
+
                 setImportData(response?.data?.data)
 
 
@@ -235,15 +251,25 @@ export function ImportProduct() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/import-products`,
+            const response = await axios.get(`${apiUrl}/import-products?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+        console.log(response)
+            setPaginationUrl(response?.data?.data?.links);
+            if (
+                response?.data?.data?.total >
+                response?.data?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
 
-            console.log(response?.data?.data)
-            setImportData(response?.data?.data)
+            setImportData(response?.data?.data?.data)
+            setLoading(false)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -259,7 +285,7 @@ export function ImportProduct() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData1]);
 
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(importData);
@@ -309,27 +335,35 @@ export function ImportProduct() {
                     {vendor_name != null ? vendor_name : '---'}
                 </IndexTable.Cell>
 
+                {/*<IndexTable.Cell>*/}
+                {/*    <Popover*/}
+                {/*        active={active[id]}*/}
+                {/*        activator={<Button onClick={() => toggleActive(id)}  plain>*/}
+                {/*            <Icon  source={HorizontalDotsMinor}></Icon>*/}
+                {/*        </Button>}*/}
+                {/*        autofocusTarget="first-node"*/}
+                {/*        onClose={()=>setActive(false)}*/}
+
+                {/*    >*/}
+                {/*        <ActionList*/}
+                {/*            actionRole="menuitem"*/}
+                {/*            items={[*/}
+                {/*                {*/}
+                {/*                    content: 'Assign Product to Seller',*/}
+                {/*                    onAction: ()=>handleAssignProductToSeller(id),*/}
+                {/*                },*/}
+
+                {/*            ]}*/}
+                {/*        />*/}
+                {/*    </Popover>*/}
+                {/*</IndexTable.Cell>*/}
+
                 <IndexTable.Cell>
-                    <Popover
-                        active={active[id]}
-                        activator={<Button onClick={() => toggleActive(id)}  plain>
-                            <Icon  source={HorizontalDotsMinor}></Icon>
-                        </Button>}
-                        autofocusTarget="first-node"
-                        onClose={()=>setActive(false)}
-
-                    >
-                        <ActionList
-                            actionRole="menuitem"
-                            items={[
-                                {
-                                    content: 'Assign Product to Seller',
-                                    onAction: ()=>handleAssignProductToSeller(id),
-                                },
-
-                            ]}
-                        />
-                    </Popover>
+                    <Tooltip content="Assign Product to Seller">
+                        <Button size="micro" onClick={() => handleAssignProductToSeller( id )}>
+                            <Icon source={EditMinor}></Icon>
+                        </Button>
+                    </Tooltip>
                 </IndexTable.Cell>
 
 
@@ -556,7 +590,7 @@ export function ImportProduct() {
                 </Modal.Section>
             </Modal>
 
-            {!loading ?
+            {loading ?
                 <span>
                     <Loading />
                     <SkeltonPageForTable />
@@ -610,7 +644,7 @@ export function ImportProduct() {
                                     headings={[
                                         { title: 'Id' },
                                         { title: 'Product Name' },
-                                        { title: 'Vendor' },
+                                        { title: 'Seller' },
                                         { title: 'Action' },
                                     ]}
                                 >
@@ -619,7 +653,7 @@ export function ImportProduct() {
 
                             </Card.Section>
 
-
+                            {showPagination && (
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -631,13 +665,14 @@ export function ImportProduct() {
                                 >
 
                                     <Pagination
-                                        hasPrevious={hasPreviousPage ? true : false}
-                                        onPrevious={() => handlePagination('prev')}
-                                        hasNext={hasNextPage ? true : false}
-                                        onNext={() => handlePagination('next')}
+                                        hasPrevious={pagination > 1}
+                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                                        hasNext={pagination < paginationUrl.length}
+                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
                                     />
                                 </div>
                             </Card.Section>
+                            )}
 
                         </div>
 

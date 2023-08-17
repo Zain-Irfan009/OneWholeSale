@@ -29,7 +29,7 @@ export function MailConfiguration() {
     // const { user } = useAuthState();
     const navigate = useNavigate();
     const [btnLoading, setBtnLoading] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [discountError, setDiscountError] = useState()
     const [errorToast, setErrorToast] = useState(false);
     const [sucessToast, setSucessToast] = useState(false);
@@ -140,7 +140,6 @@ export function MailConfiguration() {
 
     const getMailConfigurationData = async () => {
 
-        setSkeleton(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -159,7 +158,7 @@ export function MailConfiguration() {
             setMailHeaderStatus(response?.data?.data?.mail_header_status)
             setMailFooterStatus(response?.data?.data?.mail_footer_status)
 
-            setSkeleton(false)
+            setLoading(false)
 
         } catch (error) {
 
@@ -172,7 +171,7 @@ export function MailConfiguration() {
 
     const mailConfigurationDataSave = async () => {
 
-        setSkeleton(true)
+        setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -194,7 +193,7 @@ export function MailConfiguration() {
                 })
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            setSkeleton(false)
+            setLoading(false)
 
 
         } catch (error) {
@@ -317,7 +316,7 @@ export function MailConfiguration() {
             {loading ?
                 <span>
                     <Loading />
-                    <SkeltonPageForProductDetail />
+                    <SkeltonPageForTable />
                 </span>
                 :
                 <Page
@@ -342,8 +341,7 @@ export function MailConfiguration() {
 
                                 <FormLayout>
                                     <Card sectioned title='SELLER APPROVAL'>
-                                        {skeleton ? <SkeletonBodyText/> :
-                                            <>
+
 
                                                 <p>
                                                     {`Status`}
@@ -405,8 +403,8 @@ export function MailConfiguration() {
                                             {/*<Button primary onClick={handleEditAction}>Edit</Button>*/}
                                             </ButtonGroup>
                                             </div>
-                                            </>
-                                        }
+
+
                                     </Card>
 
                                 </FormLayout>
@@ -417,8 +415,7 @@ export function MailConfiguration() {
                                 <FormLayout>
 
                                     <Card >
-                                        {skeleton ? <SkeletonBodyText/> :
-                                            <>
+
 
                                         <Card.Section title='MAIL TEMPLATE HEADER AND FOOTER BACKGROUND COLOR'>
                                             <p>
@@ -539,8 +536,7 @@ export function MailConfiguration() {
                                             {/*</div>*/}
                                         </Card.Section>
 
-                                            </>
-                                        }
+
                                     </Card>
 
                             <div className="template_status_card">

@@ -76,6 +76,13 @@ export function CommissionListing() {
     const [toastMsg, setToastMsg] = useState('')
     const [storeUrl, setStoreUrl] = useState('')
     const [active, setActive] = useState(false);
+    const [currency, setCurrency] = useState('');
+
+
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
 
     const [commissions, setCommissions] = useState([])
     const [hasNextPage, setHasNextPage] = useState(false)
@@ -101,7 +108,14 @@ export function CommissionListing() {
             return { ...toggleId };
         });
     }
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
 
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(() => setErrorToast((errorToast) => !errorToast), []);
@@ -177,17 +191,20 @@ export function CommissionListing() {
         [],
     );
 
-    const formatDate=(created_at)=>{
-        const date = new Date(created_at);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const formatedDate = `${month.toString().padStart(2, "0")}-${day
-            .toString()
-            .padStart(2, "0")}-${year}`;
-        return formatedDate;
-    }
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
 
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
+    }
 
     const getData = async () => {
         setCustomersLoading(true)
@@ -196,17 +213,28 @@ export function CommissionListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/commission-listing`,
+            const response = await axios.get(`${apiUrl}/commission-listing?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
 
-            console.log(response?.data?.data)
-            setCommissions(response?.data?.data)
+
+            console.log(response)
+            setCurrency(response?.data?.currency)
+            setCommissions(response?.data?.data?.data)
             setLoading(false)
             setCustomersLoading(false)
+            setPaginationUrl(response?.data?.data?.links);
+            if (
+                response?.data?.data?.total >
+                response?.data?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -249,7 +277,7 @@ export function CommissionListing() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData1]);
 
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(commissions);
@@ -290,19 +318,19 @@ export function CommissionListing() {
                     {quantity != null ? quantity : '---'}
                 </IndexTable.Cell>
 
+
+                    <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
+
+
                 <IndexTable.Cell>
-                    {price != null ? price : '---'}
+                    {unit_product_commission != null ? `${currency} ${unit_product_commission.toFixed(2)}` : '---'}
+                </IndexTable.Cell>
+                <IndexTable.Cell>
+                    {total_product_commission != null ? `${currency} ${total_product_commission.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    {unit_product_commission != null ? unit_product_commission : '---'}
-                </IndexTable.Cell>
-                <IndexTable.Cell>
-                    {total_product_commission != null ? total_product_commission : '---'}
-                </IndexTable.Cell>
-
-                <IndexTable.Cell>
-                    {total_admin_earning != null ? total_admin_earning : '---'}
+                    {total_admin_earning != null ? `${currency} ${total_admin_earning.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
 
                 {/*<IndexTable.Cell>*/}
@@ -410,7 +438,7 @@ export function CommissionListing() {
         if (toggleLoadData) {
             // getCustomers()
         }
-        setLoading(false)
+        // setLoading(false)
         setCustomersLoading(false)
     }, [toggleLoadData])
 
@@ -477,7 +505,7 @@ export function CommissionListing() {
 
                             </Card.Section>
 
-
+                            {showPagination && (
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -489,14 +517,14 @@ export function CommissionListing() {
                                 >
 
                                     <Pagination
-                                        hasPrevious={hasPreviousPage ? true : false}
-                                        onPrevious={() => handlePagination('prev')}
-                                        hasNext={hasNextPage ? true : false}
-                                        onNext={() => handlePagination('next')}
+                                        hasPrevious={pagination > 1}
+                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                                        hasNext={pagination < paginationUrl.length}
+                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
                                     />
                                 </div>
                             </Card.Section>
-
+                            )}
                         </div>
 
                     </Card>

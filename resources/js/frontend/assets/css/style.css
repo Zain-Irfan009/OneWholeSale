@@ -188,3 +188,30 @@
 .top_toggle_div .tgl-btn{
     background: #ebe8e8;
 }
+.Polaris-Table.product_listing .Polaris-Card__Section--subdued{
+    background-color: #fff ;
+}
+
+.approved .Polaris-Badge{
+    background:#A1EDD0;
+}
+
+.approval_pending .Polaris-Badge{
+    background-color: rgb(255 225 131);
+}
+
+.disabled .Polaris-Badge{
+    background-color: rgb(255 71 75);
+}
+
+.unfulfilled .Polaris-Badge{
+    background:#FFEF9D;
+}
+
+.partial .Polaris-Badge{
+    background:#FFD6A4;
+}
+
+.unfulfilled .Polaris-Badge .Polaris-Badge__PipContainer .polaris-Badge-Pip--progressComplete{
+    background:#FFEF9D;
+}

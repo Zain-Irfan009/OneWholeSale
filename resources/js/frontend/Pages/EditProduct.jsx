@@ -69,7 +69,7 @@ export function EditProduct() {
     const params = useParams();
     const navigate = useNavigate();
     const [btnLoading, setBtnLoading] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [discountError, setDiscountError] = useState();
     const [errorToast, setErrorToast] = useState(false);
     const [sucessToast, setSucessToast] = useState(false);
@@ -81,7 +81,29 @@ export function EditProduct() {
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
     const [sellerEmail, setSellerEmail] = useState("");
+    const [optionsLoading, setOptionsLoading] = useState(false);
 
+    const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
+    const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
+
+
+    const [collectionOptions, setCollectionOptions] = useState([]);
+
+
+
+    const [collectionOptionsSelected, setCollectionOptionsSelected] =
+        useState("");
+    const removeSellerEmail = useCallback(
+        (collection) => () => {
+            const collectionOptions = [...sellerEmailListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setSellerListSelected(collectionOptions);
+        },
+        [collectionOptionsSelected]
+    );
     const CollectionsOptionsData = useMemo(
         () => [
             { value: "Catalogs", label: "catalog" },
@@ -89,14 +111,69 @@ export function EditProduct() {
         ],
         []
     );
+    const sellerUpdateText = useCallback(
+        (value) => {
+            setSellerEmailInputValue(value);
 
-    const [collectionOptions, setCollectionOptions] = useState([]);
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
 
-    const [collectionOptionsSelected, setCollectionOptionsSelected] =
-        useState("");
+            setTimeout(() => {
+                if (value === "") {
+                    setSellerEmailList(CollectionsOptionsData);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = CollectionsOptionsData.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+                setSellerEmailList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+    );
+
+    const sellerContentMarkup =
+        sellerEmailListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Tag
+                    key={`option${sellerEmailListSelected[0]}`}
+                    onRemove={removeSellerEmail(sellerEmailListSelected[0])}
+                >
+                    {tagTitleCase(sellerEmailListSelected[0].replace("_", " "))}
+                </Tag>
+            </div>
+        ) : null;
+
+    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+    const sellerEmailTextField = (
+        <Autocomplete.TextField
+            onChange={sellerUpdateText}
+            label="Seller Email*"
+            value={sellerEmailInputValue}
+            placeholder="Select Seller"
+            verticalContent={sellerContentMarkup}
+        />
+    );
+
+
+
+
+
+
+
+
     const [tagInputValue, setTagInputValue] = useState("");
     const [collectionInputValue, setCollectionInputValue] = useState("");
-    const [optionsLoading, setOptionsLoading] = useState(false);
+
     const [price, setPrice] = useState("");
     const [compareatPrice, setCompareatPrice] = useState("");
     const [chargeTaxChecked, setChargeTaxChecked] = useState(false);
@@ -192,8 +269,9 @@ export function EditProduct() {
     const [fileUrl, setFileUrl] = useState();
 
     const getProductData = async (id) => {
+
         setSkeleton(true);
-        console.log("getProductData function called");
+
         const sessionToken = getAccessToken();
         try {
             const response = await axios.get(`${apiUrl}/product-view/${id}`, {
@@ -202,6 +280,12 @@ export function EditProduct() {
                 },
             });
             console.log("getProductData response", response.data);
+            console.log("getProductData response",  response?.data?.product?.seller_email);
+
+
+            setSellerListSelected(
+                response?.data?.product?.seller_email ? [response.data.product.seller_email] : []
+            );
 
             setSellerEmail(response?.data?.product?.seller_email);
             setCurrency(response?.data?.currency);
@@ -294,15 +378,11 @@ export function EditProduct() {
 
                 setInputFields3(savedArr3);
             }
-            console.log(
-                "inside api call",
-                inputFields,
-                inputFields2,
-                inputFields3,
-                variantsInputFileds
-            );
+
             setSkeleton(false);
+            setLoading(false)
         } catch (error) {
+            console.log(error)
             setToastMsg(error?.response?.data?.message);
             setErrorToast(true);
             setSkeleton(false);
@@ -323,6 +403,8 @@ export function EditProduct() {
             handleAddField();
         }
     };
+
+
 
     const data_option = [
         {
@@ -443,16 +525,20 @@ export function EditProduct() {
                 },
             });
 
-            let arr = response?.data.map(({ title }) => ({
+            let arr = response?.data?.data?.map(({ title }) => ({
                 value: title,
                 label: title,
             }));
             setCollectionOptions(arr);
+            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            setSellerEmailList(arr_seller)
+            setCurrency(response?.data?.currency)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
         } catch (error) {
+            console.log(error)
             setToastMsg(error?.response?.data?.message);
             setErrorToast(true);
         }
@@ -1441,7 +1527,7 @@ export function EditProduct() {
             {loading ? (
                 <span>
                     <Loading />
-                    <SkeltonPageForProductDetail />
+                    <SkeltonPageForTable />
                 </span>
             ) : (
                 <Page
@@ -1870,6 +1956,7 @@ export function EditProduct() {
                                             }
                                         />
                                     </Card>
+                                    {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
                                     <Card sectioned title="Variant Details">
                                         {variants > 0 && (
                                             <Card.Section>
@@ -2092,7 +2179,8 @@ export function EditProduct() {
                       </Text>
                     </div> */}
                                     </Card>
-                                    {variants > 0 && (
+                                    )}
+                                    {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
                                         <Card title="Variants">
                                             <Card.Section>
                                                 <div className="Product-Variants-Table">
@@ -2150,19 +2238,32 @@ export function EditProduct() {
                       {`Add this product to a collection so it’s easy to find in your store.`}
                     </Text> */}
                                         <div className="label_editor">
-                                            <InputField
-                                                label="Seller Email*"
-                                                placeholder="Enter Seller Email Here"
-                                                type="text"
-                                                marginTop
-                                                name="email"
-                                                value={sellerEmail}
-                                                onChange={(e) =>
-                                                    setSellerEmail(
-                                                        e.target.value
-                                                    )
+
+                                            <Autocomplete
+
+                                                options={sellerEmailList}
+                                                selected={sellerEmailListSelected}
+                                                textField={sellerEmailTextField}
+                                                loading={optionsLoading}
+                                                onSelect={
+                                                    setSellerListSelected
                                                 }
+                                                listTitle="Sellers"
                                             />
+
+                                            {/*<InputField*/}
+                                            {/*    label="Seller Email*"*/}
+                                            {/*    placeholder="Enter Seller Email Here"*/}
+                                            {/*    type="text"*/}
+                                            {/*    marginTop*/}
+                                            {/*    name="email"*/}
+                                            {/*    value={sellerEmail}*/}
+                                            {/*    onChange={(e) =>*/}
+                                            {/*        setSellerEmail(*/}
+                                            {/*            e.target.value*/}
+                                            {/*        )*/}
+                                            {/*    }*/}
+                                            {/*/>*/}
                                         </div>
                                     </div>
                                 </Card>

@@ -116,13 +116,13 @@ export function MainLayout(props) {
                         url: "/sellerslisting",
                         onClick: () => setLocationChange("/sellerslisting"),
 
+
                         subNavigationItems: [
                             {
                                 url: "/sellerslisting",
                                 label: "Sellers Listing",
                                 onClick: () =>
                                     setLocationChange("/sellerslisting"),
-
 
 
                             },

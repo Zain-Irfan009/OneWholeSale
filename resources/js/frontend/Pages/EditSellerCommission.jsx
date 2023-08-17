@@ -163,7 +163,7 @@ export function EditSellerCommission() {
     const commissionTypeOptions = [
         { label: "%", value: "%" },
         { label: "FIXED", value: "fixed" },
-        { label: "% + FIXED", value: "%_fixed" },
+        // { label: "% + FIXED", value: "%_fixed" },
     ];
 
     const handleCommissionType = useCallback(
@@ -234,6 +234,7 @@ console.log(error)
             setBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
+            navigate('/seller-commission-setting')
 
 
         } catch (error) {
@@ -310,15 +311,18 @@ console.log(error)
                                 </Text>
 
                                 <div>
+
+
                                     <InputField
                                         marginTop
                                         label="Seller Email*"
                                         placeholder="Enter Seller Email Here"
                                         type="email"
-                                        readonly
+
                                         name="code"
                                         value={sellerEmail}
-                                        onChange={handleSellerEmail}
+                                       readOnly
+
                                     />
 
                                     <div className="add_product_select">

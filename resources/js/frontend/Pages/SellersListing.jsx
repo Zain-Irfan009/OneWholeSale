@@ -43,6 +43,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { InputField } from "../components/Utils";
 import {getAccessToken} from "../assets/cookies";
+
+
 // import dateFormat from "dateformat";
 
 export function SellersListing() {
@@ -151,7 +153,7 @@ export function SellersListing() {
 
 
     const getData = async () => {
-            setLoading(true)
+
         const sessionToken = getAccessToken();
         try {
 
@@ -265,6 +267,7 @@ export function SellersListing() {
   let timeoutId = null;
     const handleFiltersQueryChange = async (value)  => {
         setPageCursorValue('')
+        setCustomersLoading(true)
         // setLoading(true)
         setQueryValue(value)
 
@@ -280,6 +283,7 @@ export function SellersListing() {
                 })
             // setLoading(false)
             setCustomers(response?.data?.data)
+            setCustomersLoading(false)
 
 
         } catch (error) {
@@ -694,8 +698,8 @@ export function SellersListing() {
 
   const handleAddSeller = () => {
     navigate("/add-seller");
+    //   window.location.href = '/add-seller';
   };
-
 
   // const submitStatus = async (id) => {
   //

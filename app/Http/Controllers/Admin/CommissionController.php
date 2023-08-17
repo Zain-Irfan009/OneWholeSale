@@ -59,7 +59,7 @@ class CommissionController extends Controller
         $shop=Session::where('shop',$user->name)->first();
 
         if($shop) {
-            $seller_commissions = SellerCommission::where('shop_id', $shop->id)->get();
+            $seller_commissions = SellerCommission::where('shop_id', $shop->id)->paginate(20);
             if (count($seller_commissions) > 0) {
                 $data = [
                     'data' => $seller_commissions
@@ -75,13 +75,13 @@ class CommissionController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         if($shop) {
 
-            $seller_exist=SellerCommission::where('shop_id',$shop->id)->where('seller_email',$request->seller_email)->first();
-            if($seller_exist){
-                $data = [
-                    'message' => 'This Seller Already Exists',
-                ];
-                return response()->json($data,422);
-            }
+//            $seller_exist=SellerCommission::where('shop_id',$shop->id)->where('seller_email',$request->seller_email)->first();
+//            if($seller_exist){
+//                $data = [
+//                    'message' => 'This Seller Already Exists',
+//                ];
+//                return response()->json($data,422);
+//            }
             $user=User::where('email',$request->seller_email)->first();
             if($user){
             $seller_commission = SellerCommission::where('shop_id', $shop->id)->where('user_id',$user->id)->first();
@@ -153,10 +153,11 @@ class CommissionController extends Controller
             $user=auth()->user();
             $shop=Session::where('shop',$user->name)->first();
 
-            $commission_logs=CommissionLog::where('shop_id',$shop->id)->get();
+            $commission_logs=CommissionLog::where('shop_id',$shop->id)->paginate(20);
 
             $data = [
-                'data' => $commission_logs
+                'data' => $commission_logs,
+                 'currency'=>$shop->money_format,
             ];
             return response()->json($data);
         }
