@@ -93,6 +93,16 @@ export function AddProduct() {
         []
     );
 
+    const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
+
+    const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
+
+
+    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+
     const [collectionOptionsSelected, setCollectionOptionsSelected] =
         useState("");
     const [tagInputValue, setTagInputValue] = useState("");
@@ -332,8 +342,11 @@ export function AddProduct() {
                     }
                 })
 
+            console.log(response?.data)
             let arr = response?.data?.data.map(({title})=> ({value: title, label: title}))
             setCollectionOptions(arr)
+            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -341,7 +354,7 @@ export function AddProduct() {
 
 
         } catch (error) {
-
+            console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -748,6 +761,38 @@ export function AddProduct() {
         [CollectionsOptionsData, optionsLoading, collectionOptionsSelected]
     );
 
+
+
+    const sellerUpdateText = useCallback(
+        (value) => {
+            setSellerEmailInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    setSellerEmailList(CollectionsOptionsData);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = CollectionsOptionsData.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+                setSellerEmailList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+    );
+
     const handleChargeTax = useCallback(
         (newChecked) => setChargeTaxChecked(newChecked),
         []
@@ -774,6 +819,15 @@ export function AddProduct() {
         [collectionOptionsSelected]
     );
 
+    const removeSellerEmail = useCallback(
+        (collection) => () => {
+            const collectionOptions = [...sellerEmailListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setSellerListSelected(collectionOptions);
+        },
+        [collectionOptionsSelected]
+    );
+
     const collectionsContentMarkup =
         collectionOptionsSelected.length > 0 ? (
             <div className="Product-Tags-Stack">
@@ -795,6 +849,28 @@ export function AddProduct() {
             </div>
         ) : null;
 
+
+    const sellerContentMarkup =
+        sellerEmailListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {sellerEmailListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeSellerEmail(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+
     const collectionTextField = (
         <Autocomplete.TextField
             onChange={collectionUpdateText}
@@ -802,6 +878,16 @@ export function AddProduct() {
             value={collectionInputValue}
             placeholder="Select some options"
             verticalContent={collectionsContentMarkup}
+        />
+    );
+
+    const sellerEmailTextField = (
+        <Autocomplete.TextField
+            onChange={sellerUpdateText}
+            label="Seller Email*"
+            value={sellerEmailInputValue}
+            placeholder="Select Seller"
+            verticalContent={sellerContentMarkup}
         />
     );
 
@@ -1183,9 +1269,9 @@ export function AddProduct() {
         if (productName.trim() === '') {
             errors.productName = 'Product Name is required';
         }
-        if (sellerEmail.trim() === '') {
-            errors.sellerEmail = 'Seller Email is required';
-        }
+        // if (sellerEmail.trim() === '') {
+        //     errors.sellerEmail = 'Seller Email is required';
+        // }
 
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
@@ -1217,7 +1303,7 @@ export function AddProduct() {
         formData.append('options',JSON.stringify(transformedFormat));
         formData.append('status',status);
         formData.append('variants',JSON.stringify(variantsInputFileds));
-        formData.append('seller_email',sellerEmail);
+        formData.append('seller_email',sellerEmailListSelected);
         formData.append('tags',newTags);
         formData.append('product_type',productHandle);
         formData.append('vendor',vendor);
@@ -1895,17 +1981,31 @@ export function AddProduct() {
                       {`Add this product to a collection so it’s easy to find in your store.`}
                     </Text> */}
                                         <div className="label_editor">
-                                            <InputField
-                                                label="Seller Email*"
-                                                placeholder="Enter Seller Email Here"
-                                                type="text"
-                                                marginTop
-                                                name="email"
-                                                value={sellerEmail}
-                                                onChange={(e) => setSellerEmail(e.target.value)}
-                                                error={formErrors.sellerEmail}
 
+                                            <Autocomplete
+
+                                                options={sellerEmailList}
+                                                selected={sellerEmailListSelected}
+                                                textField={sellerEmailTextField}
+                                                loading={optionsLoading}
+                                                onSelect={
+                                                    setSellerListSelected
+                                                }
+                                                listTitle="Sellers"
                                             />
+                                            {/*<InputField*/}
+                                            {/*    label="Seller Email*"*/}
+                                            {/*    placeholder="Enter Seller Email Here"*/}
+                                            {/*    type="text"*/}
+                                            {/*    marginTop*/}
+                                            {/*    name="email"*/}
+                                            {/*    value={sellerEmail}*/}
+                                            {/*    onChange={(e) => setSellerEmail(e.target.value)}*/}
+                                            {/*    error={formErrors.sellerEmail}*/}
+
+                                            {/*/>*/}
+
+
                                         </div>
                                     </div>
                                 </Card>
@@ -1945,7 +2045,7 @@ export function AddProduct() {
                                                 onChange={handleChange}
                                             />
                                         </div>
-                                        <div>{tagsToAddMarkup}</div>
+                                        <div className="tags_spacing">{tagsToAddMarkup}</div>
                                         <div className="label_editor">
                                             <InputField
                                                 label="Product Type"

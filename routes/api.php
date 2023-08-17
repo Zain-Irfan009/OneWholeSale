@@ -68,11 +68,13 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('edit-product/{id}',[\App\Http\Controllers\Admin\ProductController::class,'EditProduct']);
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple']);
     Route::get('export-product',[\App\Http\Controllers\Admin\ProductController::class,'ExportProduct']);
+    Route::get('search-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchProduct']);
+
 
 
     //import Product
     Route::get('import-products',[\App\Http\Controllers\Admin\ProductController::class,'ImportProducts']);
-    Route::get('search-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchProducts']);
+    Route::get('search-import-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchImportProducts']);
     Route::post('import-csv',[\App\Http\Controllers\Admin\ProductController::class,'importCSV']);
     Route::post('assign-import-products',[\App\Http\Controllers\Admin\ProductController::class,'AssignImportProducts']);
 
@@ -86,8 +88,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('sync-orders',[\App\Http\Controllers\Admin\OrderController::class,'SyncOrder']);
     Route::get('order-filter',[\App\Http\Controllers\Admin\OrderController::class,'OrderFilter']);
     Route::get('export-order',[\App\Http\Controllers\Admin\OrderController::class,'ExportOrder']);
-
-
+    Route::get('search-order',[\App\Http\Controllers\Admin\OrderController::class,'SearchOrder']);
+    Route::get('order-filter-payment',[\App\Http\Controllers\Admin\OrderController::class,'OrderFilterPayment']);
 
 
         //Global Commission

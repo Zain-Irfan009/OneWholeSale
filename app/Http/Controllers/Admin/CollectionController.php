@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Collection;
 use App\Models\Session;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Shopify\Clients\Rest;
 
@@ -14,10 +15,13 @@ class CollectionController extends Controller
     public function Collections(Request $request){
         $user = auth()->user();
         $session = Session::where('shop', $user->name)->first();
+        $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
         $collections=Collection::where('shop_id',$session->id)->get();
+        $collections = $collections->unique('title');
         $data = [
             'data'=>$collections,
             'currency'=>$session->money_format,
+            'sellers'=>$sellers,
         ];
         return response()->json($data);
     }
