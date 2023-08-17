@@ -1160,7 +1160,7 @@ export function ProductsListing() {
                   itemCount={products?.length}
                   loading={tableLoading}
                   hasMoreItems
-                  selectable={true}
+                  selectable={false}
                   selectedItemsCount={
                     allResourcesSelected ? "All" : selectedResources.length
                   }
