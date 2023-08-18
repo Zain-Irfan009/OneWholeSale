@@ -69,7 +69,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple']);
     Route::get('export-product',[\App\Http\Controllers\Admin\ProductController::class,'ExportProduct']);
     Route::get('search-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchProduct']);
-
+    Route::get('search-seller-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchSellerProduct']);
 
 
     //import Product
@@ -98,6 +98,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Seller Commission
     Route::get('seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommission']);
+    Route::get('seller-commission-setting-filter',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommissionSettingFilter']);
     Route::get('seller-commission/{id}',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommissionFind']);
     Route::post('seller-commission-save',[\App\Http\Controllers\Admin\CommissionController::class,'SellerCommissionSave']);
 
@@ -105,6 +106,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('commission-listing',[\App\Http\Controllers\Admin\CommissionController::class,'CommissionListing']);
     Route::get('search-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchCommission']);
     Route::get('search-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchSellerCommission']);
+    Route::get('filter-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'FilterSellerCommission']);
     Route::get('get-seller-list',[\App\Http\Controllers\Admin\CommissionController::class,'GetCommissionSellerList']);
 
 
@@ -118,6 +120,20 @@ Route::middleware('auth:sanctum')->group( function () {
 
 
     Route::prefix('/seller')->group(function(){
+
+
+        //Dashboard
+        Route::get('recent-orders',[\App\Http\Controllers\Seller\DashboardController::class,'RecentOrders']);
+        Route::get('recent-sellers',[\App\Http\Controllers\Seller\DashboardController::class,'RecentSellers']);
+        Route::get('store-stats',[\App\Http\Controllers\Seller\DashboardController::class,'StoreStats']);
+        Route::get('store-earning',[\App\Http\Controllers\Seller\DashboardController::class,'StoreEarning']);
+        Route::get('store-earning-filter',[\App\Http\Controllers\Seller\DashboardController::class,'StoreEarningFilter']);
+        Route::get('top-sold-products',[\App\Http\Controllers\Seller\DashboardController::class,'TopSoldProduct']);
+        Route::get('out-of-stock-products',[\App\Http\Controllers\Seller\DashboardController::class,'OutOfStockProduct']);
+        Route::get('get-graph-data',[\App\Http\Controllers\Seller\DashboardController::class,'GetGraphData']);
+
+
+
 
         //products
         Route::get('products',[\App\Http\Controllers\Seller\ProductController::class,'Products']);

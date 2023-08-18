@@ -16,7 +16,7 @@ import {
     LegacyCard,
 } from "@shopify/polaris";
 import axios from "axios";
-import checkifyLogo from "../../assets/1.png";
+import checkifyLogo from "../../assets/onewholesale.webp";
 import { AppContext } from "../../components/providers/ContextProvider";
 // import { useAuthDispatch } from '../../components/providers/AuthProvider'
 // import { InputField, ShowPassword, HidePassword, setAccessToken } from '../../components'
@@ -48,6 +48,7 @@ export function Login(props) {
         console.log(data);
 
         try {
+            setBtnLoading(true)
             const res = await axios.post(`${apiUrl}/login`, data);
             console.log(res.data);
             dispatch({
@@ -57,9 +58,10 @@ export function Login(props) {
                 userToken: res?.data?.data?.token,
             });
             setAccessToken(res?.data?.data?.token);
+            setBtnLoading(false)
             navigate("/dashboard");
         } catch (e) {
-
+            setBtnLoading(false)
             setToastMsg(e?.response?.data?.message)
             setErrorToast(true);
             navigate("/login");
@@ -193,6 +195,7 @@ export function Login(props) {
                             <div
                                 style={{
                                     maxWidth: "500px",
+                                    width:"400px",
                                     maxHeight: "500px",
                                     padding: "20px 20px",
                                     backgroundColor: "white",
@@ -210,7 +213,7 @@ export function Login(props) {
                                         fontWeight="semibold"
                                         alignment="center"
                                     >
-                                        Sign in to Onewholesale Marketplace
+                                        Sign in
                                     </Text>
                                     <div className="margin-top" />
                                     <Form onSubmit={submitHanlder}>

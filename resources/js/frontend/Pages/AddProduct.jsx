@@ -345,7 +345,10 @@ export function AddProduct() {
           console.log('response',response?.data)
             const arr = response?.data?.data.map(title => ({ value: title, label: title }));
             setCollectionOptions(arr)
-            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
+                value: email,
+                label: `${name} (${email})`
+            }));
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
             // setBtnLoading(false)
