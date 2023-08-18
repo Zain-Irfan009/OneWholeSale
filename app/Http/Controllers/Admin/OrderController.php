@@ -194,6 +194,7 @@ class OrderController extends Controller
 
                             $commission_log->user_id = $user->id;
                             $commission_log->seller_name = $user->name;
+                            $commission_log->seller_email = $user->email;
                             $commission_log->order_id = $newOrder->id;
                             $commission_log->commission = $commission;
                             $commission_log->shopify_product_id = $item->product_id;
@@ -230,19 +231,31 @@ class OrderController extends Controller
 
     public function OrderFilter(Request $request)
     {
+
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         if ($shop) {
             if($request->status==0) {
-                $orders = Order::where('shop_id', $shop->id)->get();
+                $orders = Order::query();
             }else if($request->status==1){
-                $orders = Order::whereNull('fulfillment_status')->where('shop_id', $shop->id)->get();
+                $orders = Order::whereNull('fulfillment_status');
             }else if($request->status==2){
-                $orders = Order::where('fulfillment_status','partial')->where('shop_id', $shop->id)->get();
+                $orders = Order::where('fulfillment_status','partial');
             }
             else if($request->status==3){
-                $orders = Order::where('fulfillment_status','fulfilled')->where('shop_id', $shop->id)->get();
+                $orders = Order::where('fulfillment_status','fulfilled');
             }
+
+            if($request->seller!='undefined'){
+                if($request->seller!='all') {
+                    $orders = $orders->where('financial_status', $request->seller);
+                }
+            }
+            if($request->value!=null){
+                $orders=$orders->where('order_number', 'like', '%' . '#'.$request->value . '%');
+            }
+
+            $orders=$orders->where('shop_id', $shop->id)->orderBy('id','Desc')->get();
             if (count($orders) > 0) {
                 $data = [
                     'orders' => $orders
@@ -338,9 +351,29 @@ class OrderController extends Controller
 
         public function SearchOrder(Request $request){
 
+
             $user=auth()->user();
             $session=Session::where('shop',$user->name)->first();
-            $orders=Order::where('order_number', 'like', '%' . $request->value . '%')->orWhere('user_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+
+            if($request->status==0) {
+                $orders = Order::query();
+            }else if($request->status==1){
+                $orders = Order::whereNull('fulfillment_status');
+            }else if($request->status==2){
+                $orders = Order::where('fulfillment_status','partial');
+            }
+            else if($request->status==3){
+                $orders = Order::where('fulfillment_status','fulfilled');
+            }
+            if($request->value!=null) {
+                $orders = $orders->where('order_number', 'like', '%' . $request->value . '%');
+            }
+            if($request->seller!='undefined'){
+                if($request->seller!='all'){
+                    $orders = $orders->where('financial_status', $request->seller);
+                }
+            }
+$orders=$orders->where('shop_id', $session->id)->orderBy('id', 'Desc')->get();
             $data = [
                 'data' => $orders
             ];
@@ -352,13 +385,31 @@ public function OrderFilterPayment(Request $request){
     $user=auth()->user();
     $shop=Session::where('shop',$user->name)->first();
     if ($shop) {
+
+
         if($request->value=='all') {
-            $orders = Order::where('shop_id', $shop->id)->get();
+            $orders = Order::query();
         }else if($request->value=='paid'){
-            $orders = Order::where('financial_status','paid')->where('shop_id', $shop->id)->get();
+            $orders = Order::where('financial_status','paid');
         }else if($request->value=='unpaid'){
-            $orders = Order::where('financial_status','unpaid')->where('shop_id', $shop->id)->get();
+            $orders = Order::where('financial_status','unpaid');
         }
+
+
+        if($request->status==1){
+            $orders = Order::whereNull('fulfillment_status');
+        }else if($request->status==2){
+            $orders = Order::where('fulfillment_status','partial');
+        }
+        else if($request->status==3){
+            $orders = Order::where('fulfillment_status','fulfilled');
+        }
+        if($request->order_value!=null) {
+            $orders = $orders->where('order_number', 'like', '%' . $request->order_value . '%');
+        }
+
+
+$orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
 
         if (count($orders) > 0) {
             $data = [

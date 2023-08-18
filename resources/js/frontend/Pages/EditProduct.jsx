@@ -111,6 +111,8 @@ export function EditProduct() {
         ],
         []
     );
+
+    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
     const sellerUpdateText = useCallback(
         (value) => {
             setSellerEmailInputValue(value);
@@ -135,7 +137,10 @@ export function EditProduct() {
                     endIndex = 0;
                 }
                 setSellerEmailList(resultOptions);
+
+
                 setOptionsLoading(false);
+
             }, 300);
         },
         [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
@@ -153,7 +158,7 @@ export function EditProduct() {
             </div>
         ) : null;
 
-    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+
     const sellerEmailTextField = (
         <Autocomplete.TextField
             onChange={sellerUpdateText}
@@ -528,7 +533,10 @@ export function EditProduct() {
             const arr = response?.data?.data.map(title => ({ value: title, label: title }));
             setCollectionOptions(arr);
 
-            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
+                value: email,
+                label: `${name} (${email})`
+            }));
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
 
@@ -1452,7 +1460,7 @@ export function EditProduct() {
         formData.append("options", JSON.stringify(transformedFormat));
         formData.append("status", status);
         formData.append("variants", JSON.stringify(variantsInputFileds));
-        formData.append("seller_email", sellerEmail);
+        formData.append("seller_email", sellerEmailListSelected);
         formData.append("tags", newTags);
         formData.append("product_type", productHandle);
         formData.append("vendor", vendor);

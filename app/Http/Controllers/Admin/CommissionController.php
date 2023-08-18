@@ -58,15 +58,16 @@ class CommissionController extends Controller
 
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
-
+        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
         if($shop) {
             $seller_commissions = SellerCommission::where('shop_id', $shop->id)->paginate(20);
-            if (count($seller_commissions) > 0) {
+//            if (count($seller_commissions) > 0) {
                 $data = [
-                    'data' => $seller_commissions
+                    'data' => $seller_commissions,
+                    'sellers'=>$sellers,
                 ];
                 return response()->json($data);
-            }
+//            }
         }
     }
 
@@ -154,12 +155,13 @@ class CommissionController extends Controller
 
             $user=auth()->user();
             $shop=Session::where('shop',$user->name)->first();
-
+            $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
             $commission_logs=CommissionLog::where('shop_id',$shop->id)->paginate(20);
 
             $data = [
                 'data' => $commission_logs,
                  'currency'=>$shop->money_format,
+                'sellers'=>$sellers
             ];
             return response()->json($data);
         }
@@ -168,9 +170,16 @@ class CommissionController extends Controller
 
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->orWhere('seller_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->query_value . '%')->orWhere('seller_name','like', '%' . $request->query_value . '%');
+        if($request->value!='undefined'){
+            $commissions=$commissions->where('seller_email',$request->value);
+        }
+        $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
+        $commissions=$commissions->where('shop_id',$session->id)->paginate(20);
         $data = [
-            'data' => $commissions
+            'data' => $commissions,
+              'currency'=>$session->money_format,
+            'sellers'=>$sellers
         ];
         return response()->json($data);
     }
@@ -179,7 +188,13 @@ class CommissionController extends Controller
 
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $seller_commissions=SellerCommission::where('seller_email', 'like', '%' . $request->value . '%')->orWhere('seller_name','like', '%' . $request->value . '%')->orWhere('store_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+
+
+        $seller_commissions=SellerCommission::where('seller_name','like', '%' . $request->value . '%')->orWhere('store_name','like', '%' . $request->value . '%');
+      if($request->value!='undefined'){
+          $seller_commissions=$seller_commissions->where('seller_email',$request->value);
+      }
+      $seller_commissions->where('shop_id',$session->id)->orderBy('id','Desc')->paginate(20);
         $data = [
             'data' => $seller_commissions
         ];
@@ -200,5 +215,46 @@ class CommissionController extends Controller
             'sellers'=>$sellers,
         ];
         return response()->json($data);
+    }
+
+    public function FilterSellerCommission(Request $request){
+
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
+        $commission_logs=CommissionLog::where('seller_email',$request->value);
+        if($request->query_value!=null){
+            $commission_logs=$commission_logs->where('seller_name','like', '%' . $request->query_value . '%')->orWhere('product_name','like', '%' . $request->query_value . '%');
+        }
+        $commission_logs=$commission_logs->where('shop_id',$shop->id)->paginate(20);
+        $data = [
+            'data' => $commission_logs,
+            'currency'=>$shop->money_format,
+            'sellers'=>$sellers
+        ];
+        return response()->json($data);
+    }
+
+
+    public function SellerCommissionSettingFilter(Request $request){
+
+        $user=auth()->user();
+        $shop=Session::where('shop',$user->name)->first();
+        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
+        if($shop) {
+
+            $seller_commissions = SellerCommission::where('seller_email',$request->value);
+            if($request->query_value!=null){
+                $seller_commissions=$seller_commissions->where('seller_name','like', '%' . $request->value . '%')->orWhere('store_name','like', '%' . $request->value . '%');
+            }
+            $seller_commissions=$seller_commissions->where('shop_id', $shop->id)->orderBy('id','Desc')->paginate(20);
+            if (count($seller_commissions) > 0) {
+                $data = [
+                    'data' => $seller_commissions,
+                    'sellers'=>$sellers,
+                ];
+                return response()->json($data);
+            }
+        }
     }
 }

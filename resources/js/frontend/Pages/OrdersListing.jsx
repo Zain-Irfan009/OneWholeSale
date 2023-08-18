@@ -134,7 +134,8 @@ export function OrdersListing() {
 
 
     const handleClearButtonClick = () => {
-        setShowSelect(false);
+        setLoading(true)
+        setSelectedStatus('')
         setShowClearButton(false);
         getData();
     };
@@ -145,7 +146,7 @@ export function OrdersListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/order-filter?status=${value}`,
+            const response = await axios.get(`${apiUrl}/order-filter?status=${value}&value=${queryValue}&seller=${selectedStatus.value}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -168,6 +169,7 @@ export function OrdersListing() {
 
 
     const fetchProducts =async (filter_type,selectedValue) =>  {
+        setShowClearButton(true);
 
         // setSelected(value)
         setLoading(true)
@@ -175,7 +177,7 @@ export function OrdersListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/order-filter-payment?value=${selectedValue.value}`,
+            const response = await axios.get(`${apiUrl}/order-filter-payment?value=${selectedValue.value}&order_value=${queryValue}&status=${selected}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -273,7 +275,7 @@ export function OrdersListing() {
 
 
         try {
-            const response = await axios.get(`${apiUrl}/search-order?value=${value}`,
+            const response = await axios.get(`${apiUrl}/search-order?value=${value}&seller=${selectedStatus.value}&status=${selected}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -340,10 +342,10 @@ export function OrdersListing() {
 
 
     const handleSelectChange = (selectedOption) => {
+
         const selectedValue =  selectedOption; // Access the value property of the selected option
-        if (filterType === 'payment') {
             setSelectedStatus(selectedValue);
-        }
+
 
         fetchProducts( filterType, selectedValue); // Pass the query, filter type, and selected value as arguments
     };
@@ -351,7 +353,7 @@ export function OrdersListing() {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
     const [filterType, setFilterType] = useState('');
-    const [showSelect, setShowSelect] = useState(false);
+    const [showSelect, setShowSelect] = useState(true);
     const [showClearButton, setShowClearButton] = useState(false);
 
     const handleFilterClick = (type) => {
@@ -360,7 +362,7 @@ export function OrdersListing() {
         setSelectedBrand('');
         setSelectedCategory('');
         setShowSelect(true);
-        setShowClearButton(true);
+
     };
 
   const handleReassignCloseAction = () => {
@@ -949,8 +951,8 @@ export function OrdersListing() {
                           onSelect={handleOrderFilter}
                       ></Tabs>
                   </div>
-              <div style={{ padding: "16px", display: "flex" }}>
-                    <div style={{ flex: 1 }}>
+              <div className="order_listing_search" style={{ padding: "16px", display: "flex" }}>
+                    <div style={{ flex: '70%' }}>
                       <TextField
                         placeholder="Search Order"
                         value={queryValue}
@@ -962,10 +964,10 @@ export function OrdersListing() {
                       />
                     </div>
 
-                  <div style={{ padding: '0px', display: 'flex' }}>
-                      {showSelect ? (
+                  <div style={{ flex: '30%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+
                           <div style={{ flex: '1' }}>
-                              {filterType === 'payment' ? (
+
                                   <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
                                       <ReactSelect
                                           name='pushed_status'
@@ -982,39 +984,15 @@ export function OrdersListing() {
                                           }}
                                       />
                                   </div>
-                              )  : null}
+
                               {showClearButton && (
                                   <Button onClick={handleClearButtonClick} plain>
                                       Clear
                                   </Button>
                               )}
                           </div>
-                      ) :null}
-                      <div style={{ marginLeft: '10px' }}>
-                          <Popover
-                              active={active}
-                              activator={
-                                  <Button onClick={toggleActive1} disclosure>
-                                      <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512" style={{ fill: '#303236' }}>
-                                          <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z" />
-                                      </svg>
-                                  </Button>
-                              }
-                              onClose={toggleActive1}
-                          >
-                              <ActionList
-                                  actionRole="menuitem"
-                                  items={[
-                                      {
-                                          content: 'Payment Status',
-                                          helpText: 'Filter By Payment Status',
-                                          onAction: () => handleFilterClick('payment'),
-                                      },
 
-                                  ]}
-                              />
-                          </Popover>
-                      </div>
+
                   </div>
                   </div>
 

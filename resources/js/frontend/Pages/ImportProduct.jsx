@@ -426,7 +426,10 @@ export function ImportProduct() {
 
             console.log('response',response?.data)
 
-            let arr_seller = response?.data?.sellers.map(({email})=> ({value: email, label: email}))
+            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
+                value: email,
+                label: `${name} (${email})`
+            }));
             setSellerEmailList(arr_seller)
 
             // setBtnLoading(false)
