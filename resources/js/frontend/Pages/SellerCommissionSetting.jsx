@@ -12,6 +12,7 @@ import axios from "axios"
 import { useNavigate,useParams } from 'react-router-dom';
 import {InputField} from "../components/Utils";
 import {getAccessToken} from "../assets/cookies";
+import ReactSelect from "react-select";
 // import dateFormat from "dateformat";
 
 
@@ -43,6 +44,17 @@ export function SellerCommissionSetting() {
     const [sellerEmail, setSellerEmail] = useState('')
     const [uniqueId, setUniqueId] = useState()
 
+
+    const [sellerList, setSellerList] = useState([]);
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [filterType, setFilterType] = useState('');
+    const [showSelect, setShowSelect] = useState(true);
+    const [showClearButton, setShowClearButton] = useState(false);
+    const toggleActive1 = useCallback(() => setActive((active) => !active), []);
+
+
     //pagination
     const [pagination, setPagination] = useState(1);
     const [showPagination, setShowPagination] = useState(false);
@@ -70,6 +82,53 @@ export function SellerCommissionSetting() {
     }
 
 
+
+    const handleSelectChange = async (selectedOption)  => {
+
+        const sessionToken = getAccessToken();
+        setLoading(true)
+
+        setSelectedStatus(selectedOption)
+        setShowClearButton(true)
+        try {
+            const response = await axios.get(`${apiUrl}/seller-commission-setting-filter?value=${selectedOption.value}&query_value=${queryValue}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+                console.log(response?.data)
+            setSellerCommission(response?.data?.data?.data)
+
+            setLoading(false)
+            setCustomersLoading(false)
+            setPaginationUrl(response?.data?.data?.links);
+            if (
+                response?.data?.data?.total >
+                response?.data?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
+
+
+        } catch (error) {
+        console.log(error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    };
+
+
+    const handleClearButtonClick = () => {
+        setLoading(true)
+        setSelectedStatus('');
+        setShowClearButton(false);
+        getData();
+
+    };
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(() => setErrorToast((errorToast) => !errorToast), []);
     const toggleSuccessMsgActive = useCallback(() => setSucessToast((sucessToast) => !sucessToast), []);
@@ -186,6 +245,11 @@ export function SellerCommissionSetting() {
         console.log(response)
             setSellerCommission(response?.data?.data?.data)
             setLoading(false)
+            let arr_seller = response?.data?.sellers?.map(({ name, email }) => ({
+                value: email,
+                label: `${name} (${email})`
+            }));
+            setSellerList(arr_seller)
 
             setPaginationUrl(response?.data?.data?.links);
             if (
@@ -202,7 +266,7 @@ export function SellerCommissionSetting() {
 
 
         } catch (error) {
-
+console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -237,16 +301,29 @@ export function SellerCommissionSetting() {
 
 
         try {
-            const response = await axios.get(`${apiUrl}/search-seller-commission?value=${value}`,
+            const response = await axios.get(`${apiUrl}/search-seller-commission?query_value=${value}&value=${selectedStatus.value}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            setSellerCommission(response?.data?.data)
+            setSellerCommission(response?.data?.data?.data)
+            setLoading(false)
+
+
+            setPaginationUrl(response?.data?.data?.links);
+            if (
+                response?.data?.data?.total >
+                response?.data?.data?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
 
 
         } catch (error) {
+            console.log(error)
             setBtnLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
@@ -491,8 +568,8 @@ export function SellerCommissionSetting() {
                     <Card>
                         <div className='Polaris-Table'>
                             <Card.Section>
-                                <div style={{ padding: '16px', display: 'flex' }}>
-                                    <div style={{ flex: 1 }}>
+                                <div className="seller_commission_listing_search" style={{ padding: '16px', display: 'flex' }}>
+                                    <div style={{ flex: '70%' }}>
                                         <TextField
                                             placeholder='Search'
                                             value={queryValue}
@@ -502,6 +579,31 @@ export function SellerCommissionSetting() {
                                             autoComplete="off"
                                             prefix={<Icon source={SearchMinor} />}
                                         />
+                                    </div>
+                                    <div style={{ flex: '30%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+
+                                        <div style={{ flex: '1' }}>
+
+                                            <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
+                                                <ReactSelect
+                                                    name='pushed_status'
+                                                    options={sellerList}
+                                                    placeholder="Select Seller"
+                                                    value={selectedStatus}
+                                                    onChange={(selectedOption) => handleSelectChange(selectedOption)}
+                                                    styles={{
+                                                        menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {showClearButton && (
+                                                <Button onClick={handleClearButtonClick} plain>
+                                                    Clear
+                                                </Button>
+                                            )}
+                                        </div>
+
                                     </div>
                                 </div>
 

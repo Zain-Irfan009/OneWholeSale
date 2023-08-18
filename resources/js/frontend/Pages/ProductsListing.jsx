@@ -44,6 +44,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { InputField } from "../components/Utils";
 import {getAccessToken} from "../assets/cookies";
+import ReactSelect from "react-select";
 // import dateFormat from "dateformat";
 
 export function ProductsListing() {
@@ -60,6 +61,8 @@ export function ProductsListing() {
   const [toastMsg, setToastMsg] = useState("");
   const [storeUrl, setStoreUrl] = useState("");
   const [active, setActive] = useState(false);
+
+    const [sellerList, setSellerList] = useState([]);
 
     const [skeleton, setSkeleton] = useState(false)
 
@@ -97,6 +100,15 @@ export function ProductsListing() {
     const [toggleLoadData1, setToggleLoadData1] = useState(true);
     const [formErrors, setFormErrors] = useState({});
 
+
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [filterType, setFilterType] = useState('');
+    const [showSelect, setShowSelect] = useState(true);
+    const [showClearButton, setShowClearButton] = useState(false);
+    const toggleActive1 = useCallback(() => setActive((active) => !active), []);
+
   const handleChange = useCallback((newChecked) => setChecked(newChecked), []);
 
   const deleteSellerModalHandler = () => {
@@ -131,6 +143,44 @@ export function ProductsListing() {
     setSellerMessage("");
     setModalReassign(false);
   };
+
+
+    const handleSelectChange = async (selectedOption)  => {
+
+        const sessionToken = getAccessToken();
+        setLoading(true)
+
+setSelectedStatus(selectedOption)
+        setShowClearButton(true)
+        try {
+            const response = await axios.get(`${apiUrl}/search-seller-product?value=${selectedOption.value}&product_name=${queryValue}&status=${selected}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            console.log(response?.data)
+            setProducts(response?.data?.products?.data)
+            setPaginationUrl(response?.data?.products?.links);
+            if (
+                response?.data?.products?.total >
+                response?.data?.products?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
+
+            setLoading(false)
+
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    };
+
 
   const handleChangePasswordCloseAction = () => {
     setUniqueId();
@@ -196,8 +246,25 @@ export function ProductsListing() {
     setToggleLoadData(true);
   };
 
+    const handleClearButtonClick = () => {
+        setLoading(true)
+        setSelectedStatus('');
+        setShowClearButton(false);
+        getData();
+
+    };
+
   let timeoutId = null;
 
+
+    const handleFilterClick = (type) => {
+        setFilterType(type);
+        setSelectedStatus('');
+        setSelectedBrand('');
+        setSelectedCategory('');
+        setShowSelect(true);
+        setShowClearButton(true);
+    };
 
     const handleFiltersQueryChange = async (value)  => {
         setTableLoading(true)
@@ -209,7 +276,7 @@ export function ProductsListing() {
 
 
         try {
-            const response = await axios.get(`${apiUrl}/search-product?value=${value}`,
+            const response = await axios.get(`${apiUrl}/search-product?value=${value}&seller=${selectedStatus.value}&status=${selected}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -256,7 +323,11 @@ export function ProductsListing() {
 
             console.log(response?.data)
             setProducts(response?.data?.products?.data)
-
+            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
+                value: email,
+                label: `${name} (${email})`
+            }));
+            setSellerList(arr_seller)
             setCurrency(response?.data?.currency)
 
             setPaginationUrl(response?.data?.products?.links);
@@ -904,7 +975,7 @@ export function ProductsListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/product-filter?status=${value}&page=${pagination}`,
+            const response = await axios.get(`${apiUrl}/product-filter?status=${value}&value=${queryValue}&seller=${selectedStatus.value}&page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -1142,8 +1213,8 @@ export function ProductsListing() {
                           onSelect={handleProductFilter}
                       ></Tabs>
                   </div>
-                  <div style={{ padding: '16px', display: 'flex' }}>
-                      <div style={{ flex: 1 }}>
+                  <div className="product_listing_search" style={{ padding: '16px', display: 'flex' }}>
+                      <div style={{ flex: '70%' }}>
                           <TextField
                               placeholder='Search Product'
                               value={queryValue}
@@ -1153,6 +1224,33 @@ export function ProductsListing() {
                               autoComplete="off"
                               prefix={<Icon source={SearchMinor} />}
                           />
+                      </div>
+
+
+                      <div style={{ flex: '30%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+
+                              <div style={{ flex: '1' }}>
+
+                                      <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
+                                          <ReactSelect
+                                              name='pushed_status'
+                                              options={sellerList}
+                                              placeholder="Select Seller"
+                                              value={selectedStatus}
+                                              onChange={(selectedOption) => handleSelectChange(selectedOption)}
+                                              styles={{
+                                                  menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                                              }}
+                                          />
+                                      </div>
+
+                                  {showClearButton && (
+                                      <Button onClick={handleClearButtonClick} plain>
+                                          Clear
+                                      </Button>
+                                  )}
+                              </div>
+
                       </div>
                   </div>
                 <IndexTable

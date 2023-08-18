@@ -219,3 +219,21 @@
 .seller-list .Polaris-Labelled__LabelWrapper .Polaris-Label{
     margin-top:10px
 }
+
+.css-13cymwt-control{
+    margin-left:3px;
+    border-color:rgba(171, 177, 186, 1) !important;
+}
+
+.order_listing_search .Polaris-Connected .Polaris-Connected__Item .Polaris-TextField{
+    padding:1px;
+}
+.product_listing_search .Polaris-Connected .Polaris-Connected__Item .Polaris-TextField{
+    padding:1px;
+}
+.commission_listing_search .Polaris-Connected .Polaris-Connected__Item .Polaris-TextField{
+    padding:1px;
+}
+.seller_commission_listing_search .Polaris-Connected .Polaris-Connected__Item .Polaris-TextField{
+    padding:1px;
+}

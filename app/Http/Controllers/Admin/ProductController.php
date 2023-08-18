@@ -29,10 +29,12 @@ class ProductController extends Controller
         $session=Session::where('shop',$user->name)->first();
         if($session){
             $products=Product::where('shop_id',$session->id)->orderBy('id','Desc')->paginate(20);
+            $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
 
             $data = [
                 'products'=>$products,
                 'currency'=>$session->money_format,
+                'sellers'=>$sellers,
             ];
 
             return response()->json($data);
@@ -534,23 +536,33 @@ if(isset($request->images)) {
     }
 
     public function ProductFilter(Request $request){
+
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         if($shop){
             if($request->status==0){
-                $products=Product::where('shop_id',$shop->id)->get();
+                $products=Product::query();
             }else if($request->status==1){
                 $status='Approval Pending';
-                $products=Product::where('product_status',$status)->where('shop_id',$shop->id)->get();
+                $products=Product::where('product_status',$status);
             }
             else if($request->status==2){
                 $status='Approved';
-                $products=Product::where('product_status',$status)->where('shop_id',$shop->id)->get();
+                $products=Product::where('product_status',$status);
             }
             else if($request->status==3){
                 $status='Disabled';
-                $products=Product::where('product_status',$status)->where('shop_id',$shop->id)->get();
+                $products=Product::where('product_status',$status);
             }
+
+            if($request->seller!='undefined'){
+                $products=$products->where('seller_email',$request->seller);
+            }
+
+            if($request->value!=null){
+            $products=$products->where('product_name',$request->value);
+            }
+            $products=$products->where('shop_id',$shop->id)->orderBy('id','Desc')->get();
             if(count($products) > 0){
                 $data = [
                     'products'=>$products
@@ -848,9 +860,15 @@ if(isset($request->images)) {
                         'message' => 'This Email Seller Not Found',
                     ],422);
                 }
+                return response()->json($data);
+            }else{
+                return response()->json([
+                    'message' => 'Product was not Found on Shopify',
+                ],422);
             }
+
         }
-        return response()->json($data);
+
 
     }
 
@@ -865,13 +883,73 @@ if(isset($request->images)) {
     }
 
     public function SearchProduct(Request $request){
+
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $products=Product::where('product_name', 'like', '%' . $request->value . '%')->orWhere('seller_name','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        if($request->seller=='undefined') {
+            $products = Product::where('product_name', 'like', '%' . $request->value . '%');
+        }else{
+            $products = Product::where('product_name', 'like', '%' . $request->value . '%')->where('seller_email',$request->seller);
+        }
+
+        if($request->status==0){
+            $products=$products->where('shop_id',$session->id)->orderBy('id', 'Desc')->get();
+        }else if($request->status==1){
+            $status='Approval Pending';
+            $products=$products->where('product_status',$status)->where('shop_id',$session->id)->orderBy('id', 'Desc')->get();
+        }
+        else if($request->status==2){
+            $status='Approved';
+            $products=$products->where('product_status',$status)->where('shop_id',$session->id)->orderBy('id', 'Desc')->get();
+        }
+        else if($request->status==3){
+            $status='Disabled';
+            $products=$products->where('product_status',$status)->where('shop_id',$session->id)->orderBy('id', 'Desc')->get();
+        }
+
+
         $data = [
             'data' => $products
         ];
         return response()->json($data);
+    }
+
+    public function SearchSellerProduct(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        if($session){
+            if($request->product_name==null) {
+                $products = Product::where('seller_email', $request->value);
+            }else{
+                $products = Product::where('seller_email', $request->value)->where('product_name',$request->product_name);
+            }
+            $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
+
+
+            if($request->status==0){
+                $products=$products->where('shop_id',$session->id)->paginate(20);
+            }else if($request->status==1){
+                $status='Approval Pending';
+                $products=$products->where('product_status',$status)->where('shop_id',$session->id)->orderBy('id', 'Desc')->paginate(20);
+            }
+            else if($request->status==2){
+                $status='Approved';
+                $products=$products->where('product_status',$status)->where('shop_id',$session->id)->orderBy('id', 'Desc')->paginate(20);
+            }
+            else if($request->status==3){
+                $status='Disabled';
+                $products=$products->where('product_status',$status)->where('shop_id',$session->id)->orderBy('id', 'Desc')->paginate(20);
+            }
+
+            $data = [
+                'products'=>$products,
+                'currency'=>$session->money_format,
+                'sellers'=>$sellers,
+            ];
+
+            return response()->json($data);
+        }
     }
 
 
