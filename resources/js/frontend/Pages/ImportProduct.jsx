@@ -407,7 +407,7 @@ console.log('seller_email',seller_email)
 
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            onChange={sellerUpdateText}
+            // onChange={sellerUpdateText}
             label="Seller Email*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
