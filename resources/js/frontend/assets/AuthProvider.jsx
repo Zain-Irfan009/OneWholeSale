@@ -40,6 +40,7 @@ const initialState = {
     userRole: "",
     isLoggedIn: false,
     userToken: "",
+    handle:"",
 };
 
 function AuthProvider(props) {
@@ -88,6 +89,7 @@ function AuthProvider(props) {
                 userEmail: res?.data?.data?.user?.email,
                 name: res?.data?.data?.user?.name,
                 userRole: res?.data?.data?.user?.role,
+                handle: res?.data?.data?.user?.collection_handle,
                 isLoggedIn: true,
                 userToken: getAccessToken(),
             });

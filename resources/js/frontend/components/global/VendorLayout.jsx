@@ -22,13 +22,14 @@ export function VendorLayout(props) {
   // const dispatch = useAuthDispatch();
   // const { user } = useAuthState();
     const { name } = useAuthState();
+    const { handle } = useAuthState();
   const navigate = useNavigate();
   const location = useLocation();
   const { locationChange, setLocationChange } = useContext(AppContext);
   const skipToContentRef = useRef(null);
   const [userMenuActive, setUserMenuActive] = useState(false);
   const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
-  const [sellerHandle, setSellerHandle] = useState('');
+
   const [userDetails, setUserDetails] = useState({
       name: name,
       initials: `${name.charAt(0)}`,
@@ -47,39 +48,14 @@ export function VendorLayout(props) {
     []
   );
 
-    const handleShop = async () => {
-
-        const sessionToken = getAccessToken();
-        try {
-
-            const response = await axios.get(`${apiUrl}/api/seller/get-shop`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            console.log(response?.data)
-            setSellerHandle(response?.data)
-
-
-
-        } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
-    }
 
     const handleViewShop = () => {
         // Open google.com in a new tab
-        window.open(`https://onewholesalelive.myshopify.com/collections/${sellerHandle}`, '_blank');
+        window.open(`https://onewholesalelive.myshopify.com/collections/${handle}`, '_blank');
         // window.open(`https://tlx-new-brand.myshopify.com/collections/${sellerHandle}`, '_blank');
     };
 
 
-    useEffect(() => {
-        handleShop()
-    }, []);
 
 
   const toastErrorMsg = errorToast ? (

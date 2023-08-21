@@ -248,3 +248,6 @@
     top: 9px;
     z-index: 999 !important;
 }
+.password-change-card{
+    margin-bottom:20px;
+}

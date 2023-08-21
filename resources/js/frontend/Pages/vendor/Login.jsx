@@ -289,7 +289,7 @@ export function Login(props) {
                                                     >
                                                         Login
                                                     </Button>
-                                                    <Link to="/vendor/reset-password">
+                                                    <Link to="/reset-password">
                                                         Forgot the password?
                                                     </Link>
                                                 </Stack>

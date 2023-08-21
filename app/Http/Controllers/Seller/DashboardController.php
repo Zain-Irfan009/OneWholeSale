@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ForgotPasswordMail;
 use App\Models\CommissionLog;
 use App\Models\Order;
 use App\Models\OrderSeller;
@@ -12,7 +13,11 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Shopify\Clients\Rest;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
@@ -228,4 +233,193 @@ class DashboardController extends Controller
             return response()->json($seller);
         }
 
+
+    public function EditSeller(Request $request){
+        $user=auth()->user();
+        $shop=Session::where('id',$user->shop_id)->first();
+
+        $client = new Rest($shop->shop, $shop->access_token);
+        if($shop) {
+            $seller = User::where('id', $user->id)->where('role', 'seller')->first();
+            $custom_collection = $client->put( '/custom_collections/'.$seller->collection_id.'.json', [
+                'custom_collection' => [
+                    'title' => $request->seller_name,
+                ]
+            ]);
+            $custom_collection=$custom_collection->getDecodedBody();
+            if (!isset($custom_collection['errors']['key'])) {
+                $custom_collection = $custom_collection['custom_collection'];
+                $custom_collection = json_decode(json_encode($custom_collection));
+
+                $seller->name = $request->seller_name;
+                $seller->collection_id=$custom_collection->id;
+                $seller->collection_handle=$custom_collection->handle;
+                $seller->seller_shopname = $request->seller_shopname;
+                $seller->email = $request->seller_email;
+                $seller->seller_store_address = $request->seller_store_address;
+                $seller->seller_zipcode = $request->seller_zipcode;
+                $seller->seller_contact = $request->seller_contact;
+                $seller->seller_store_description = $request->seller_store_description;
+                $seller->seller_description = $request->seller_description;
+                $seller->seller_policy = $request->seller_policy;
+                if ($request->hasFile('seller_image')) {
+                    $seller_image = $request->file('seller_image');
+                    $destinationPath = 'sellerimage/';
+                    $filename1 = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', $seller_image->getClientOriginalName());
+                    $seller_image->move($destinationPath, $filename1);
+                    $filename1 = (asset('sellerimage/' . $filename1));
+                    $seller->seller_image = $filename1;
+                }
+
+                if ($request->hasFile('seller_shop_image')) {
+                    $seller_shop_image = $request->file('seller_shop_image');
+                    $destinationPath = 'shopimage/';
+                    $filename = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', $seller_shop_image->getClientOriginalName());
+                    $seller_shop_image->move($destinationPath, $filename);
+                    $filename = (asset('shopimage/' . $filename));
+                    $seller->seller_shop_image = $filename;
+                }
+
+                if ($request->hasFile('store_banner_image')) {
+                    $store_banner_image = $request->file('store_banner_image');
+                    $destinationPath = 'storebannerimage/';
+                    $filename2 = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', $store_banner_image->getClientOriginalName());
+                    $store_banner_image->move($destinationPath, $filename2);
+                    $filename2 = (asset('storebannerimage/' . $filename2));
+                    $seller->store_banner_image = $filename2;
+                }
+
+                if ($request->publish_seller_profile == 'true') {
+                    $publish_seller_profile = 1;
+                } else {
+                    $publish_seller_profile = 0;
+                }
+                $seller->publish_seller_profile = $publish_seller_profile;
+                $seller->seller_handle = $request->seller_handle;
+                $seller->shop_id = $shop->id;
+                $seller->save();
+                $this->SellerDetailMetafield($seller,$client);
+                $data = [
+                    'message' => 'Seller Updated Successfully',
+                    'seller' => $seller
+                ];
+                return response()->json($data);
+            }
+        }else{
+            return response()->json([
+                'message' => 'Shop Not Found',
+            ],422);
+        }
+
+
+    }
+
+    public function SellerDetailMetafield($seller,$client){
+        $seller_detail=array();
+        $seller_detail['publish_profile']=$seller->publish_seller_profile;
+        $seller_detail['name']=$seller->name;
+        $seller_detail['seller_shopname']=$seller->seller_shopname;
+        $seller_detail['email']=$seller->email;
+        $seller_detail['seller_store_address']=$seller->seller_store_address;
+        $seller_detail['seller_zipcode']=$seller->seller_zipcode;
+        $seller_detail['seller_contact']=$seller->seller_contact;
+        $seller_detail['seller_store_description']=$seller->seller_store_description;
+        $seller_detail['seller_description']=$seller->seller_description;
+        $seller_detail['seller_policy']=$seller->seller_policy;
+        $seller_detail['seller_image']=$seller->seller_image;
+        $seller_detail['seller_shop_image']=$seller->seller_shop_image;
+        $seller_detail['store_banner_image']=$seller->store_banner_image;
+        $seller_detail['seller_handle']=$seller->collection_handle;
+
+
+
+
+        if($seller->metafield==null) {
+            $seller_metafield = $client->post('/admin/api/2023-04/custom_collections/' . $seller->collection_id . '/metafields.json', [
+                "metafield" => [
+                    "key" => 'seller_detail',
+                    "value" => json_encode($seller_detail),
+                    "type" => "json_string",
+                    "namespace" => "seller"
+                ],
+            ]);
+        }else{
+
+            $shop_metafield =$client->put('/admin/api/2023-04/metafields/'.$seller->metafield_id.'.json', [
+
+                "metafield" =>
+
+                    array(
+                        "value" => json_encode($seller_detail),
+                        "type" => "json_string",
+                    ),
+            ]);
+        }
+        $res= $seller_metafield->getDecodedBody();
+
+        if(!isset($res['errors'])){
+
+            $seller->metafield_id=$res['metafield']['id'];
+            $seller->save();
+        }
+
+    }
+
+    public function ForgotPassword(Request $request){
+
+        $user=User::where('email',$request->email)->first();
+        if($user){
+            $randomPassword = Str::random(8);
+            $details['to'] = $user->email;
+            $details['name'] = $user->name;
+            $details['subject'] = 'Hello HacktheStuff';
+            $details['message'] = 'Your new Password is';
+            $details['password'] = $randomPassword;
+
+            Mail::to($details['to'])
+                ->send(new ForgotPasswordMail($details));
+            $status="Password Send Successfully on mail";
+            $user->password= Hash::make($randomPassword);
+            $user->save();
+            return response()->json($status);
+        }else{
+            $status="We can't find a user with that email address.";
+            return response()->json($status);
+        }
+    }
+
+
+    public function ChangePassword(Request $request){
+
+        $user=auth()->user();
+
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'message' => 'The current password is incorrect.',
+            ], 422);
+        }
+
+
+        $validator = Validator::make($request->all(), [
+            'password' => 'min:8|string|required_with:password_confirmation|same:password_confirmation',
+            'password_confirmation' => 'min:8',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            $errorString = implode(", ", $errors->all());
+
+
+            return response()->json([
+                'message' => $errorString,
+            ],422);
+        }
+
+        $user->password=Hash::make($request->password);
+        $user->save();
+        return response()->json([
+            'message' => "Password Changed Successfully",
+        ]);
+
+    }
 }

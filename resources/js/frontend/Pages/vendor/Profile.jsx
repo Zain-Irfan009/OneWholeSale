@@ -66,6 +66,10 @@ export function Profile() {
     const [fileUrl5, setFileUrl5] = useState();
 
     const [name, setName] = useState("");
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [userId, setUserId] = useState("");
     const [shopName, setShopName] = useState("");
     const [email, setEmail] = useState("");
     const [storeAddress, setStoreAddress] = useState("");
@@ -148,33 +152,7 @@ export function Profile() {
         setQueryValue('')
         setToggleLoadData(true)
     }
-    const handleFiltersQueryChange = async (value)  => {
-        setPageCursorValue('')
-        setQueryValue(value)
 
-        const sessionToken = getAccessToken();
-
-
-        try {
-            const response = await axios.get(`${apiUrl}/seller/search-commission?value=${value}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            setCommissions(response?.data?.data)
-
-
-        } catch (error) {
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
-
-        setTimeout(() => {
-            setToggleLoadData(true)
-        }, 1000);
-    }
 
 
     function handleSellerDescription(event, editor) {
@@ -302,7 +280,7 @@ export function Profile() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+            setUserId(response?.data?.name)
             setName(response?.data?.name)
             setShopName(response?.data?.seller_shopname)
             setEmail(response?.data?.email)
@@ -328,9 +306,142 @@ setLoading(false)
     }
 
 
+
+
     useEffect(() => {
         getData();
     }, [toggleLoadData1]);
+
+    const [formErrors, setFormErrors] = useState({});
+    const [btnLoading, setBtnLoading] = useState(false);
+    const submitData = async () => {
+
+
+        const sessionToken = getAccessToken();
+
+        const errors = {};
+
+        if (name.trim() === '') {
+            errors.name = 'Name is required';
+        }
+        if (shopName.trim() === '') {
+            errors.shopName = 'Shop Name is required';
+        }
+        if (email.trim() === '') {
+            errors.email = 'Email is required';
+        }
+
+        if (storeAddress.trim() === '') {
+            errors.storeAddress = 'Store Address is required';
+        }
+
+        if (zipcode.trim() === '') {
+            errors.zipcode = 'Zipcode is required';
+        }
+        if (contact.trim() === '') {
+            errors.contact = 'Contact is required';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            setBtnLoading(false)
+            return;
+        }
+        setBtnLoading(true)
+        setLoading(true)
+
+        let formData = new FormData();
+        formData.append('store_banner_image', file5 ? file5 : fileUrl5);
+        formData.append('seller_shop_image', file4 ? file4 : fileUrl4);
+        formData.append('seller_image', file3 ? file3 : fileUrl3);
+        formData.append('seller_handle',handle);
+        formData.append('id',userId);
+        formData.append('seller_name',name);
+        formData.append('seller_shopname',shopName);
+        formData.append('seller_email',email);
+        formData.append('seller_store_address',storeAddress);
+        formData.append('seller_zipcode',zipcode);
+        formData.append('seller_contact',contact);
+        formData.append('seller_store_description',storeDescriptioncontent);
+        formData.append('seller_description',sellerDescriptioncontent);
+        formData.append('seller_policy',sellerPolicycontent);
+
+
+        try {
+            const response = await axios.post(`${apiUrl}/seller/edit-seller`,formData,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setBtnLoading(false)
+            setLoading(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setLoading(false)
+            // setSkeleton(false)
+
+        } catch (error) {
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    const submitChangePassword = async () => {
+
+
+        const sessionToken = getAccessToken();
+
+        const errors = {};
+
+
+
+        if (currentPassword.trim() === '') {
+            errors.current_password = 'Current Password is required';
+        }
+        if(newPassword.trim()===''){
+            errors.new_password = 'New Password is required';
+        }
+        if (confirmPassword.trim() === '') {
+            errors.confirmPassword = 'Confirm Password is required';
+        }
+
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            setBtnLoading(false)
+            return;
+        }
+        setBtnLoading(true)
+        setLoading(true)
+        let data = {
+            current_password:currentPassword,
+            password:newPassword,
+            password_confirmation:confirmPassword,
+        };
+
+        try {
+            const response = await axios.post(`${apiUrl}/seller/change-password`,data,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+
+            setBtnLoading(false)
+            setLoading(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+        } catch (error) {
+            setBtnLoading(false)
+            setLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
 
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(commissions);
@@ -548,9 +659,9 @@ setLoading(false)
 
 
                                             <div>
-
+                                                <label>Image</label>
                                                 <div className="margin-top">
-                                                    <label>Image</label>
+
                                                     {!file3 && !fileUrl3 && (
                                                         <DropZone
                                                             allowMultiple={false}
@@ -624,12 +735,9 @@ setLoading(false)
                                         <Text variant="headingMd" as="h6">
                                             Store Information
                                         </Text>
-                                        {/*<Text variant="bodyMd" as="p">*/}
-                                        {/*    Set timezone so you can plan marketing activities*/}
-                                        {/*    according to your customers' daily schedule. If*/}
-                                        {/*    you are selling on a foreign market, you should*/}
-                                        {/*    select timezone of your customers.*/}
-                                        {/*</Text>*/}
+                                        <Text variant="bodyMd" as="p">
+                                            Set Store Information here..
+                                        </Text>
                                     </Layout.Section>
 
                                     <Layout.Section>
@@ -739,9 +847,10 @@ setLoading(false)
                                                     ""
                                                 )}
 
-                                                <div>
-                                                    <div>
-                                                        <label> Upload Store logo here</label>
+                                                <div className="margin-top">
+                                                    <label> Upload Store logo here</label>
+                                                    <div className="">
+
                                                         {!file4 && !fileUrl4 && (
                                                             <DropZone
                                                                 allowMultiple={false}
@@ -805,18 +914,89 @@ setLoading(false)
                                                     )}
                                                 </div>
                                             </div>
+
+                                            <div className="Polaris-Product-Actions">
+                                                <PageActions
+                                                    primaryAction={{
+                                                        content: "Update",
+                                                        onAction: submitData,
+                                                        loading: btnLoading,
+                                                    }}
+                                                />
+                                            </div>
                                         </Card>
                                     </Layout.Section>
                                 </Layout>
                                 </div>
-                                <div className="Polaris-Product-Actions">
-                                    <PageActions
-                                        primaryAction={{
-                                            content: "Update",
-                                            // onAction: submitData,
-                                            // loading: btnLoading,
-                                        }}
-                                    />
+
+                                <div className="margin-top">
+                                <Layout>
+
+                                    <Layout.Section secondary>
+                                        <Text variant="headingMd" as="h6">
+                                           Password
+                                        </Text>
+                                        <Text variant="bodyMd" as="p">
+                                         To help to keep your account secure, we recommend creating
+                                            a strong password that you don't resue on other websites
+                                        </Text>
+
+                                    </Layout.Section>
+
+                                    <Layout.Section>
+                                        <div className="password-change-card">
+                                        <Card sectioned >
+                                            <InputField
+                                                type="password"
+                                                label="Current Password"
+                                                name="current_password"
+
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                error={formErrors.current_password}
+                                                autoComplete="off"
+                                                placeholder="Enter Current Password"
+                                            />
+                                            <InputField
+                                                marginTop
+                                                type="password"
+                                                label="New Password"
+                                                name="new_password"
+                                                // value={email}
+                                                error={formErrors.new_password}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                autoComplete="off"
+                                                readOnly
+                                                placeholder="Enter New Password"
+                                            />
+
+                                            <InputField
+                                                marginTop
+                                                type="password"
+                                                label="Confirm Password"
+                                                name="confirm_password"
+                                                // value={email}
+                                                error={formErrors.confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                autoComplete="off"
+                                                readOnly
+                                                placeholder="Enter Confirm Password"
+                                            />
+
+                                            <div className="Polaris-Product-Actions">
+                                                <PageActions
+                                                    primaryAction={{
+                                                        content: "Change",
+                                                        onAction: submitChangePassword,
+                                                        loading: btnLoading,
+                                                    }}
+                                                />
+                                            </div>
+                                        </Card>
+                                        </div>
+                                    </Layout.Section>
+
+                                </Layout>
+
                                 </div>
                             </div>
                         </>

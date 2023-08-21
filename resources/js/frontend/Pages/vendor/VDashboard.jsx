@@ -90,7 +90,7 @@ export function VDashboard() {
     const [nextPageCursor, setNextPageCursor] = useState("");
     const [previousPageCursor, setPreviousPageCursor] = useState("");
     const [orderStatus, setOrderStatus] = useState("");
-
+    const [sellerHandle, setSellerHandle] = useState('');
     //modal code
     const [modalReassign, setModalReassign] = useState(false);
     const [modalChangePassword, setModalChangePassword] = useState(false);
@@ -104,6 +104,8 @@ export function VDashboard() {
     const [outofStockProduct, setOutofStockProduct] = useState([]);
 
     const [topSoldProduct, setTopSoldProduct] = useState([]);
+
+
 
     const handleSelect = async (ranges) => {
         // console.log(ranges);

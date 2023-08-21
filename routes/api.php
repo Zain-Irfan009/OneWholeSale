@@ -136,7 +136,9 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('get-graph-data',[\App\Http\Controllers\Seller\DashboardController::class,'GetGraphData']);
 
 
+        Route::post('edit-seller',[\App\Http\Controllers\Seller\DashboardController::class,'EditSeller']);
 
+        Route::post('change-password',[\App\Http\Controllers\Seller\DashboardController::class,'ChangePassword']);
 
         //products
         Route::get('products',[\App\Http\Controllers\Seller\ProductController::class,'Products']);
@@ -164,6 +166,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
 });
 
+Route::post('forgot-password',[\App\Http\Controllers\Seller\DashboardController::class,'ForgotPassword']);
 
 
 
