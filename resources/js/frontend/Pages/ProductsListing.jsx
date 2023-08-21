@@ -1049,6 +1049,8 @@ setSelectedStatus(selectedOption)
             setBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
+            getData()
+            handleReassignCloseAction()
 
 
         } catch (error) {
