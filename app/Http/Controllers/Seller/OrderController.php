@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CommissionLog;
 use App\Models\LineItem;
 use App\Models\Order;
+use App\Models\OrderSeller;
 use App\Models\Product;
 use App\Models\Session;
 use App\Models\User;
@@ -17,10 +18,23 @@ class OrderController extends Controller
     public function Orders(Request $request){
         $user=auth()->user();
         $user=User::find($user->id);
+
+        $order_sellers=OrderSeller::where('user_id',$user->id)->get();
+        $order_array=array();
+
+        foreach ($order_sellers as $order_seller){
+            $order=Order::find($order_seller->order_id);
+            $data['id']=$order->id;
+            $data['order_number']=$order->order_number;
+            $data['financial_status']=$order->financial_status;
+            $data['fulfillment_status']=$order->fulfillment_status;
+            $data['created_at']=$order->created_at;
+            array_push($order_array,$data);
+        }
         if($user){
-            $orders=Order::where('user_id',$user->id)->get();
+
             $data = [
-                'orders'=>$orders
+                'orders'=>$order_array
             ];
             return response()->json($data);
         }
@@ -43,12 +57,17 @@ class OrderController extends Controller
         $total_items=0;
         foreach ($line_items as $line_item){
             $total_items+=$line_item->quantity;
-            $product=Product::where('shopify_id',$line_item->shopify_product_id)->first();
+            $product=Product::where('shopify_id',$line_item->shopify_product_id)->where('user_id',$user->id)->first();
+
             $line_item_array['id']=$line_item->id;
             $line_item_array['title']=$line_item->title;
             $line_item_array['quantity']=$line_item->quantity;
             $line_item_array['price']=$line_item->price;
-            $line_item_array['image']=$product->featured_image;
+            if($product) {
+                $line_item_array['image'] = $product->featured_image;
+            }else{
+                $line_item_array['image'] = '';
+            }
             array_push($line_item_data,$line_item_array);
         }
 
@@ -118,7 +137,7 @@ class OrderController extends Controller
     public function SearchOrders(Request $request){
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $orders=Order::where('id', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+        $orders=Order::where('order_number', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
         $data = [
             'data' => $orders
         ];

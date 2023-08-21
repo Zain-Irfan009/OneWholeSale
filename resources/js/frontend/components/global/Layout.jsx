@@ -157,7 +157,7 @@ export function MainLayout(props) {
                         ],
                     },
                     {
-                        label: "Order",
+                        label: "Orders",
                         icon: OrdersMinor,
                         url: "/orderslisting",
                         onClick: () => setLocationChange("/orderslisting"),

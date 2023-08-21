@@ -70,6 +70,12 @@ export function Orders() {
     const [sellerEmail, setSellerEmail] = useState('')
     const [uniqueId, setUniqueId] = useState()
 
+
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
+
     const toggleActive=(id)=>{
 
         setActive((prev) => {
@@ -81,8 +87,19 @@ export function Orders() {
             }
             return { ...toggleId };
         });
+
     }
 
+
+
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
+
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(() => setErrorToast((errorToast) => !errorToast), []);
@@ -95,6 +112,22 @@ export function Orders() {
     const toastSuccessMsg = sucessToast ? (
         <Toast content={toastMsg} onDismiss={toggleSuccessMsgActive} />
     ) : null;
+
+
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
+    }
 
 
     // ---------------------Tag/Filter Code Start Here----------------------
@@ -206,7 +239,7 @@ export function Orders() {
         useIndexResourceState(orders);
 
     const rowMarkup = orders ? orders?.map(
-        ({ id, order_id, gateway, financial_status,
+        ({ id, order_number, gateway, financial_status,created_at,
              fulfillment_status,payment_status,order_status,tracking_id  }, index) => (
 
             <IndexTable.Row
@@ -225,20 +258,31 @@ export function Orders() {
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    { gateway != null ? gateway : '---'}
+                    { order_number != null ? order_number : '---'}
                 </IndexTable.Cell>
+                <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
                 <IndexTable.Cell>
                     <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
                 </IndexTable.Cell>
 
+                {fulfillment_status === 'fulfilled' ? (
+                    <IndexTable.Cell className="fulfilled">
+                        {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
+                        <Badge progress='complete'>{fulfillment_status === 'fulfilled' ? 'Fulfilled' : ''}</Badge>
 
-                <IndexTable.Cell>
-                    <CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />
-                </IndexTable.Cell>
-                <IndexTable.Cell>
-                    {tracking_id != null ? tracking_id : '---'}
-                </IndexTable.Cell>
+
+                    </IndexTable.Cell>
+                ) : fulfillment_status === 'partial' ? (
+                    <IndexTable.Cell className="partial">
+                        <Badge progress='complete'>{fulfillment_status === 'partial' ? 'Partially fulfilled' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : (
+                    <IndexTable.Cell className="unfulfilled">
+                        <Badge progress='complete'>{fulfillment_status==null ? 'Unfulfilled' : fulfillment_status}</Badge>
+
+                    </IndexTable.Cell>
+                )}
 
                 <IndexTable.Cell>
                     <Popover
@@ -354,7 +398,7 @@ export function Orders() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData1]);
 
     // // ---------------------Api Code starts Here----------------------
     //
@@ -425,7 +469,7 @@ export function Orders() {
         if (toggleLoadData) {
             // getCustomers()
         }
-        setLoading(false)
+        // setLoading(false)
         setCustomersLoading(false)
     }, [toggleLoadData])
 
@@ -616,10 +660,11 @@ export function Orders() {
                                     emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
-                                        { title: 'Payment Mode' },
+                                        { title: 'Order Number' },
+                                        { title: "Date" },
                                         { title: 'Payment Status' },
                                         { title: 'Order Status' },
-                                        { title: 'Tracking Id' },
+                                        // { title: 'Tracking Id' },
                                         { title: 'Action' },
                                     ]}
                                 >
@@ -628,7 +673,7 @@ export function Orders() {
 
                             </Card.Section>
 
-
+                            {showPagination && (
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -640,13 +685,14 @@ export function Orders() {
                                 >
 
                                     <Pagination
-                                        hasPrevious={hasPreviousPage ? true : false}
-                                        onPrevious={() => handlePagination('prev')}
-                                        hasNext={hasNextPage ? true : false}
-                                        onNext={() => handlePagination('next')}
+                                        hasPrevious={pagination > 1}
+                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                                        hasNext={pagination < paginationUrl.length}
+                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
                                     />
                                 </div>
                             </Card.Section>
+                            )}
 
                         </div>
                         </Tabs>

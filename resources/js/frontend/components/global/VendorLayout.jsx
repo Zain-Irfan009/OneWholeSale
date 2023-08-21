@@ -120,7 +120,7 @@ export function VendorLayout(props) {
               selected: location.pathname === "/products",
           },
           {
-            label: "Order",
+            label: "Orders",
             icon: OrdersMinor,
             url: "/orders",
             onClick: () => setLocationChange("/vendor/orders"),

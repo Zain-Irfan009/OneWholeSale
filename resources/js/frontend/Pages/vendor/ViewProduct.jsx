@@ -1429,7 +1429,8 @@ export function ViewProduct() {
                                             marginTop
                                             name="productName"
                                             value={productName}
-                                            onChange={(e) => setProductName(e.target.value)}
+                                            readOnly
+                                            // onChange={(e) => setProductName(e.target.value)}
 
                                         />
                                         <div className="label_editor">
@@ -1437,7 +1438,8 @@ export function ViewProduct() {
                                             <CKEditor
                                                 editor={ClassicEditor}
                                                 data={descriptioncontent}
-                                                onChange={handleDescription}
+                                                readOnly
+                                                // onChange={handleDescription}
                                             />
                                         </div>
                                         {/* <div className="label_editor">
@@ -1564,7 +1566,8 @@ export function ViewProduct() {
                                                         marginTop
                                                         prefix={`$`}
                                                         value={price}
-                                                        onChange={handlePrice}
+                                                        readOnly
+                                                        // onChange={handlePrice}
                                                     />
 
                                                     <InputField
@@ -1576,9 +1579,10 @@ export function ViewProduct() {
                                                         marginTop
                                                         prefix={`$`}
                                                         value={compareatPrice}
-                                                        onChange={
-                                                            handleCompareatPrice
-                                                        }
+                                                        readOnly
+                                                        // onChange={
+                                                        //     handleCompareatPrice
+                                                        // }
                                                     />
                                                 </FormLayout.Group>
                                             </FormLayout>
@@ -1635,9 +1639,10 @@ export function ViewProduct() {
                                                         required
                                                         marginTop
                                                         value={quantity}
-                                                        onChange={
-                                                            handleQuantity
-                                                        }
+                                                        readOnly
+                                                        // onChange={
+                                                        //     handleQuantity
+                                                        // }
                                                     />
 
                                                     <div className="label_editor">
@@ -1663,7 +1668,8 @@ export function ViewProduct() {
                                                         required
                                                         marginTop
                                                         value={sku}
-                                                        onChange={handleSku}
+                                                        readOnly
+                                                        // onChange={handleSku}
                                                     />
 
                                                     <InputField
@@ -1674,7 +1680,8 @@ export function ViewProduct() {
                                                         required
                                                         marginTop
                                                         value={barcode}
-                                                        onChange={handleBarcode}
+                                                        readOnly
+                                                        // onChange={handleBarcode}
                                                     />
                                                 </FormLayout.Group>
 

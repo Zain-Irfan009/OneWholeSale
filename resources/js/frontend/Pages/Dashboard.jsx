@@ -264,6 +264,7 @@ export function Dashboard() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+            console.log('response?.data',response?.data)
             setTopSoldProduct(response?.data)
 
 

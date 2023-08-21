@@ -348,16 +348,16 @@ export function VendorViewOrder() {
                                             </Stack>
                                         </div>
 
-                                        <div className="Paid-SubTotal">
-                                            <Stack>
-                                                <p>Tax</p>
-                                                <p>{cartPrices?.shippingName}</p>
-                                                <p>
-                                                    {abandonedCheckout?.oldCurrencyCode}
-                                                    {totalTax}
-                                                </p>
-                                            </Stack>
-                                        </div>
+                                        {/*<div className="Paid-SubTotal">*/}
+                                        {/*    <Stack>*/}
+                                        {/*        <p>Tax</p>*/}
+                                        {/*        <p>{cartPrices?.shippingName}</p>*/}
+                                        {/*        <p>*/}
+                                        {/*            {abandonedCheckout?.oldCurrencyCode}*/}
+                                        {/*            {totalTax}*/}
+                                        {/*        </p>*/}
+                                        {/*    </Stack>*/}
+                                        {/*</div>*/}
 
                                         {/*<div className="Paid-SubTotal">*/}
                                         {/*    <Stack>*/}

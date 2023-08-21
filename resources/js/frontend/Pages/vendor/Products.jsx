@@ -79,6 +79,24 @@ export function Products() {
     const [sellerEmail, setSellerEmail] = useState('')
     const [uniqueId, setUniqueId] = useState()
 
+    const [toggleLoadData1, setToggleLoadData1] = useState(true);
+    //pagination
+    const [pagination, setPagination] = useState(1);
+    const [showPagination, setShowPagination] = useState(false);
+    const [paginationUrl, setPaginationUrl] = useState([]);
+
+
+
+    const handlePaginationTabs = (active1, page) => {
+        if (!active1) {
+            setPagination(page);
+            setToggleLoadData1(!toggleLoadData1);
+        }
+    };
+
+
+    const [currency, setCurrency] = useState('');
+
     const toggleActive=(id)=>{
 
         setActive((prev) => {
@@ -114,6 +132,7 @@ export function Products() {
         setToggleLoadData(true)
     }
     const handleFiltersQueryChange = async (value)  => {
+        setCustomersLoading(true)
         setPageCursorValue('')
         setQueryValue(value)
 
@@ -121,14 +140,14 @@ export function Products() {
 
 
         try {
-            const response = await axios.get(`${apiUrl}/seller/search-product?value=${value}`,
+            const response = await axios.get(`${apiUrl}/seller/search-product?query_value=${value}&status=${selected}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
             setProducts(response?.data?.data)
-
+            setCustomersLoading(false)
 
         } catch (error) {
             setBtnLoading(false)
@@ -218,7 +237,7 @@ export function Products() {
         console.log('session',sessionToken)
         try {
 
-            const response = await axios.get(`${apiUrl}/seller/products`,
+            const response = await axios.get(`${apiUrl}/seller/products?page=${pagination}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -226,7 +245,18 @@ export function Products() {
                 })
 
 
-            setProducts(response?.data?.products)
+            setProducts(response?.data?.products?.data)
+            setPaginationUrl(response?.data?.products?.links);
+            if (
+                response?.data?.products?.total >
+                response?.data?.products?.per_page
+            ) {
+                setShowPagination(true);
+            } else {
+                setShowPagination(false);
+            }
+            setCurrency(response?.data?.currency)
+
             setLoading(false)
 
             // setBtnLoading(false)
@@ -259,7 +289,7 @@ console.log(error)
     }
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData1]);
 
 
     const handleExportProduct = async () => {
@@ -324,15 +354,25 @@ console.log(error)
                     <CustomBadge  value={"NORMAL"}  type='products' />
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    {price != null ? price : '---'}
-                </IndexTable.Cell>
+                <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
                 <IndexTable.Cell>
                     {quantity != null ? quantity : '---'}
                 </IndexTable.Cell>
-                <IndexTable.Cell>
-                    <CustomBadge value={product_status}  type="products" />
-                </IndexTable.Cell>
+                {product_status === 'Approved' ? (
+                    <IndexTable.Cell className="approved">
+                        <CustomBadge  value={product_status}  type="products" />
+                    </IndexTable.Cell>
+                ) : product_status === 'Approval Pending' ? (
+                    <IndexTable.Cell className="approval_pending">
+                        <CustomBadge  value={product_status}  type="products" />
+                    </IndexTable.Cell>
+                ) : (
+
+                    <IndexTable.Cell className="disabled">
+                        <CustomBadge  value={product_status}  type="products" />
+                    </IndexTable.Cell>
+
+                )}
 
 
                 <IndexTable.Cell>
@@ -399,8 +439,8 @@ console.log(error)
         if (toggleLoadData) {
             // getCustomers()
         }
-        setLoading(false)
-        setCustomersLoading(false)
+        // setLoading(false)
+        // setCustomersLoading(false)
     }, [toggleLoadData])
 
 
@@ -418,7 +458,7 @@ console.log(error)
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/seller/product-filter?status=${selectedTabIndex}`,
+            const response = await axios.get(`${apiUrl}/seller/product-filter?status=${selectedTabIndex}&query_value=${queryValue}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -538,7 +578,7 @@ console.log(error)
                                     resourceName={resourceName}
                                     itemCount={products?.length}
                                     hasMoreItems
-                                    selectable={true}
+                                    selectable={false}
                                     selectedItemsCount={
                                         allResourcesSelected ? 'All' : selectedResources.length
                                     }
@@ -561,7 +601,7 @@ console.log(error)
 
                             </Card.Section>
 
-
+                            {showPagination && (
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -573,13 +613,14 @@ console.log(error)
                                 >
 
                                     <Pagination
-                                        hasPrevious={hasPreviousPage ? true : false}
-                                        onPrevious={() => handlePagination('prev')}
-                                        hasNext={hasNextPage ? true : false}
-                                        onNext={() => handlePagination('next')}
+                                        hasPrevious={pagination > 1}
+                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
+                                        hasNext={pagination < paginationUrl.length}
+                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
                                     />
                                 </div>
                             </Card.Section>
+                            )}
 
                         </div>
 

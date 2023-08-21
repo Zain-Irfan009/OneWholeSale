@@ -17,10 +17,12 @@ class ProductController extends Controller
 
         $user=auth()->user();
         $user=User::find($user->id);
+        $session=Session::find($user->shop_id);
         if($user){
-            $products=Product::where('user_id',$user->id)->get();
+            $products=Product::where('user_id',$user->id)->paginate(20);
             $data = [
-                'products'=>$products
+                'products'=>$products,
+                'currency'=>$session->money_format,
             ];
             return response()->json($data);
         }
@@ -32,17 +34,22 @@ class ProductController extends Controller
         $user=User::find($user->id);
         if($user) {
             if ($request->status == 0) {
-                $products = Product::where('user_id', $user->id)->get();
+                $products = Product::query();
             } else if ($request->status == 1) {
                 $status = 'Approval Pending';
-                $products = Product::where('product_status', $status)->where('user_id', $user->id)->get();
+                $products = Product::where('product_status', $status);
             } else if ($request->status == 2) {
                 $status = 'Approved';
-                $products = Product::where('product_status', $status)->where('user_id', $user->id)->get();
+                $products = Product::where('product_status', $status);
             } else if ($request->status == 3) {
                 $status = 'Disabled';
-                $products = Product::where('product_status', $status)->where('user_id', $user->id)->get();
+                $products = Product::where('product_status', $status);
             }
+            if($request->query_value!=null){
+                $products=$products->where('product_name', 'like', '%' . $request->value . '%');
+            }
+
+            $products=$products->where('user_id', $user->id)->orderBy('id','Desc')->get();
             if (count($products) > 0) {
                 $data = [
                     'products' => $products
@@ -127,7 +134,19 @@ class ProductController extends Controller
     public function SearchProducts(Request $request){
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $products=Product::where('product_name', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+       if ($request->status == 1) {
+            $status = 'Approval Pending';
+            $products = Product::where('product_status', $status);
+        } else if ($request->status == 2) {
+            $status = 'Approved';
+            $products = Product::where('product_status', $status);
+        } else if ($request->status == 3) {
+            $status = 'Disabled';
+            $products = Product::where('product_status', $status);
+        }
+        $products=$products->where('product_name', 'like', '%' . $request->query_value . '%');
+
+       $products=$products->where('user_id',$user->id)->get();
         $data = [
             'data' => $products
         ];

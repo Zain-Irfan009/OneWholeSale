@@ -8,9 +8,11 @@ use App\Models\Order;
 use App\Models\OrderSeller;
 use App\Models\Product;
 use App\Models\Session;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Shopify\Clients\Rest;
 
 class DashboardController extends Controller
 {
@@ -86,6 +88,130 @@ class DashboardController extends Controller
                 array_push($top_sold_products,$data);
             }
         }
+
         return response()->json($top_sold_products);
     }
+
+
+    public function OutOfStockProduct(Request $request){
+        $user=auth()->user();
+
+        $products = Product::where('quantity', 0)->where('user_id',$user->id)
+            ->limit(5)
+            ->latest()->get();
+        $outof_stock_products=array();
+        foreach ($products as $product){
+
+            $total_sale=CommissionLog::where('shopify_product_id',$product->shopify_id)->where('user_id',$user->id)->sum('quantity');
+
+            $data['product_id']=$product->id;
+            $data['name']=$product->product_name;
+            $data['total_sale']=$total_sale;
+            array_push($outof_stock_products,$data);
+        }
+
+        return response()->json($outof_stock_products);
+    }
+
+    public function StoreStats(Request $request){
+
+        $user=auth()->user();
+
+        $shop=Session::where('id',$user->shop_id)->first();
+
+
+        if($request->status==0) {
+            $products = Product::where('user_id', $user->id)->count();
+            $orders = Order::where('user_id',$user->id)->count();
+
+        }else if($request->status==1){
+            $startDate = Carbon::now()->startOfWeek();
+            $endDate = Carbon::now()->endOfWeek();
+
+            $products = Product::whereBetween('updated_at', [$startDate, $endDate])
+                ->where('user_id', $user->id)
+                ->count();
+
+            $orders = Order::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
+
+        }else if($request->status==2){
+            $startDate = Carbon::now()->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+
+            $products = Product::whereBetween('updated_at', [$startDate, $endDate])
+                ->where('user_id', $user->id)
+                ->count();
+
+            $orders = Order::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
+
+
+        }else if($request->status==3){
+            $startDate = Carbon::now()->startOfYear();
+            $endDate = Carbon::now()->endOfYear();
+            $products = Product::where('user_id', $user->id)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->count();
+
+            $orders = Order::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
+
+        }
+        $data=[
+            'products'=>$products,
+            'orders'=>$orders,
+        ];
+
+        return response()->json($data);
+
+    }
+
+
+    public function StoreEarning(Request $request){
+        $user=auth()->user();
+        $shop=Session::find($user->shop_id);
+        $store_earning=CommissionLog::where('user_id',$user->id)->sum('total_product_commission');
+        $store_earning=(string)((float)$store_earning);
+        $total_commission=$store_earning;
+        $data=[
+            'store_earning'=>$store_earning,
+            'currency'=>$shop->money_format,
+            'total_commission'=>$total_commission,
+        ];
+        return response()->json($data);
+    }
+
+    public function StoreEarningFilter(Request $request){
+
+        $user=auth()->user();
+        $shop=Session::find($user->shop_id);
+        if($request->date==null){
+            $store_earning=CommissionLog::where('user_id',$user->id)->sum('total_product_commission');
+            $store_earning=(string)((float)$store_earning);
+//            $total_commission=$user->total_commission;
+            $total_commission=$store_earning;
+            $data=[
+                'store_earning'=>$store_earning,
+                'currency'=>$shop->money_format,
+                'total_commission'=>$total_commission,
+            ];
+            return response()->json($data);
+        }
+
+        $date=explode(',',$request->date);
+        $start_date=$date[0];
+        $end_date=$date[1];
+        $store_earning = CommissionLog::where('user_id', $user->id)
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->sum('total_product_commission');
+        $total_commission=(string)((float)$store_earning);
+
+        $data=[
+            'store_earning'=>$store_earning,
+            'currency'=>$shop->money_format,
+            'total_commission'=>$total_commission,
+        ];
+        return response()->json($data);
+
+
+    }
+
 }

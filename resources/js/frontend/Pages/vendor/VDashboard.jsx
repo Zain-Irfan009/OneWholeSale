@@ -118,7 +118,7 @@ export function VDashboard() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/store-earning-filter?date=${formattedDate}`,
+            const response = await axios.get(`${apiUrl}/seller/store-earning-filter?date=${formattedDate}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -153,7 +153,7 @@ export function VDashboard() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/store-stats?status=${selectedTabIndex}`,
+            const response = await axios.get(`${apiUrl}/seller/store-stats?status=${selectedTabIndex}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -161,14 +161,8 @@ export function VDashboard() {
                 })
 
             setProductsStats(response?.data?.products)
-            setProductsStats(response?.data?.products)
-            setApprovedProductsStats(response?.data?.approved_products)
-            setApprovalPendingStats(response?.data?.approval_pending_products)
-            setDisabledStats(response?.data?.disabled_products)
-            setSellersCount(response?.data?.sellers)
-            setApprovedSellersCount(response?.data?.approved_sellers)
-            setDisabledSellersCount(response?.data?.disabled_sellers)
-            setApprovalPendingSellersCount(response?.data?.approval_pending_sellers)
+            setSellersCount(response?.data?.orders)
+
             setSkeleton(false)
 
 
@@ -186,7 +180,7 @@ export function VDashboard() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/store-stats?status=0`,
+            const response = await axios.get(`${apiUrl}/seller/store-stats?status=0`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -194,13 +188,9 @@ export function VDashboard() {
                 })
 
             setProductsStats(response?.data?.products)
-            setApprovedProductsStats(response?.data?.approved_products)
-            setApprovalPendingStats(response?.data?.approval_pending_products)
-            setDisabledStats(response?.data?.disabled_products)
-            setSellersCount(response?.data?.sellers)
-            setApprovedSellersCount(response?.data?.approved_sellers)
-            setDisabledSellersCount(response?.data?.disabled_sellers)
-            setApprovalPendingSellersCount(response?.data?.approval_pending_sellers)
+
+            setSellersCount(response?.data?.orders)
+
             // setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -219,7 +209,7 @@ export function VDashboard() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/store-earning`,
+            const response = await axios.get(`${apiUrl}/seller/store-earning`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -252,11 +242,12 @@ export function VDashboard() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+            console.log('response',response?.data)
             setTopSoldProduct(response?.data)
 
 
         } catch (error) {
-
+                console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -266,7 +257,7 @@ export function VDashboard() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/out-of-stock-products`,
+            const response = await axios.get(`${apiUrl}/seller/out-of-stock-products`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -449,7 +440,7 @@ export function VDashboard() {
         )
     );
 
-    const rowMarkup3 = topSoldProduct.map(
+    const rowMarkup3 = topSoldProduct?.map(
         (
             {
                 id,
@@ -632,10 +623,10 @@ export function VDashboard() {
     useEffect(() => {
         getData();
         // getSellerData();
-        // getStoreStatsFirst()
-        // getStoreEarning()
+        getStoreStatsFirst()
+        getStoreEarning()
         getTopSoldProduct()
-        // getOutofStockProduct()
+        getOutofStockProduct()
         getGraphData()
         // console.log(data)
     }, []);
@@ -675,96 +666,73 @@ export function VDashboard() {
                             </LegacyCard>
                         </Layout.Section>
                     </Layout>
-                    {/*<div style={{ marginTop: "30px" }}></div>*/}
-                    {/*<Layout>*/}
-                    {/*    <Layout.Section oneThird>*/}
+                    <div style={{ marginTop: "30px" }}></div>
+                    <Layout>
+                        <Layout.Section oneThird>
 
-                    {/*        <LegacyCard title="Store Statistics">*/}
-                    {/*            <LegacyCard.Section>*/}
-                    {/*                <Text color="subdued" as="span">*/}
-                    {/*                    Here you can check Statistics of your Marketplace Store.*/}
-                    {/*                </Text>*/}
-                    {/*            </LegacyCard.Section>*/}
-                    {/*            {skeleton ?*/}
-                    {/*                <Loader/>*/}
-                    {/*                :*/}
-                    {/*                <LegacyCard>*/}
-                    {/*                    <Tabs*/}
-                    {/*                        tabs={tabs}*/}
-                    {/*                        selected={selected}*/}
-                    {/*                        onSelect={getStoreStats}*/}
-                    {/*                        loading={loadingTab}*/}
-                    {/*                    >*/}
-                    {/*                        /!*<LegacyCard.Section title={tabs[selected].content}>*!/*/}
-                    {/*                        <LegacyCard.Section >*/}
-                    {/*                            <div className="store_stats">*/}
-                    {/*                                <div class="product_stats">*/}
-                    {/*                                    <p> <CustomBadge value={"Sellers"} type="products" /> <span className="product_stats_span">{sellersCount}</span></p>*/}
-                    {/*                                    <p className="product_status_aprroved seller_status_aprroved" ><CustomBadge value="Approved" type="orders" variant={"fulfillment"} /> <span className="product_stats_span">{approvedSellersCount}</span></p>*/}
-                    {/*                                </div>*/}
-                    {/*                                <div className="product_stats">*/}
-                    {/*                                    <p className="approval_pending"> <CustomBadge value="Approval Pending" type="orders" variant={"fulfillment"} />*/}
-                    {/*                                        <span className="product_stats_span">{approvalPendingSellersCount}</span></p>*/}
-                    {/*                                    <p className="product_status_disabled seller_status_disabled"> <CustomBadge value="Disabled" type="orders" variant={"fulfillment"} /><span className="product_stats_span">{disabledSellersCount}</span></p>*/}
-                    {/*                                </div>*/}
-                    {/*                                <div className="margin-top "></div>{" "}*/}
-                    {/*                                <div>*/}
-                    {/*                                    <Text>*/}
-                    {/*                                        Sellers that are currently on your Marketplace.*/}
-                    {/*                                    </Text>*/}
-                    {/*                                </div>*/}
-                    {/*                            </div>*/}
-
-                    {/*                        </LegacyCard.Section>*/}
-                    {/*                        <LegacyCard.Section >*/}
-                    {/*                            <div className="store_stats">*/}
-                    {/*                                <div class="product_stats">*/}
-                    {/*                                    <p> <CustomBadge value={"Products"} type="products" /> <span className="product_stats_span">{productStats}</span></p>*/}
-                    {/*                                    <p className="product_status_aprroved" ><CustomBadge value="Approved" type="orders" variant={"fulfillment"} /> <span className="product_stats_span">{ApprovedproductsStats}</span></p>*/}
-                    {/*                                </div>*/}
-                    {/*                                <div className="product_stats">*/}
-                    {/*                                    <p className="approval_pending"> <CustomBadge value="Approval Pending" type="orders" variant={"fulfillment"} />*/}
-                    {/*                                        <span className="product_stats_span">{ApprovalPendingStats}</span></p>*/}
-                    {/*                                    <p className="product_status_disabled"> <CustomBadge value="Disabled" type="orders" variant={"fulfillment"} /><span className="product_stats_span">{DisabledStats}</span></p>*/}
-                    {/*                                </div>*/}
-                    {/*                                <div className="margin-top "></div>{" "}*/}
-                    {/*                                <div>*/}
-                    {/*                                    <Text>*/}
-                    {/*                                        Products that are currently on your*/}
-                    {/*                                        Marketplace Store.*/}
-                    {/*                                    </Text>*/}
-                    {/*                                </div>*/}
-                    {/*                            </div>*/}
-
-                    {/*                        </LegacyCard.Section>*/}
+                            <LegacyCard title="Seller Statistics">
+                                <LegacyCard.Section>
+                                    <Text color="subdued" as="span">
+                                        Here you can check Statistics of your Marketplace Store.
+                                    </Text>
+                                </LegacyCard.Section>
+                                {skeleton ?
+                                    <Loader/>
+                                    :
+                                    <LegacyCard>
+                                        <Tabs
+                                            tabs={tabs}
+                                            selected={selected}
+                                            onSelect={getStoreStats}
+                                            loading={loadingTab}
+                                        >
+                                            {/*<LegacyCard.Section title={tabs[selected].content}>*/}
+                                            <LegacyCard.Section >
+                                                <div className="store_stats">
+                                                    <div className="margin-top "></div>{" "}
+                                                    <div>
+                                                        <Text>
+                                                            Sellers that are currently on your Marketplace.
+                                                        </Text>
+                                                    </div>
+                                                    <div class="product_stats margin-top">
+                                                        <p> <CustomBadge value={"Products"} type="products" /> <span className="product_stats_span">{productStats}</span></p>
+                                                        <p className="product_status_aprroved seller_status_aprroved" ><CustomBadge value="Orders" type="orders" variant={"fulfillment"} /> <span className="product_stats_span">{sellersCount}</span></p>
+                                                    </div>
 
 
-                    {/*                    </Tabs>*/}
-                    {/*                </LegacyCard>*/}
-                    {/*            }*/}
-                    {/*        </LegacyCard>*/}
 
-                    {/*    </Layout.Section>*/}
-                    {/*    <Layout.Section oneThird>*/}
-                    {/*        <LegacyCard title="Store Earning">*/}
-                    {/*            <LegacyCard.Section>*/}
-                    {/*                <Text color="subdued" as="span">*/}
-                    {/*                    Here you can check your earning*/}
-                    {/*                </Text>*/}
-                    {/*            </LegacyCard.Section>*/}
-                    {/*            <LegacyCard.Section>*/}
-                    {/*                <DateRangePicker*/}
-                    {/*                    onChange={handleSelect}*/}
-                    {/*                    ranges={[dateRange]}*/}
-                    {/*                    placeholder="Select Date Range"*/}
-                    {/*                    showOneCalendar*/}
-                    {/*                />*/}
-                    {/*            </LegacyCard.Section>*/}
 
-                    {/*            {skeleton1 ? (*/}
-                    {/*                <Loader />*/}
-                    {/*            ) : (*/}
-                    {/*                <>*/}
+                                                </div>
+
+                                            </LegacyCard.Section>
+
+                                        </Tabs>
+                                    </LegacyCard>
+                                }
+                            </LegacyCard>
+
+                        </Layout.Section>
+                        <Layout.Section oneThird>
+                            <LegacyCard title="Seller Earning">
+                                <LegacyCard.Section>
+                                    <Text color="subdued" as="span">
+                                        Here you can check your earning
+                                    </Text>
+                                </LegacyCard.Section>
+                                <LegacyCard.Section>
+                                    <DateRangePicker
+                                        onChange={handleSelect}
+                                        ranges={[dateRange]}
+                                        placeholder="Select Date Range"
+                                        showOneCalendar
+                                    />
+                                </LegacyCard.Section>
+
+                                {skeleton1 ? (
+                                    <Loader />
+                                ) : (
+                                    <>
                     {/*                    <LegacyCard.Section>*/}
                     {/*                        <div className="earning_stats">*/}
                     {/*                            <text>*/}
@@ -777,24 +745,24 @@ export function VDashboard() {
                     {/*                        <div className="margin-top"></div>*/}
                     {/*                        <Text>This is sellers' overall earning amount of your Marketplace</Text>*/}
                     {/*                    </LegacyCard.Section>*/}
-                    {/*                    <LegacyCard.Section>*/}
-                    {/*                        <div className="earning_stats">*/}
-                    {/*                            <text>*/}
-                    {/*                                <CustomBadge value={"Admin Commission"} type="products" />{" "}*/}
-                    {/*                                <span className="product_stats_span">*/}
-                    {/*    {currency} {totalCommission}*/}
-                    {/*</span>*/}
-                    {/*                            </text>*/}
-                    {/*                        </div>*/}
-                    {/*                        <div className="margin-top"></div>*/}
-                    {/*                        <Text>This is the overall commission amount of your Marketplace.</Text>*/}
-                    {/*                    </LegacyCard.Section>*/}
-                    {/*                </>*/}
-                    {/*            )}*/}
+                                        <LegacyCard.Section>
+                                            <div className="earning_stats">
+                                                <text>
+                                                    <CustomBadge value={"Total Commission"} type="products" />{" "}
+                                                    <span className="product_stats_span">
+                        {currency} {totalCommission}
+                    </span>
+                                                </text>
+                                            </div>
+                                            <div className="margin-top"></div>
+                                            <Text>This is the overall commission amount of your Marketplace.</Text>
+                                        </LegacyCard.Section>
+                                    </>
+                                )}
 
-                    {/*        </LegacyCard>*/}
-                    {/*    </Layout.Section>*/}
-                    {/*</Layout>*/}
+                            </LegacyCard>
+                        </Layout.Section>
+                    </Layout>
 
                     {orders.length > 0 && (
                         <div style={{ marginTop: "30px" }}>
@@ -861,18 +829,20 @@ export function VDashboard() {
               {/*</Text> *!/*/}
               {/*          </LegacyCard.Section>*/}
               {/*      </LegacyCard>*/}
-                    <div style={{ marginTop: "30px" }}></div>
 
+
+                    <div style={{ marginTop: "30px" }}></div>
+                    {topSoldProduct.length > 0 && (
                     <LegacyCard title="Top Sold Products">
                         <LegacyCard.Section>
                             <IndexTable
                                 resourceName={resourceName}
                                 selectable={false}
-                                itemCount={sellers.length}
+                                itemCount={topSoldProduct.length}
                                 selectedItemsCount={
                                     allResourcesSelected ? "All" : selectedResources.length
                                 }
-                                onSelectionChange={handleSelectionChange}
+                                // onSelectionChange={handleSelectionChange}
                                 headings={[
                                     { title: "" },
                                     { title: "Product Name" },
@@ -886,32 +856,36 @@ export function VDashboard() {
                             </IndexTable>
                         </LegacyCard.Section>
                     </LegacyCard>
-              {/*      <div style={{ marginTop: "30px" }}></div>*/}
+                    )}
 
-              {/*      <LegacyCard title="Out of Stock Products">*/}
-              {/*          <LegacyCard.Section>*/}
-              {/*              <IndexTable*/}
-              {/*                  resourceName={resourceName}*/}
-              {/*                  selectable={false}*/}
-              {/*                  itemCount={sellers.length}*/}
-              {/*                  selectedItemsCount={*/}
-              {/*                      allResourcesSelected ? "All" : selectedResources.length*/}
-              {/*                  }*/}
-              {/*                  onSelectionChange={handleSelectionChange}*/}
-              {/*                  headings={[*/}
-              {/*                      { title: "Product Id" },*/}
-              {/*                      { title: "Product Name" },*/}
-              {/*                      { title: "Total Sales" },*/}
-              {/*                      { title: "Status" },*/}
+                    <div style={{ marginTop: "30px" }}></div>
 
-              {/*                  ]}*/}
-              {/*              >*/}
-              {/*                  {rowMarkup4}*/}
-              {/*              </IndexTable>*/}
+                    {outofStockProduct.length > 0 && (
+                    <LegacyCard title="Out of Stock Products">
+                        <LegacyCard.Section>
+                            <IndexTable
+                                resourceName={resourceName}
+                                selectable={false}
+                                itemCount={outofStockProduct.length}
+                                selectedItemsCount={
+                                    allResourcesSelected ? "All" : selectedResources.length
+                                }
+                                // onSelectionChange={handleSelectionChange}
+                                headings={[
+                                    { title: "Product Id" },
+                                    { title: "Product Name" },
+                                    { title: "Total Sales" },
+                                    { title: "Status" },
 
-              {/*          </LegacyCard.Section>*/}
-              {/*      </LegacyCard>*/}
-              {/*      <div style={{ marginTop: "30px" }}></div>*/}
+                                ]}
+                            >
+                                {rowMarkup4}
+                            </IndexTable>
+
+                        </LegacyCard.Section>
+                    </LegacyCard>
+                    )}
+                    <div style={{ marginTop: "30px" }}></div>
 
                 </Page>
             )}
