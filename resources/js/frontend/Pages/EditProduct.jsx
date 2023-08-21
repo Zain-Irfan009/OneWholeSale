@@ -1520,12 +1520,12 @@ export function EditProduct() {
                 <ContextualSaveBar
                     message="Unsaved changes"
                     saveAction={{
-                        onAction: () => console.log("add form submit logic"),
-                        loading: false,
-                        disabled: false,
+                        onAction: addProduct,
+                        loading: btnLoading,
                     }}
                     discardAction={{
-                        onAction: () => console.log("add clear form logic"),
+
+                        onAction: handleDiscardModal,
                     }}
                 />
             )}

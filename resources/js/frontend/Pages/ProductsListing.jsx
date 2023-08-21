@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from "react";
+import React, {useState, useCallback, useEffect, useContext, useMemo} from "react";
 import {
     Page,
     Card,
@@ -27,7 +27,7 @@ import {
     ChoiceList,
     SkeletonPage,
     RangeSlider,
-    IndexFilters, SkeletonBodyText,
+    IndexFilters, SkeletonBodyText, Autocomplete, Stack, Tag,
 } from "@shopify/polaris";
 import { Frame, ContextualSaveBar } from "@shopify/polaris";
 import {
@@ -66,7 +66,12 @@ export function ProductsListing() {
 
     const [skeleton, setSkeleton] = useState(false)
 
+    const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
 
+    const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
     //pagination
     const [pagination, setPagination] = useState(1);
     const [showPagination, setShowPagination] = useState(false);
@@ -83,6 +88,93 @@ export function ProductsListing() {
   const [orderStatus, setOrderStatus] = useState("");
   const [tableLoading, setTableLoading] = useState(false);
 
+    const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+    const [optionsLoading, setOptionsLoading] = useState(false);
+    const CollectionsOptionsData = useMemo(
+        () => [
+            { value: "Catalogs", label: "catalog" },
+            { value: "Zippo Display", label: "zippo" },
+        ],
+        []
+    );
+
+    const [collectionOptionsSelected, setCollectionOptionsSelected] =
+        useState("");
+    const sellerUpdateText = useCallback(
+        (value) => {
+            setSellerEmailInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    setSellerEmailList(CollectionsOptionsData);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = CollectionsOptionsData.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+                setSellerEmailList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+    );
+
+    const removeSellerEmail = useCallback(
+        (collection) => () => {
+            const collectionOptions = [...sellerEmailListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setSellerListSelected(collectionOptions);
+        },
+        [collectionOptionsSelected]
+    );
+
+    function tagTitleCase(string) {
+        return string
+            .toLowerCase()
+            .split(" ")
+            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .join("");
+    }
+    const sellerContentMarkup =
+        sellerEmailListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {sellerEmailListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeSellerEmail(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+    const sellerEmailTextField = (
+        <Autocomplete.TextField
+            // onChange={sellerUpdateText}
+            label="Seller Email*"
+            value={sellerEmailInputValue}
+            placeholder="Select Seller"
+            verticalContent={sellerContentMarkup}
+        />
+    );
   //modal code
   const [modalReassign, setModalReassign] = useState(false);
   const [modalChangePassword, setModalChangePassword] = useState(false);
@@ -99,6 +191,8 @@ export function ProductsListing() {
   const [sellerEmail, setSellerEmail] = useState("");
     const [toggleLoadData1, setToggleLoadData1] = useState(true);
     const [formErrors, setFormErrors] = useState({});
+
+
 
 
     const [selectedBrand, setSelectedBrand] = useState('');
@@ -123,6 +217,7 @@ export function ProductsListing() {
 
   const handleReassignAction = (id) => {
     setUniqueId(id);
+      setSellerListSelected([])
     setModalReassign(true);
   };
 
@@ -328,6 +423,7 @@ setSelectedStatus(selectedOption)
                 label: `${name} (${email})`
             }));
             setSellerList(arr_seller)
+            setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
 
             setPaginationUrl(response?.data?.products?.links);
@@ -937,17 +1033,11 @@ setSelectedStatus(selectedOption)
         const sessionToken = getAccessToken();
         const errors = {};
 
-        if (sellerEmail.trim() === '') {
-            errors.sellerEmail = 'Email is required';
-        }
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return;
-        }
+
         setBtnLoading(true)
         let data = {
             id: uniqueId,
-            email:sellerEmail
+            email:sellerEmailListSelected
         }
         try {
             const response = await axios.post(`${apiUrl}/reassign-seller`,data,
@@ -1041,14 +1131,26 @@ setSelectedStatus(selectedOption)
         ]}
       >
         <Modal.Section>
-          <InputField
-            label="Seller Email *"
-            type="text"
-            name="seller_email"
-            value={sellerEmail}
-            onChange={handleSellerEmail}
-            error={formErrors.sellerEmail}
-          />
+          {/*<InputField*/}
+          {/*  label="Seller Email *"*/}
+          {/*  type="text"*/}
+          {/*  name="seller_email"*/}
+          {/*  value={sellerEmail}*/}
+          {/*  onChange={handleSellerEmail}*/}
+          {/*  error={formErrors.sellerEmail}*/}
+          {/*/>*/}
+
+            <Autocomplete
+
+                options={sellerEmailList}
+                selected={sellerEmailListSelected}
+                textField={sellerEmailTextField}
+                loading={optionsLoading}
+                onSelect={
+                    setSellerListSelected
+                }
+                listTitle="Sellers"
+            />
         </Modal.Section>
       </Modal>
       <Modal
