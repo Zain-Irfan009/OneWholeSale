@@ -83,7 +83,7 @@ function AuthProvider(props) {
                 headers: { Authorization: `Bearer ${getAccessToken()}` },
             });
 
-            console.log("AuthCheck response: ", res?.data);
+            console.log("AuthCheck response: ", res);
 
             dispatch({
                 userEmail: res?.data?.data?.user?.email,
@@ -93,6 +93,7 @@ function AuthProvider(props) {
                 isLoggedIn: true,
                 userToken: getAccessToken(),
             });
+
             setLoading(false);
         } catch (error) {
             console.warn("AuthCheck Api Error", error);

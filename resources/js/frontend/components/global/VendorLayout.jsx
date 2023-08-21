@@ -82,6 +82,9 @@ export function VendorLayout(props) {
   // }, [user])
 
 
+    useEffect(() => {
+        console.log('handle',handle);
+    }, [handle]);
 
 
 
