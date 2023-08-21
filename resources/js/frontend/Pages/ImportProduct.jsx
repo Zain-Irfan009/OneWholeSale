@@ -206,8 +206,12 @@ export function ImportProduct() {
 
         //Assign Seller Modal
 
-    const handleAssignProductToSeller = (id) => {
+    const handleAssignProductToSeller = (id,seller_email) => {
+console.log('seller_email',seller_email)
         setUniqueId(id)
+        setSellerListSelected([seller_email]);
+
+        // setSellerListSelected([])
         setModalAssignProduct(true)
     }
     const handleAassignProductCloseAction=()=>{
@@ -453,7 +457,7 @@ export function ImportProduct() {
 
 
     const rowMarkup = importData?.map(
-        ({ id, product_shopify_id,title,vendor_name }, index) => (
+        ({ id, product_shopify_id,title,vendor_name,seller_email }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -505,7 +509,7 @@ export function ImportProduct() {
 
                 <IndexTable.Cell>
                     <Tooltip content="Assign Product to Seller">
-                        <Button size="micro" onClick={() => handleAssignProductToSeller( id )}>
+                        <Button size="micro" onClick={() => handleAssignProductToSeller( id,seller_email )}>
                             <Icon source={EditMinor}></Icon>
                         </Button>
                     </Tooltip>
