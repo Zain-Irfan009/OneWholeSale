@@ -257,9 +257,9 @@ export function Orders() {
                     </Text>
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    { order_number != null ? order_number : '---'}
-                </IndexTable.Cell>
+                {/*<IndexTable.Cell>*/}
+                {/*    { order_number != null ? order_number : '---'}*/}
+                {/*</IndexTable.Cell>*/}
                 <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
                 <IndexTable.Cell>
@@ -635,15 +635,15 @@ export function Orders() {
                             <Card.Section>
                                 <div style={{ padding: '16px', display: 'flex' }}>
                                     <div style={{ flex: 1 }}>
-                                        <TextField
-                                            placeholder='Search Order'
-                                            value={queryValue}
-                                            onChange={handleFiltersQueryChange}
-                                            clearButton
-                                            onClearButtonClick={handleQueryValueRemove}
-                                            autoComplete="off"
-                                            prefix={<Icon source={SearchMinor} />}
-                                        />
+                                        {/*<TextField*/}
+                                        {/*    placeholder='Search Order'*/}
+                                        {/*    value={queryValue}*/}
+                                        {/*    onChange={handleFiltersQueryChange}*/}
+                                        {/*    clearButton*/}
+                                        {/*    onClearButtonClick={handleQueryValueRemove}*/}
+                                        {/*    autoComplete="off"*/}
+                                        {/*    prefix={<Icon source={SearchMinor} />}*/}
+                                        {/*/>*/}
                                     </div>
                                 </div>
 
@@ -660,7 +660,7 @@ export function Orders() {
                                     emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
-                                        { title: 'Order Number' },
+                                        // { title: 'Order Number' },
                                         { title: "Date" },
                                         { title: 'Payment Status' },
                                         { title: 'Order Status' },

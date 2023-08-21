@@ -237,3 +237,14 @@
 .seller_commission_listing_search .Polaris-Connected .Polaris-Connected__Item .Polaris-TextField{
     padding:1px;
 }
+
+.fulfillement_status .Polaris-Badge{
+    background:#FFEF9D;
+}
+
+.ticket-alert-c {
+    position: fixed;
+    right: 100px;
+    top: 9px;
+    z-index: 999 !important;
+}

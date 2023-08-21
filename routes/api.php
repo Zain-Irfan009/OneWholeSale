@@ -121,6 +121,9 @@ Route::middleware('auth:sanctum')->group( function () {
 
     Route::prefix('/seller')->group(function(){
 
+        Route::get('get-shop',[\App\Http\Controllers\Seller\DashboardController::class,'GetShop']);
+
+        Route::get('seller-profile',[\App\Http\Controllers\Seller\DashboardController::class,'SellerProfile']);
 
         //Dashboard
         Route::get('recent-orders',[\App\Http\Controllers\Seller\DashboardController::class,'RecentOrders']);

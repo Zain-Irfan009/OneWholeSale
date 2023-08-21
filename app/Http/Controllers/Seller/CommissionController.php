@@ -12,11 +12,12 @@ class CommissionController extends Controller
 {
     public function CommissionListing(){
         $user=auth()->user();
-
-        $commission_logs=CommissionLog::where('user_id',$user->id)->get();
+        $session=Session::find($user->shop_id);
+        $commission_logs=CommissionLog::where('user_id',$user->id)->orderBy('id','desc')->paginate(20);
 
         $data = [
-            'data' => $commission_logs
+            'data' => $commission_logs,
+                  'currency'=>$session->money_format,
         ];
         return response()->json($data);
     }

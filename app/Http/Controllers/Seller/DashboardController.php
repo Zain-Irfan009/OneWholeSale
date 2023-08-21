@@ -211,7 +211,21 @@ class DashboardController extends Controller
         ];
         return response()->json($data);
 
-
     }
+        public function GetShop(Request $request){
+
+            $user=auth()->user();
+            if($user){
+
+                return response()->json($user->collection_handle);
+            }
+        }
+
+        public function SellerProfile(Request $request){
+            $user=auth()->user();
+            $seller=User::where('id',$user->id)->where('role','seller')->first();
+
+            return response()->json($seller);
+        }
 
 }

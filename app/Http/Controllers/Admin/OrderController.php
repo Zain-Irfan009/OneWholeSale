@@ -89,6 +89,7 @@ class OrderController extends Controller
                 $newOrder->billing_province = $order->billing_address->province;
                 $newOrder->billing_country = $order->billing_address->country;
             }
+
             $newOrder->financial_status = $order->financial_status;
             $newOrder->fulfillment_status = $order->fulfillment_status;
             if (isset($order->customer)) {
@@ -147,6 +148,10 @@ class OrderController extends Controller
                 $product = Product::where('shopify_id', $item->product_id)->where('shop_id', $shop->id)->first();
 
                if ($product) {
+
+                   $new_line->user_id=$product->user_id;
+                   $new_line->save();
+
                    $product->quantity=$product->quantity -$item->quantity;
                    $product->save();
                    $user = \App\Models\User::find($product->user_id);

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useContext, useEffect } from "react";
-import { Frame, Navigation, TopBar, Toast } from "@shopify/polaris";
+import { Frame, Navigation, TopBar, Toast,Button } from "@shopify/polaris";
 import {
   HomeMinor,
   SettingsMinor,
@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 // import { setAccessToken, getAccessToken } from '../../components'
 import axios from "axios";
 import {useAuthState} from "../../assets/AuthProvider";
+import {getAccessToken} from "../../assets/cookies";
 
 export function VendorLayout(props) {
   const apiUrl = "https://workingproject.test";
@@ -27,6 +28,7 @@ export function VendorLayout(props) {
   const skipToContentRef = useRef(null);
   const [userMenuActive, setUserMenuActive] = useState(false);
   const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
+  const [sellerHandle, setSellerHandle] = useState('');
   const [userDetails, setUserDetails] = useState({
       name: name,
       initials: `${name.charAt(0)}`,
@@ -44,6 +46,41 @@ export function VendorLayout(props) {
     () => setSucessToast((sucessToast) => !sucessToast),
     []
   );
+
+    const handleShop = async () => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/api/seller/get-shop`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            console.log(response?.data)
+            setSellerHandle(response?.data)
+
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+    const handleViewShop = () => {
+        // Open google.com in a new tab
+        window.open(`https://onewholesalelive.myshopify.com/collections/${sellerHandle}`, '_blank');
+        // window.open(`https://tlx-new-brand.myshopify.com/collections/${sellerHandle}`, '_blank');
+    };
+
+
+    useEffect(() => {
+        handleShop()
+    }, []);
+
 
   const toastErrorMsg = errorToast ? (
     <Toast content={toastMsg} error onDismiss={toggleErrorMsgActive} />
@@ -67,6 +104,10 @@ export function VendorLayout(props) {
   //         })
   //     }
   // }, [user])
+
+
+
+
 
   const handleLogout = async () => {
     console.log("logout")
@@ -132,6 +173,14 @@ export function VendorLayout(props) {
                 url: "/commission",
                 onClick: () => setLocationChange("/vendor/commission"),
                 selected: location.pathname === "/commission",
+            },
+
+            {
+                label: "Profile",
+                icon: OrdersMinor,
+                url: "/profile",
+                onClick: () => setLocationChange("/vendor/profile"),
+                selected: location.pathname === "/profile",
             },
         ]}
       />
@@ -204,6 +253,9 @@ export function VendorLayout(props) {
           onNavigationDismiss={toggleMobileNavigationActive}
           skipToContentTarget={skipToContentRef.current}
         >
+            <div className="ticket-alert-c">
+            <Button onClick={handleViewShop}>View Shop</Button>
+            </div>
           {props.children}
         </Frame>
       )}

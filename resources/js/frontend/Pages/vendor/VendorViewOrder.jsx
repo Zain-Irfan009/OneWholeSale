@@ -116,7 +116,7 @@ export function VendorViewOrder() {
     const [billingCity, setBillingCity] = useState();
     const [billingZip, setBillingZip] = useState();
     const [billingCountry, setBillingCountry] = useState();
-
+    const [totalCost, setTotalCost] = useState(0);
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(
@@ -200,6 +200,13 @@ export function VendorViewOrder() {
             setBillingZip(response?.data?.order?.billing_zip)
             setBillingCountry(response?.data?.order?.billing_country)
 
+            let total = 0;
+            response?.data?.line_items?.forEach((item) => {
+                total += item.quantity * Number(item.price);
+                console.log('total',total)
+            });
+
+            setTotalCost(total)
 
 
             // setCustomers(response?.data)
@@ -343,7 +350,7 @@ export function VendorViewOrder() {
                                                 </p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {subtotalPrice}
+                                                    {totalCost}
                                                 </p>
                                             </Stack>
                                         </div>
@@ -385,7 +392,7 @@ export function VendorViewOrder() {
                                                 <p>Total</p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {totalPrice}
+                                                    {totalCost}
                                                 </p>
                                             </Stack>
                                         </div>
@@ -395,7 +402,7 @@ export function VendorViewOrder() {
                                                 <p>To be paid by customer</p>
                                                 <p>
                                                     {abandonedCheckout?.oldCurrencyCode}{" "}
-                                                    {totalPrice}
+                                                    {totalCost}
                                                 </p>
                                             </Stack>
                                         </div>
