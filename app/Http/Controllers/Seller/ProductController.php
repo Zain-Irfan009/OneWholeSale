@@ -19,7 +19,7 @@ class ProductController extends Controller
         $user=User::find($user->id);
         $session=Session::find($user->shop_id);
         if($user){
-            $products=Product::where('user_id',$user->id)->paginate(20);
+            $products=Product::where('user_id',$user->id)->orderBy('id','desc')->paginate(20);
             $data = [
                 'products'=>$products,
                 'currency'=>$session->money_format,

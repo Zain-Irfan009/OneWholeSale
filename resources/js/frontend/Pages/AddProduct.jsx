@@ -80,6 +80,7 @@ export function AddProduct() {
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
     const [sellerEmail, setSellerEmail] = useState("");
+    const [collectionSelect, setCollectionSelect] = useState("");
 
     const CollectionsOptionsData = useMemo(
         () => [
@@ -876,7 +877,8 @@ export function AddProduct() {
 
     const collectionTextField = (
         <Autocomplete.TextField
-            onChange={collectionUpdateText}
+            // onChange={collectionUpdateText}
+            error={formErrors.collectionSelect}
             label="Collections"
             value={collectionInputValue}
             placeholder="Select some options"
@@ -887,6 +889,7 @@ export function AddProduct() {
     const sellerEmailTextField = (
         <Autocomplete.TextField
             // onChange={sellerUpdateText}
+            error={formErrors.sellerEmail}
             label="Seller Email*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
@@ -1272,9 +1275,17 @@ export function AddProduct() {
         if (productName.trim() === '') {
             errors.productName = 'Product Name is required';
         }
-        // if (sellerEmail.trim() === '') {
-        //     errors.sellerEmail = 'Seller Email is required';
-        // }
+
+        if (!sellerEmailListSelected) {
+            errors.sellerEmail = 'Seller Email is required';
+            console.log(errors);
+        }
+
+        if (!collectionOptionsSelected) {
+            errors.collectionSelect = 'Collection is required';
+            console.log(errors);
+        }
+
 
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
@@ -1325,6 +1336,7 @@ export function AddProduct() {
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
+            navigate('/productslisting')
             // setSkeleton(false)
 
         } catch (error) {

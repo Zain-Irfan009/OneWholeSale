@@ -651,7 +651,7 @@ export function Orders() {
                                     resourceName={resourceName}
                                     itemCount={orders?.length}
                                     hasMoreItems
-                                    selectable={true}
+                                    selectable={false}
                                     selectedItemsCount={
                                         allResourcesSelected ? 'All' : selectedResources.length
                                     }

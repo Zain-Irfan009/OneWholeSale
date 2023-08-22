@@ -1758,6 +1758,7 @@ export function ViewProduct() {
                                             }
                                         />
                                     </Card>
+                                    {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
                                     <Card sectioned title="Variant Details">
                                         {variants > 0 && (
                                             <Card.Section>
@@ -1980,7 +1981,9 @@ export function ViewProduct() {
                       </Text>
                     </div> */}
                                     </Card>
-                                    {variants > 0 && (
+                                    )}
+                                    {/*{variants > 0 && (*/}
+                                    {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
                                         <Card title="Variants">
                                             <Card.Section>
                                                 <div className="Product-Variants-Table">

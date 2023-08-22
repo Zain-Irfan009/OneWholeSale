@@ -699,10 +699,10 @@ setSelectedStatus(selectedOption)
                   content: "Edit",
                   onAction: () => handleEditAction(id),
                 },
-                {
-                  content: "View in Store",
-                  onAction: handleViewinStoreAction,
-                },
+                // {
+                //   content: "View in Store",
+                //   onAction: handleViewinStoreAction,
+                // },
                 {
                   content: "Reassign",
                   onAction: () => handleReassignAction(id),

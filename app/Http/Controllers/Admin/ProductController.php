@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Shopify\Clients\Rest;
 use Vtiful\Kernel\Excel;
-
+use Illuminate\Support\Str;
 class ProductController extends Controller
 {
     public function Products(Request $request){
@@ -118,7 +118,7 @@ if(isset($request->variants) ) {
         $variant_option2 = (isset($title[1])) ? $title[1] : null;
         $variant_option3 = (isset($title[2])) ? $title[2] : null;
 
-        if ($variant->title != null) {
+        if ($variant->title != 'Default Title') {
 
             array_push($variants_array, [
                 'title' => $variant->title,
@@ -139,6 +139,22 @@ if(isset($request->variants) ) {
                 'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
                 'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
 
+            ]);
+        }
+        else{
+
+            array_push($variants_array, [
+                'price' => $request->product_price,
+                'inventory_quantity' => $request->product_quantity,
+                'compare_at_price' => $request->product_compare_at_price,
+                'sku' => $request->product_sku,
+                'barcode' => $request->barcode,
+                'taxable' => $request->taxable,
+                'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+                'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+                'weight_unit' => $request->weight_unit,
+                'inventory_management'=>(($request->inventory_management=="true")) ? 'shopify' : null,
+                'inventory_policy'=>(($request->inventory_policy=="true")) ? 'continue' : 'deny',
             ]);
         }
     }
@@ -168,9 +184,10 @@ if(isset($request->images)) {
     foreach ($request->images as $index => $image) {
 
         $destinationPath = 'productimages/';
-        $filename = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', $image->getClientOriginalName());
+        $filename = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', Str::random(10).'.png');
         $image->move($destinationPath, $filename);
         $filename = (asset('productimages/' . $filename));
+
 
 
         array_push($images_array, [
@@ -181,8 +198,25 @@ if(isset($request->images)) {
 
 
     }
-
 }
+
+        if(isset($request->product_id)){
+            $product_id_get=Product::find($request->product_id);
+            $product_get_images=ProductImage::where('shopify_product_id',$product_id_get->shopify_id)->get();
+
+            foreach ($product_get_images as $index=> $product_get_image){
+                array_push($images_array, [
+                    'alt' => $request->product_name . '_' . $index,
+                    'position' => $index  + 1,
+                'src' => $product_get_image->src,
+            ]);
+
+                $product_get_image->delete();
+            }
+
+
+        }
+
 
             if($request->tags) {
                 $tags = $request->tags;
@@ -199,7 +233,7 @@ if(isset($request->images)) {
             $collections='';
         }
 
-        if($request->status=="true"){
+        if($request->status=="active"){
             $status='active';
         }else{
             $status='draft';
@@ -228,6 +262,7 @@ if(isset($request->images)) {
         }else {
             $response = $client->post('/products.json', $productdata);
         }
+
         $response=$response->getDecodedBody();
 
 

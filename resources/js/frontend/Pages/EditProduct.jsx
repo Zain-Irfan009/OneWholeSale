@@ -49,6 +49,7 @@ import {
     ChevronDownMinor,
     ChevronUpMinor,
     DeleteMinor,
+    NoteMinor,
     MobilePlusMajor,
 } from "@shopify/polaris-icons";
 import { SkeltonPageForTable } from "../components/global/SkeltonPage";
@@ -302,23 +303,46 @@ export function EditProduct() {
             setChargeTaxChecked(response?.data?.variants?.[0].taxable);
             setSku(response?.data?.variants?.[0].sku);
             setBarcode(response?.data?.variants?.[0].barcode);
-            setProductHandle(response?.data?.product?.product_type);
+            if (response?.data?.product?.product_type !== null) {
+                setProductHandle(response?.data?.product?.product_type);
+            }else{
+                setProductHandle('');
+            }
             setTitleMetafield(response?.data?.product?.search_engine_title);
             setDescriptionMetafield(
                 response?.data?.product?.search_engine_meta_description
             );
             setWeight(response?.data?.variants?.[0].weight);
             setUnit(response?.data?.variants?.[0].weight_unit);
-            setPageTitle(response?.data?.product?.search_engine_title);
-            setPageDescription(
-                response?.data?.product?.search_engine_meta_description
-            );
+
+            if (response?.data?.product?.search_engine_title !== null) {
+                setPageTitle(response?.data?.product?.search_engine_title);
+            }else {
+                setPageTitle('')
+            }
+
+            if (response?.data?.product?.search_engine_meta_description !== null) {
+                setPageDescription(response.data.product.search_engine_meta_description);
+            } else {
+                setPageDescription('');
+            }
+            // setPageDescription(
+            //     response?.data?.product?.search_engine_meta_description
+            // );
             setStatus(response?.data?.product?.status);
-            setNewTags(response?.data?.product?.tags.split(","));
+            if (response?.data?.product?.tags !== '') {
+                setNewTags(response?.data?.product?.tags.split(","));
+            }
             setCollectionOptionsSelected(
                 response?.data?.product?.collections.split(",")
             );
-            setVendor(response?.data?.product?.vendor);
+            if (response?.data?.product?.vendor !== null) {
+                setVendor(response?.data?.product?.vendor);
+            }else{
+                setVendor('');
+            }
+
+            console.log('img',response?.data?.product_images)
             setMediaFilesUrl(response?.data?.product_images);
             setVariantOptions(response?.data?.options?.[0]?.name);
             setVariantOptions2(response?.data?.options?.[1]?.name);
@@ -612,6 +636,11 @@ export function EditProduct() {
         }
     };
 
+
+    const handleStatusChange = (selectedOption) => {
+        setStatus(selectedOption);
+    };
+
     useEffect(() => {
         function handleScroll() {
             if (window.scrollY > 0) {
@@ -637,6 +666,9 @@ export function EditProduct() {
     ) : allProducts?.length > 0 && hasNextPage ? (
         <Button onClick={handleProductsPagination}>Load more...</Button>
     ) : null;
+
+
+
 
     const noResultsMarkup =
         !productsLoading && allProducts.length == 0 ? (
@@ -703,6 +735,9 @@ export function EditProduct() {
         //     updatedState[skuIndex] = updatedObject;
         //     return updatedState;
         // });
+
+
+
 
         return (
             <>
@@ -1093,7 +1128,7 @@ export function EditProduct() {
 
     const collectionTextField = (
         <Autocomplete.TextField
-            onChange={collectionUpdateText}
+            // onChange={collectionUpdateText}
             label="Collections"
             value={collectionInputValue}
             placeholder="Select some options"
@@ -1160,9 +1195,13 @@ export function EditProduct() {
             </DropZone>
         </Stack>
     );
+
+
+
     useEffect(() => {
         console.log("mediaFiles", mediaFiles);
-    }, [mediaFiles]);
+        console.log("quantity", quantity);
+    }, [mediaFiles,quantity]);
 
     const addVariantHandler = () => {
         let variantcount = variants + 1;
@@ -1184,6 +1223,91 @@ export function EditProduct() {
         "image/jpg",
         "image/svg",
     ];
+
+    const uploadedFiles = (
+        <LegacyStack id="jjj">
+            {mediaFiles.map((file, index) => (
+                <LegacyStack alignment="center" key={index}>
+                    <div className="Polaris-Product-Gallery">
+                        <Thumbnail
+                            size="large"
+                            alt={file.name}
+                            source={
+                                validImageTypes.indexOf(file.type) > -1
+                                    ? window.URL.createObjectURL(file)
+                                    : NoteMinor
+                            }
+                        />
+                        <span
+                            className="media_hover"
+                            onClick={() => handleRemoveMedia(index)}
+                        >
+                            <Icon source={DeleteMinor} />
+                        </span>
+                    </div>
+                </LegacyStack>
+            ))}
+            {mediaFilesUrl.map(({ id, src }, index) => (
+                <LegacyStack alignment="center" key={id}>
+                    <div className="Polaris-Product-Gallery">
+                        <Thumbnail
+                            size="large"
+                            alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
+                            source={src} // Use 'src' directly as the image source
+                        />
+                    </div>
+                </LegacyStack>
+            ))}
+
+
+
+
+
+            {/*{product?.images && JSON.parse(product?.images).map((imageUrl, index) => {*/}
+            {/*    const file = imageUrl.startsWith('www')*/}
+            {/*        ? `https://${imageUrl}`*/}
+            {/*        : imageUrl;*/}
+
+
+            {/*    if (file) {*/}
+            {/*        return (*/}
+            {/*            <LegacyStack alignment="center" key={index}>*/}
+            {/*                <div className="Polaris-Product-Gallery">*/}
+            {/*                    <Thumbnail*/}
+            {/*                        size="large"*/}
+            {/*                        alt={product?.title}*/}
+            {/*                        source={file}*/}
+            {/*                    />*/}
+            {/*                </div>*/}
+            {/*            </LegacyStack>*/}
+            {/*        );*/}
+            {/*    }*/}
+
+            {/*    return null;*/}
+            {/*})}*/}
+
+
+
+            {((!mediaFiles || mediaFiles.length === 0)) &&(
+                <div className="Polaris-Product-DropZone">
+                    <LegacyStack alignment="center">
+                        <DropZone
+                            accept="image/*, video/*"
+                            type="image,video"
+                            openFileDialog={openFileDialog}
+                            onDrop={handleDropZoneDrop}
+                            onFileDialogClose={toggleOpenFileDialog}
+                        >
+                            <DropZone.FileUpload actionTitle={"Add files"} />
+                        </DropZone>
+                    </LegacyStack>
+                </div>
+            )}
+
+
+        </LegacyStack>
+    );
+
 
     const handleProductHandle = (e) => {
         setProductHandle(e.target.value);
@@ -1435,11 +1559,13 @@ export function EditProduct() {
 
     //SUbmit Data
     const addProduct = async () => {
+        console.log('dssd',quantity)
         setBtnLoading(true);
         const sessionToken = getAccessToken();
 
         let formData = new FormData();
         formData.append("product_id", params.edit_product_id);
+
         formData.append("product_name", productName);
         formData.append("description", descriptioncontent);
         formData.append("product_price", price);
@@ -1480,6 +1606,7 @@ export function EditProduct() {
             setBtnLoading(false);
             setToastMsg(response?.data?.message);
             setSucessToast(true);
+            navigate('/productslisting')
             // setSkeleton(false)
         } catch (error) {
             console.log(error);
@@ -1632,111 +1759,120 @@ export function EditProduct() {
                                             },
                                         ]}
                                     >
-                                        <Stack id="jjj">
-                                            {mediaFilesUrl.map(
-                                                ({ id, src }, index) => (
-                                                    <Stack alignment="center">
-                                                        <div className="Polaris-Product-Gallery">
-                                                            <Thumbnail
-                                                                size="large"
-                                                                alt={
-                                                                    "header-img"
-                                                                }
-                                                                source={src}
-                                                            />
-                                                            <span
-                                                                className="media_hover"
-                                                                onClick={() =>
-                                                                    handleRemoveMediaApi(
-                                                                        index
-                                                                    )
-                                                                }
-                                                            >
-                                                                <Icon
-                                                                    source={
-                                                                        DeleteMinor
-                                                                    }
-                                                                >
-                                                                    {" "}
-                                                                </Icon>
-                                                            </span>
-                                                        </div>
-                                                    </Stack>
-                                                )
-                                            )}
-                                            {mediaFiles.length > 0 && (
-                                                <Stack id="jjj">
-                                                    {mediaFiles.map(
-                                                        (file, index) => (
-                                                            <Stack
-                                                                alignment="center"
-                                                                key={index}
-                                                            >
-                                                                <div className="Polaris-Product-Gallery">
-                                                                    <Thumbnail
-                                                                        size="large"
-                                                                        alt={
-                                                                            file.name
-                                                                        }
-                                                                        source={
-                                                                            validImageTypes.indexOf(
-                                                                                file.type
-                                                                            ) >
-                                                                            -1
-                                                                                ? window.URL.createObjectURL(
-                                                                                    file
-                                                                                )
-                                                                                : NoteMinor
-                                                                        }
-                                                                    />
-                                                                    <span
-                                                                        className="media_hover"
-                                                                        onClick={() =>
-                                                                            handleRemoveMedia(
-                                                                                index
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Icon
-                                                                            source={
-                                                                                DeleteMinor
-                                                                            }
-                                                                        >
-                                                                            {" "}
-                                                                        </Icon>
-                                                                    </span>
-                                                                </div>
-                                                            </Stack>
-                                                        )
-                                                    )}
+                                        {/*{dropZone}*/}
+                                        {uploadedFiles}
 
-                                                    <div className="Polaris-Product-DropZone">
-                                                        <Stack alignment="center">
-                                                            <DropZone
-                                                                accept="image/*, video/*"
-                                                                type="image,video"
-                                                                openFileDialog={
-                                                                    openFileDialog
-                                                                }
-                                                                onDrop={
-                                                                    handleDropZoneDrop
-                                                                }
-                                                                onFileDialogClose={
-                                                                    toggleOpenFileDialog
-                                                                }
-                                                            >
-                                                                <DropZone.FileUpload
-                                                                    actionTitle={
-                                                                        "Add files"
-                                                                    }
-                                                                />
-                                                            </DropZone>
-                                                        </Stack>
-                                                    </div>
-                                                </Stack>
-                                            )}
-                                            ;
-                                        </Stack>
+                                        {/*<Stack id="jjj">*/}
+                                        {/*    {mediaFilesUrl.map(*/}
+                                        {/*        ({ id, src }, index) => (*/}
+                                        {/*            <Stack alignment="center">*/}
+                                        {/*                <div className="Polaris-Product-Gallery">*/}
+                                        {/*                    <Thumbnail*/}
+                                        {/*                        size="large"*/}
+                                        {/*                        alt={*/}
+                                        {/*                            "header-img"*/}
+                                        {/*                        }*/}
+                                        {/*                        source={src}*/}
+                                        {/*                    />*/}
+                                        {/*                    <span*/}
+                                        {/*                        className="media_hover"*/}
+                                        {/*                        onClick={() =>*/}
+                                        {/*                            handleRemoveMediaApi(*/}
+                                        {/*                                index*/}
+                                        {/*                            )*/}
+                                        {/*                        }*/}
+                                        {/*                    >*/}
+                                        {/*                        <Icon*/}
+                                        {/*                            source={*/}
+                                        {/*                                DeleteMinor*/}
+                                        {/*                            }*/}
+                                        {/*                        >*/}
+                                        {/*                            {" "}*/}
+                                        {/*                        </Icon>*/}
+                                        {/*                    </span>*/}
+                                        {/*                </div>*/}
+                                        {/*            </Stack>*/}
+                                        {/*        )*/}
+                                        {/*    )}*/}
+
+
+
+
+
+
+                                        {/*    {mediaFiles.length > 0 && (*/}
+                                        {/*        <Stack id="jjj">*/}
+                                        {/*            {mediaFiles.map(*/}
+                                        {/*                (file, index) => (*/}
+                                        {/*                    <Stack*/}
+                                        {/*                        alignment="center"*/}
+                                        {/*                        key={index}*/}
+                                        {/*                    >*/}
+                                        {/*                        <div className="Polaris-Product-Gallery">*/}
+                                        {/*                            <Thumbnail*/}
+                                        {/*                                size="large"*/}
+                                        {/*                                alt={*/}
+                                        {/*                                    file.name*/}
+                                        {/*                                }*/}
+                                        {/*                                source={*/}
+                                        {/*                                    validImageTypes.indexOf(*/}
+                                        {/*                                        file.type*/}
+                                        {/*                                    ) >*/}
+                                        {/*                                    -1*/}
+                                        {/*                                        ? window.URL.createObjectURL(*/}
+                                        {/*                                            file*/}
+                                        {/*                                        )*/}
+                                        {/*                                        : NoteMinor*/}
+                                        {/*                                }*/}
+                                        {/*                            />*/}
+                                        {/*                            <span*/}
+                                        {/*                                className="media_hover"*/}
+                                        {/*                                onClick={() =>*/}
+                                        {/*                                    handleRemoveMedia(*/}
+                                        {/*                                        index*/}
+                                        {/*                                    )*/}
+                                        {/*                                }*/}
+                                        {/*                            >*/}
+                                        {/*                                <Icon*/}
+                                        {/*                                    source={*/}
+                                        {/*                                        DeleteMinor*/}
+                                        {/*                                    }*/}
+                                        {/*                                >*/}
+                                        {/*                                    {" "}*/}
+                                        {/*                                </Icon>*/}
+                                        {/*                            </span>*/}
+                                        {/*                        </div>*/}
+                                        {/*                    </Stack>*/}
+                                        {/*                )*/}
+                                        {/*            )}*/}
+
+                                        {/*            <div className="Polaris-Product-DropZone">*/}
+                                        {/*                <Stack alignment="center">*/}
+                                        {/*                    <DropZone*/}
+                                        {/*                        accept="image/*, video/*"*/}
+                                        {/*                        type="image,video"*/}
+                                        {/*                        openFileDialog={*/}
+                                        {/*                            openFileDialog*/}
+                                        {/*                        }*/}
+                                        {/*                        onDrop={*/}
+                                        {/*                            handleDropZoneDrop*/}
+                                        {/*                        }*/}
+                                        {/*                        onFileDialogClose={*/}
+                                        {/*                            toggleOpenFileDialog*/}
+                                        {/*                        }*/}
+                                        {/*                    >*/}
+                                        {/*                        <DropZone.FileUpload*/}
+                                        {/*                            actionTitle={*/}
+                                        {/*                                "Add files"*/}
+                                        {/*                            }*/}
+                                        {/*                        />*/}
+                                        {/*                    </DropZone>*/}
+                                        {/*                </Stack>*/}
+                                        {/*            </div>*/}
+                                        {/*        </Stack>*/}
+                                        {/*    )}*/}
+                                        {/*    ;*/}
+                                        {/*</Stack>*/}
                                     </Card>
 
                                     {/*
@@ -2233,8 +2369,8 @@ export function EditProduct() {
                                                     value: "active",
                                                 },
                                             ]}
-                                            onChange={() => setStatus(!status)}
-                                            value={status ? "active" : "draft"}
+                                            onChange={handleStatusChange}
+                                            value={status}
                                         />
                                     </div>
                                 </Card>
