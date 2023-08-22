@@ -16,6 +16,8 @@ import { ViewProduct } from "./Pages/vendor/ViewProduct";
 import { Orders } from "./Pages/vendor/Orders";
 import { VendorViewOrder } from "./Pages/vendor/VendorViewOrder";
 import { Commissions } from "./Pages/vendor/Commissions";
+import { Profile } from "./Pages/vendor/Profile";
+
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -92,6 +94,7 @@ export default function App() {
                 {!isLoggedIn ? (
                     <Routes>
                         <Route path="/login" element={<Login />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
                         <Route path="*" element={<Navigate to="/login" />} />
                     </Routes>
                 ) : userRole == "admin" ? (
@@ -186,11 +189,14 @@ export default function App() {
                                 element={<ViewProduct />}
                             />
                             <Route path="/orders" element={<Orders />} />
+
                             <Route
                                 path="/view-order/:view_order_id"
                                 element={<VendorViewOrder />}
                             />
                             <Route path="/commission" element={<Commissions />} />
+                            <Route path="/profile" element={<Profile />} />
+
                         </Routes>
                     </VendorLayout>
                 )}
