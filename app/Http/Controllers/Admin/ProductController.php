@@ -146,9 +146,9 @@ if(isset($request->variants) ) {
             array_push($variants_array, [
                 'price' => $request->product_price,
                 'inventory_quantity' => $request->product_quantity,
-                'compare_at_price' => $request->product_compare_at_price,
-                'sku' => $request->product_sku,
-                'barcode' => $request->barcode,
+                'compare_at_price' => ($request->product_compare_at_price=='null') ? 0 : $request->product_compare_at_price,
+                'sku' => ($request->product_sku=='null' ?'' :$request->product_sku),
+                'barcode' =>($request->barcode=='null' ?'' :$request->barcode),
                 'taxable' => $request->taxable,
                 'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
                 'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
@@ -164,9 +164,9 @@ if(isset($request->variants) ) {
         array_push($variants_array, [
             'price' => $request->product_price,
             'inventory_quantity' => $request->product_quantity,
-            'compare_at_price' => $request->product_compare_at_price,
-            'sku' => $request->product_sku,
-            'barcode' => $request->barcode,
+            'compare_at_price' => ($request->product_compare_at_price=='null') ? 0 : $request->product_compare_at_price,
+            'sku' => ($request->product_sku=='null' ?'' :$request->product_sku),
+            'barcode' => ($request->barcode=='null' ?'' :$request->barcode),
             'taxable' => $request->taxable,
             'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
             'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
@@ -987,6 +987,22 @@ if(isset($request->images)) {
         }
     }
 
+    public function RemoveImage(Request $request){
+        $user=auth()->user();
+       $product=Product::find($request->id);
+       $product_image=ProductImage::where('shopify_product_id',$product->shopify_id)->where('src',$request->src)->first();
+       if($product_image){
+           $product_image->delete();
+       }
+        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
+        $data = [
+            'product_images'=>$product_images,
+        ];
+
+        return response()->json($data);
+
+
+    }
 
 
     }

@@ -117,6 +117,7 @@ class OrderController extends Controller
             $newOrder->save();
 
             $unique_user_array=array();
+
             foreach ($order->line_items as $item) {
 
                 $new_line = LineItem::where('lineitem_id', $item->id)->where('order_id', $newOrder->id)->where('shop_id', $shop->id)->first();
@@ -156,8 +157,9 @@ class OrderController extends Controller
                    $product->save();
                    $user = \App\Models\User::find($product->user_id);
 
-                    array_push($unique_user_array,$user->id);
+
                     if ($user) {
+                        array_push($unique_user_array,$user->id);
                         $seller_commission = SellerCommission::where('user_id', $user->id)->where('shop_id', $shop->id)->first();
                         if ($seller_commission) {
                             if ($seller_commission->commission_type == '%') {
@@ -305,9 +307,15 @@ class OrderController extends Controller
                 $line_item_array['title']=$line_item->title;
                 $line_item_array['quantity']=$line_item->quantity;
                 $line_item_array['price']=$line_item->price;
-                $line_item_array['image']=$product->featured_image;
+
+                if($product && $product->featured_image){
+                $line_item_array['image'] = $product->featured_image;
+            }else{
+                    $line_item_array['image'] = public_path('empty.jpg');
+                }
                 array_push($line_item_data,$line_item_array);
             }
+
 
             $data=[
             'order'=>$order,

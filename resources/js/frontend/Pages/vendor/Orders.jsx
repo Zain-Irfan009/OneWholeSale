@@ -12,6 +12,7 @@ import axios from "axios"
 import { useNavigate } from 'react-router-dom';
 import {InputField} from "../../components/Utils";
 import {getAccessToken} from "../../assets/cookies";
+import ReactSelect from "react-select";
 // import dateFormat from "dateformat";
 
 
@@ -69,7 +70,9 @@ export function Orders() {
     const [btnLoading, setBtnLoading] = useState(false)
     const [sellerEmail, setSellerEmail] = useState('')
     const [uniqueId, setUniqueId] = useState()
-
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [showClearButton, setShowClearButton] = useState(false);
+    const [filterType, setFilterType] = useState('');
 
     //pagination
     const [pagination, setPagination] = useState(1);
@@ -91,6 +94,12 @@ export function Orders() {
     }
 
 
+    const handleClearButtonClick = () => {
+        setLoading(true)
+        setSelectedStatus('')
+        setShowClearButton(false);
+        getData();
+    };
 
     const [toggleLoadData1, setToggleLoadData1] = useState(true);
 
@@ -99,6 +108,47 @@ export function Orders() {
             setPagination(page);
             setToggleLoadData1(!toggleLoadData1);
         }
+    };
+
+    const fetchProducts =async (filter_type,selectedValue) =>  {
+        setShowClearButton(true);
+
+        // setSelected(value)
+        setLoading(true)
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/seller/order-filter-payment?value=${selectedValue.value}&order_value=${queryValue}&status=${selected}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setOrders(response?.data?.orders)
+            setLoading(false)
+            // setBtnLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+
+
+        } catch (error) {
+            console.log(error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
+
+    const handleSelectChange = (selectedOption) => {
+
+        const selectedValue =  selectedOption; // Access the value property of the selected option
+        setSelectedStatus(selectedValue);
+
+
+        fetchProducts( filterType, selectedValue); // Pass the query, filter type, and selected value as arguments
     };
 
     // ------------------------Toasts Code start here------------------
@@ -506,8 +556,9 @@ export function Orders() {
 
     const [itemStrings, setItemStrings] = useState([
         "All",
-        "Paid",
-        "Pending",
+        "Unfulfilled",
+        "Partially Fulfilled",
+        "Fulfilled",
 
     ]);
 
@@ -615,7 +666,7 @@ export function Orders() {
 
                 <Page
                     fullWidth
-                    title="All Orders"
+                    title="Orders"
                     primaryAction={{
                         content:  'Export',
                         onAction:  handleExportOrder,
@@ -625,25 +676,58 @@ export function Orders() {
                 >
 
                     <Card>
+                        <div>
                         <Tabs
                             tabs={tabs}
                             selected={selected}
                             onSelect={handleOrderFilter}
                             disclosureText="More views"
-                        >
+                        ></Tabs>
+                        </div>
                         <div className='Polaris-Table'>
                             <Card.Section>
-                                <div style={{ padding: '16px', display: 'flex' }}>
-                                    <div style={{ flex: 1 }}>
-                                        {/*<TextField*/}
-                                        {/*    placeholder='Search Order'*/}
-                                        {/*    value={queryValue}*/}
-                                        {/*    onChange={handleFiltersQueryChange}*/}
-                                        {/*    clearButton*/}
-                                        {/*    onClearButtonClick={handleQueryValueRemove}*/}
-                                        {/*    autoComplete="off"*/}
-                                        {/*    prefix={<Icon source={SearchMinor} />}*/}
-                                        {/*/>*/}
+                                <div className="order_listing_search" style={{ padding: "16px", display: "flex" }}>
+                                    <div style={{ flex: '70%' }}>
+                                        <TextField
+                                            placeholder="Search Order"
+                                            value={queryValue}
+                                            onChange={handleFiltersQueryChange}
+                                            clearButton
+                                            onClearButtonClick={handleQueryValueRemove}
+                                            autoComplete="off"
+                                            prefix={<Icon source={SearchMinor} />}
+                                        />
+                                    </div>
+
+                                    <div style={{ flex: '30%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+
+                                        <div style={{ flex: '1' }}>
+
+                                            <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
+                                                <ReactSelect
+                                                    name='pushed_status'
+                                                    options={[
+                                                        { value: 'all', label: 'All' },
+                                                        { value: 'paid', label: 'Paid' },
+                                                        { value: 'unpaid', label: 'Unpaid' },
+                                                    ]}
+                                                    placeholder="Select Payment Status"
+                                                    value={selectedStatus}
+                                                    onChange={(selectedOption) => handleSelectChange(selectedOption)}
+                                                    styles={{
+                                                        menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {showClearButton && (
+                                                <Button onClick={handleClearButtonClick} plain>
+                                                    Clear
+                                                </Button>
+                                            )}
+                                        </div>
+
+
                                     </div>
                                 </div>
 
@@ -695,7 +779,7 @@ export function Orders() {
                             )}
 
                         </div>
-                        </Tabs>
+                        {/*</Tabs>*/}
                     </Card>
 
                 </Page>

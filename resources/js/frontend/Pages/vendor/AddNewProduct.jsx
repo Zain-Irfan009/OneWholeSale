@@ -51,19 +51,19 @@ import {
     DeleteMinor,
     MobilePlusMajor,
 } from "@shopify/polaris-icons";
-import { SkeltonPageForTable } from "../components/global/SkeltonPage";
-import { InputField } from "../components/Utils/InputField";
-import { CheckBox } from "../components/Utils/CheckBox";
-import { AppContext } from "../components/providers/ContextProvider";
+import { SkeltonPageForTable } from "../../components/global/SkeltonPage";
+import { InputField } from "../../components/Utils/InputField";
+import { CheckBox } from "../../components/Utils/CheckBox";
+import { AppContext } from "../../components/providers/ContextProvider";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-import EmptyCheckBox from "../assets/icons/EmptyCheckBox.png";
-import FillCheckBox from "../assets/icons/FillCheckBox.png";
-import {getAccessToken} from "../assets/cookies";
+import EmptyCheckBox from "../../assets/icons/EmptyCheckBox.png";
+import FillCheckBox from "../../assets/icons/FillCheckBox.png";
+import {getAccessToken} from "../../assets/cookies";
 
-export function AddProduct() {
+export function AddNewProduct() {
     const { apiUrl } = useContext(AppContext);
     // const { user } = useAuthState();
     const navigate = useNavigate();
@@ -336,14 +336,14 @@ export function AddProduct() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/collections`,
+            const response = await axios.get(`${apiUrl}/seller/collections`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
 
-          console.log('response',response?.data)
+            console.log('response',response?.data)
             const arr = response?.data?.data.map(title => ({ value: title, label: title }));
             setCollectionOptions(arr)
             let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
@@ -538,82 +538,82 @@ export function AddProduct() {
                 });
 
                 return(
-                <>
+                    <>
 
-                    <IndexTable.Row key={globalIndex} position={globalIndex}>
-                        <IndexTable.Cell>
-                            <Text variant="bodyMd" fontWeight="bold" as="span">
-                                {text}
-                            </Text>
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
+                        <IndexTable.Row key={globalIndex} position={globalIndex}>
+                            <IndexTable.Cell>
+                                <Text variant="bodyMd" fontWeight="bold" as="span">
+                                    {text}
+                                </Text>
+                            </IndexTable.Cell>
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
 
-                                onChange={(e) =>
-                                    variantsInputFiledsHandler(
-                                        e,
-                                        priceIndex,
-                                        "price",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "quantity",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "sku",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
+                                    onChange={(e) =>
+                                        variantsInputFiledsHandler(
+                                            e,
+                                            priceIndex,
+                                            "price",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "quantity",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "sku",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
 
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "compare_at_price",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                    </IndexTable.Row>
-                </>
-            ); }
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "compare_at_price",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+                        </IndexTable.Row>
+                    </>
+                ); }
 
             if (
                 (variants === 1 || inputFields2[0].value.length === 0) &&
@@ -657,8 +657,8 @@ export function AddProduct() {
             } else if (variants === 3 && inputFields3[0].value.length > 0) {
                 makeState(
                     (inputFields3.length - 1) *
-                        (inputFields2.length - 1) *
-                        (inputFields.length - 1)
+                    (inputFields2.length - 1) *
+                    (inputFields.length - 1)
                 );
                 console.log(3);
                 newMarkup = inputFields.flatMap((input, index) => {
@@ -1143,21 +1143,21 @@ export function AddProduct() {
     const optionMarkup =
         options.length > 0
             ? options?.map((option) => {
-                  return (
-                      <Listbox.Option
-                          key={option}
-                          value={option}
-                          selected={selectedTags.includes(option)}
-                          accessibilityLabel={option}
-                      >
-                          <Listbox.TextOption
-                              selected={selectedTags.includes(option)}
-                          >
-                              {formatOptionText(option)}
-                          </Listbox.TextOption>
-                      </Listbox.Option>
-                  );
-              })
+                return (
+                    <Listbox.Option
+                        key={option}
+                        value={option}
+                        selected={selectedTags.includes(option)}
+                        accessibilityLabel={option}
+                    >
+                        <Listbox.TextOption
+                            selected={selectedTags.includes(option)}
+                        >
+                            {formatOptionText(option)}
+                        </Listbox.TextOption>
+                    </Listbox.Option>
+                );
+            })
             : null;
 
     const noResults = value && !getAllTags().includes(value);
@@ -1328,13 +1328,13 @@ export function AddProduct() {
 
 
         try {
-            const response = await axios.post(`${apiUrl}/add-product`,formData,
+            const response = await axios.post(`${apiUrl}/seller/add-product`,formData,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-        console.log('res',response?.data?.message)
+            console.log('res',response?.data?.message)
             setBtnLoading(false)
             setLoading(false)
             setToastMsg(response?.data?.message)
@@ -1763,12 +1763,12 @@ export function AddProduct() {
                                                                         //   Add Field
                                                                         // </Button>,
                                                                         (inputField
-                                                                            .value
-                                                                            .length >
+                                                                                .value
+                                                                                .length >
                                                                             0 ||
                                                                             inputFields.length -
-                                                                                1 !=
-                                                                                index) && (
+                                                                            1 !=
+                                                                            index) && (
                                                                             <Button
                                                                                 plain
                                                                                 icon={
@@ -1826,12 +1826,12 @@ export function AddProduct() {
                                                                     }
                                                                     connectedRight={[
                                                                         (inputField
-                                                                            .value
-                                                                            .length >
+                                                                                .value
+                                                                                .length >
                                                                             0 ||
                                                                             inputFields2.length -
-                                                                                1 !=
-                                                                                index) && (
+                                                                            1 !=
+                                                                            index) && (
                                                                             <Button
                                                                                 plain
                                                                                 icon={
@@ -1889,12 +1889,12 @@ export function AddProduct() {
                                                                     }
                                                                     connectedRight={[
                                                                         (inputField
-                                                                            .value
-                                                                            .length >
+                                                                                .value
+                                                                                .length >
                                                                             0 ||
                                                                             inputFields3.length -
-                                                                                1 !=
-                                                                                index) && (
+                                                                            1 !=
+                                                                            index) && (
                                                                             <Button
                                                                                 plain
                                                                                 icon={

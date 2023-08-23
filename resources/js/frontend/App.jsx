@@ -17,6 +17,8 @@ import { Orders } from "./Pages/vendor/Orders";
 import { VendorViewOrder } from "./Pages/vendor/VendorViewOrder";
 import { Commissions } from "./Pages/vendor/Commissions";
 import { Profile } from "./Pages/vendor/Profile";
+import { AddNewProduct } from "./Pages/vendor/AddNewProduct";
+import { EditVProduct } from "./Pages/vendor/EditVProduct";
 
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -196,6 +198,11 @@ export default function App() {
                             />
                             <Route path="/commission" element={<Commissions />} />
                             <Route path="/profile" element={<Profile />} />
+                            <Route path="/add-product" element={<AddNewProduct />} />
+                            <Route
+                                path="/edit-product/:edit_product_id"
+                                element={<EditVProduct />}
+                            />
 
                         </Routes>
                     </VendorLayout>

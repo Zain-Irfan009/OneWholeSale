@@ -1464,7 +1464,7 @@ export function ViewProduct() {
                     </div> */}
 
                                     </Card>
-
+                                    {(( mediaFilesUrl.length !== 0)) &&(
                                     <Card
                                         sectioned
                                         title="Media"
@@ -1531,6 +1531,7 @@ export function ViewProduct() {
 
 
                                     </Card>
+                                    )}
 
                                     {/*
                   <Card sectioned title="Shipping Details">

@@ -581,13 +581,17 @@ export function EditProduct() {
     const tagString = newTags.join(",");
 
     const handleChange = (value) => {
-        const lastChar = value.charAt(value.length - 1);
+        const trimmedValue = value.trim();
 
-        if (lastChar === "," || lastChar === " ") {
-            return addNewTag(value.slice(0, -1));
+        if (trimmedValue !== "") {
+            const lastChar = value.charAt(value.length - 1);
+
+            if (lastChar === "," || lastChar === " ") {
+                return addNewTag(value.slice(0, -1));
+            }
+
+            setPendingTag(value);
         }
-
-        setPendingTag(value);
     };
     const addNewTag = (tag) => {
         const tagsSet = new Set(newTags);
@@ -1214,7 +1218,28 @@ export function EditProduct() {
         setImageFiles(temp_array);
     };
 
-    const handleRemoveMediaApi = (index) => {};
+
+    const handleRemoveMediaApi = async (index,src) => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/remove-img?id=${params.edit_product_id}&src=${src}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setMediaFilesUrl(response?.data?.product_images);
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+    };
 
     const validImageTypes = [
         "image/gif",
@@ -1255,6 +1280,23 @@ export function EditProduct() {
                             alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
                             source={src} // Use 'src' directly as the image source
                         />
+
+                        <span
+                                                className="media_hover"
+                                                onClick={() =>
+                                                    handleRemoveMediaApi(
+                                                        index,src
+                                                    )
+                                                }
+                                            >
+                                                <Icon
+                                                    source={
+                                                        DeleteMinor
+                                                    }
+                                                >
+                                                    {" "}
+                                                </Icon>
+                                            </span>
                     </div>
                 </LegacyStack>
             ))}
@@ -1288,7 +1330,7 @@ export function EditProduct() {
 
 
 
-            {((!mediaFiles || mediaFiles.length === 0)) &&(
+            {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
                 <div className="Polaris-Product-DropZone">
                     <LegacyStack alignment="center">
                         <DropZone
@@ -1302,7 +1344,7 @@ export function EditProduct() {
                         </DropZone>
                     </LegacyStack>
                 </div>
-            )}
+            {/*)}*/}
 
 
         </LegacyStack>
@@ -1562,7 +1604,7 @@ export function EditProduct() {
         console.log('dssd',quantity)
         setBtnLoading(true);
         const sessionToken = getAccessToken();
-
+            setLoading(true)
         let formData = new FormData();
         formData.append("product_id", params.edit_product_id);
 
@@ -1606,6 +1648,7 @@ export function EditProduct() {
             setBtnLoading(false);
             setToastMsg(response?.data?.message);
             setSucessToast(true);
+            setLoading(false)
             navigate('/productslisting')
             // setSkeleton(false)
         } catch (error) {

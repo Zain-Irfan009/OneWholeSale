@@ -87,6 +87,11 @@ export function Products() {
 
 
 
+    const handleEditAction = (id) => {
+        navigate(`/edit-product/${id}`);
+    };
+
+
     const handlePaginationTabs = (active1, page) => {
         if (!active1) {
             setPagination(page);
@@ -390,9 +395,13 @@ console.log(error)
                             actionRole="menuitem"
                             items={[
                                 {
-                                    content: 'View',
-                                    onAction: ()=>handleViewAction(id),
+                                    content: "Edit",
+                                    onAction: () => handleEditAction(id),
                                 },
+                                // {
+                                //     content: 'View',
+                                //     onAction: ()=>handleViewAction(id),
+                                // },
 
                                 {
                                     content: 'Delete',
@@ -431,7 +440,7 @@ console.log(error)
     );
 
     const handleAddProduct = () => {
-        navigate('#')
+        navigate("/add-product");
     }
 
 
@@ -543,12 +552,18 @@ console.log(error)
 
                 <Page
                     fullWidth
-                    title="All Products"
+                    title="Products"
                     primaryAction={{
-                        content:  'Export',
-                        onAction:  handleExportProduct,
-
+                        content: "Add Product",
+                        onAction: handleAddProduct,
                     }}
+                    secondaryActions={
+                        <ButtonGroup>
+
+                            <Button onClick={handleExportProduct} loading={btnLoading}>Export </Button>
+
+                        </ButtonGroup>
+                    }
                 >
 
                     <Card>

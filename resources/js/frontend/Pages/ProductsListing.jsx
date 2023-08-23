@@ -393,15 +393,18 @@ setSelectedStatus(selectedOption)
         }, 1000);
     }
 
-  const handlePagination = (value) => {
-    if (value == "next") {
-      setPageCursorValue(nextPageCursor);
-    } else {
-      setPageCursorValue(previousPageCursor);
-    }
-    setPageCursor(value);
-    setToggleLoadData(true);
-  };
+
+
+    const handlePagination = (value) => {
+        console.log("value", value, nextPageCursor)
+        if (value == "next") {
+            setPageCursorValue(nextPageCursor);
+        } else {
+            setPageCursorValue(previousPageCursor);
+        }
+        setPageCursor(value);
+        setToggleLoadData(!toggleLoadData);
+    };
 
 
     const getData = async () => {
@@ -409,7 +412,15 @@ setSelectedStatus(selectedOption)
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/products?page=${pagination}`,
+            if (pageCursorValue != '') {
+
+                var url = pageCursorValue;
+            } else {
+                var url = `${apiUrl}/products?${pageCursor}=${pageCursorValue}`;
+            }
+            console.log(pageCursorValue)
+
+            const response = await axios.get(url,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -426,15 +437,28 @@ setSelectedStatus(selectedOption)
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
 
-            setPaginationUrl(response?.data?.products?.links);
-            if (
-                response?.data?.products?.total >
-                response?.data?.products?.per_page
-            ) {
-                setShowPagination(true);
+            setNextPageCursor(response?.data?.products?.next_page_url)
+            setPreviousPageCursor(response?.data?.products?.prev_page_url)
+            if (response?.data?.products?.next_page_url) {
+                setHasNextPage(true)
             } else {
-                setShowPagination(false);
+                setHasNextPage(false)
             }
+            if (response?.data?.products?.prev_page_url) {
+                setHasPreviousPage(true)
+            } else {
+                setHasPreviousPage(false)
+            }
+
+            // setPaginationUrl(response?.data?.products?.links);
+            // if (
+            //     response?.data?.products?.total >
+            //     response?.data?.products?.per_page
+            // ) {
+            //     setShowPagination(true);
+            // } else {
+            //     setShowPagination(false);
+            // }
             setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -580,7 +604,7 @@ setSelectedStatus(selectedOption)
 
     useEffect(() => {
         getData()
-    }, [toggleLoadData1]);
+    }, [toggleLoadData]);
 
 
     const bulkActions = [
@@ -1390,7 +1414,7 @@ setSelectedStatus(selectedOption)
               </Card.Section>
                     </>
                 }
-                {showPagination && (
+
               <Card.Section>
                 <div
                   className="data-table-pagination"
@@ -1403,15 +1427,15 @@ setSelectedStatus(selectedOption)
                 >
 
                     <Pagination
-                        hasPrevious={pagination > 1}
-                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
-                        hasNext={pagination < paginationUrl.length}
-                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                        hasPrevious={hasPreviousPage ? true : false}
+                        onPrevious={() => handlePagination("prev")}
+                        hasNext={hasNextPage ? true : false}
+                        onNext={() => handlePagination("next")}
                     />
                 </div>
 
               </Card.Section>
-                )}
+
 
             </div>
           </Card>

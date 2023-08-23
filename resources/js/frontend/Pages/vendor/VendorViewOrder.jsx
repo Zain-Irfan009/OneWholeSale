@@ -110,6 +110,7 @@ export function VendorViewOrder() {
     const [orderNum, setOrderNum] = useState();
     const [orderDate, setOrderDate] = useState();
     const [totalItems, setTotalItems] = useState();
+    const [currency, setCurrency] = useState('');
 
     const [billingName, setBillingName] = useState();
     const [billingAddress, setBillingAddress] = useState();
@@ -147,16 +148,19 @@ export function VendorViewOrder() {
         return booleanValue;
     }
 
-    const formatDate=(created_at)=>{
-        const date = new Date(created_at);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const formatedDate = `${month.toString().padStart(2, "0")}-${day
-            .toString()
-            .padStart(2, "0")}-${year}`;
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
 
-        return formatedDate ;
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
     }
 
 
@@ -199,6 +203,7 @@ export function VendorViewOrder() {
             setBillingCity(response?.data?.order?.billing_city)
             setBillingZip(response?.data?.order?.billing_zip)
             setBillingCountry(response?.data?.order?.billing_country)
+            setCurrency(response?.data?.currency)
 
             let total = 0;
             response?.data?.line_items?.forEach((item) => {
@@ -315,7 +320,7 @@ export function VendorViewOrder() {
                                                             <div className="Product-Title-Section">
                                                                 <h2 className="Product-Title">{item.title}</h2>
                                                                 <h2 className="Product-Title">
-                                                                    {abandonedCheckout?.oldCurrencyCode}
+                                                                    {currency}{" "}
                                                                     {item.price && Number(item.price).toFixed(2)}
                                                                 </h2>
                                                             </div>
@@ -336,7 +341,7 @@ export function VendorViewOrder() {
                                                     <p>Discount</p>
                                                     <p>{abandonedCheckout?.oldDiscountCode}</p>
                                                     <p>
-                                                        - {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                        - {currency}{" "}
                                                         {abandonedCheckout?.oldDiscountedValue}
                                                     </p>
                                                 </Stack>
@@ -349,7 +354,7 @@ export function VendorViewOrder() {
                                                     {totalItems > 1 ? `${totalItems} items` : `${totalItems} item`}
                                                 </p>
                                                 <p>
-                                                    {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                    {currency}{" "}
                                                     {totalCost}
                                                 </p>
                                             </Stack>
@@ -391,7 +396,7 @@ export function VendorViewOrder() {
                                             <Stack>
                                                 <p>Total</p>
                                                 <p>
-                                                    {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                    {currency}{" "}
                                                     {totalCost}
                                                 </p>
                                             </Stack>
@@ -401,7 +406,7 @@ export function VendorViewOrder() {
                                             <Stack>
                                                 <p>To be paid by customer</p>
                                                 <p>
-                                                    {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                    {currency}{" "}
                                                     {totalCost}
                                                 </p>
                                             </Stack>
@@ -458,7 +463,7 @@ export function VendorViewOrder() {
                                             {/*Tip Charge Earning -<span className="order_status_span">   $0.00</span>*/}
                                             {/*  </p>*/}
                                             <p className="order_status_p">
-                                                Total Order Commission -<span className="order_status_span">   ${totalOrderCommission}</span>
+                                                Total Order Commission -<span className="order_status_span">   {currency}{" "}{totalOrderCommission}</span>
                                             </p>
                                         </div>
 

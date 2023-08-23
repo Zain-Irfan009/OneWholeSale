@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('export-product',[\App\Http\Controllers\Admin\ProductController::class,'ExportProduct']);
     Route::get('search-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchProduct']);
     Route::get('search-seller-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchSellerProduct']);
+    Route::get('remove-img',[\App\Http\Controllers\Admin\ProductController::class,'RemoveImage']);
 
 
     //import Product
@@ -142,6 +143,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
         //products
         Route::get('products',[\App\Http\Controllers\Seller\ProductController::class,'Products']);
+        Route::post('add-product',[\App\Http\Controllers\Seller\ProductController::class,'AddProduct']);
         Route::get('product-filter',[\App\Http\Controllers\Seller\ProductController::class,'ProductFilter']);
         Route::get('product-view/{id}',[\App\Http\Controllers\Seller\ProductController::class,'ProductView']);
         Route::delete('product-delete',[\App\Http\Controllers\Seller\ProductController::class,'Productdelete']);
@@ -155,10 +157,17 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('export-order',[\App\Http\Controllers\Seller\OrderController::class,'ExportOrder']);
         Route::get('order-filter',[\App\Http\Controllers\Seller\OrderController::class,'OrderFilter']);
         Route::get('search-order',[\App\Http\Controllers\Seller\OrderController::class,'SearchOrders']);
+        Route::get('order-filter-payment',[\App\Http\Controllers\Seller\OrderController::class,'OrderFilterPayment']);
+
+
 
    //commissions
         Route::get('commission-listing',[\App\Http\Controllers\Seller\CommissionController::class,'CommissionListing']);
         Route::get('search-commission',[\App\Http\Controllers\Seller\CommissionController::class,'SearchCommission']);
+
+
+        //collection
+        Route::get('collections',[\App\Http\Controllers\Seller\CollectionController::class,'Collections']);
 
     });
 

@@ -922,7 +922,7 @@ export function OrdersListing() {
       ) : (
         <Page
           fullWidth
-          title="All Orders"
+          title="Orders"
           primaryAction={{
             content: "Sync Order",
             onAction: handleSyncOrder,

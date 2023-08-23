@@ -27,6 +27,8 @@ import {
     EmptyState,
     TextField,
     Listbox,
+    Divider,
+    ContextualSaveBar,
     EmptySearchResult,
     AutoSelection,
     Tabs,
@@ -39,49 +41,70 @@ import {
     DropZone,
     Thumbnail,
     Combobox,
-    Divider,
-    ContextualSaveBar,
     Link,
-    IndexTable, SkeletonBodyText,
+    IndexTable,
 } from "@shopify/polaris";
 import {
     SearchMinor,
     ChevronDownMinor,
     ChevronUpMinor,
     DeleteMinor,
+    NoteMinor,
     MobilePlusMajor,
 } from "@shopify/polaris-icons";
-import { SkeltonPageForTable } from "../components/global/SkeltonPage";
-import { InputField } from "../components/Utils/InputField";
-import { CheckBox } from "../components/Utils/CheckBox";
-import { AppContext } from "../components/providers/ContextProvider";
-import { useNavigate } from "react-router-dom";
+import { SkeltonPageForTable } from "../../components/global/SkeltonPage";
+import { InputField } from "../../components/Utils/InputField";
+import { CheckBox } from "../../components/Utils/CheckBox";
+import { AppContext } from "../../components/providers/ContextProvider";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-import EmptyCheckBox from "../assets/icons/EmptyCheckBox.png";
-import FillCheckBox from "../assets/icons/FillCheckBox.png";
-import {getAccessToken} from "../assets/cookies";
+import EmptyCheckBox from "../../assets/icons/EmptyCheckBox.png";
+import FillCheckBox from "../../assets/icons/FillCheckBox.png";
+import { getAccessToken } from "../../assets/cookies";
 
-export function AddProduct() {
+export function EditVProduct() {
     const { apiUrl } = useContext(AppContext);
     // const { user } = useAuthState();
+    const params = useParams();
     const navigate = useNavigate();
     const [btnLoading, setBtnLoading] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [discountError, setDiscountError] = useState();
     const [errorToast, setErrorToast] = useState(false);
     const [sucessToast, setSucessToast] = useState(false);
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
     const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
-    const [status, setStatus] = useState('active');
+    const [status, setStatus] = useState("active");
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
     const [sellerEmail, setSellerEmail] = useState("");
-    const [collectionSelect, setCollectionSelect] = useState("");
+    const [optionsLoading, setOptionsLoading] = useState(false);
 
+    const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
+    const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
+
+
+    const [collectionOptions, setCollectionOptions] = useState([]);
+
+
+
+    const [collectionOptionsSelected, setCollectionOptionsSelected] =
+        useState("");
+    const removeSellerEmail = useCallback(
+        (collection) => () => {
+            const collectionOptions = [...sellerEmailListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setSellerListSelected(collectionOptions);
+        },
+        [collectionOptionsSelected]
+    );
     const CollectionsOptionsData = useMemo(
         () => [
             { value: "Catalogs", label: "catalog" },
@@ -90,25 +113,73 @@ export function AddProduct() {
         []
     );
 
-    const [collectionOptions, setCollectionOptions] = useState(
-        []
-    );
-
-    const [sellerEmailList, setSellerEmailList] = useState(
-        []
-    );
-
-    const [sellerEmailListSelected, setSellerListSelected] =
-        useState("");
-
-
     const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+    const sellerUpdateText = useCallback(
+        (value) => {
+            setSellerEmailInputValue(value);
 
-    const [collectionOptionsSelected, setCollectionOptionsSelected] =
-        useState("");
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    setSellerEmailList(CollectionsOptionsData);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = CollectionsOptionsData.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+                setSellerEmailList(resultOptions);
+
+
+                setOptionsLoading(false);
+
+            }, 300);
+        },
+        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+    );
+
+    const sellerContentMarkup =
+        sellerEmailListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Tag
+                    key={`option${sellerEmailListSelected[0]}`}
+                    onRemove={removeSellerEmail(sellerEmailListSelected[0])}
+                >
+                    {tagTitleCase(sellerEmailListSelected[0].replace("_", " "))}
+                </Tag>
+            </div>
+        ) : null;
+
+
+    const sellerEmailTextField = (
+        <Autocomplete.TextField
+            // onChange={sellerUpdateText}
+            label="Seller Email*"
+            value={sellerEmailInputValue}
+            placeholder="Select Seller"
+            verticalContent={sellerContentMarkup}
+        />
+    );
+
+
+
+
+
+
+
+
     const [tagInputValue, setTagInputValue] = useState("");
     const [collectionInputValue, setCollectionInputValue] = useState("");
-    const [optionsLoading, setOptionsLoading] = useState(false);
+
     const [price, setPrice] = useState("");
     const [compareatPrice, setCompareatPrice] = useState("");
     const [chargeTaxChecked, setChargeTaxChecked] = useState(false);
@@ -155,6 +226,7 @@ export function AddProduct() {
         []
     );
 
+    const [skeleton, setSkeleton] = useState(false);
     const [productsLoading, setProductsLoading] = useState(false);
     const [queryValue, setQueryValue] = useState("");
     const [toggleLoadProducts, setToggleLoadProducts] = useState(true);
@@ -174,13 +246,14 @@ export function AddProduct() {
     const [descriptioncontent, setDescriptionContent] = useState("");
     const [costPerItem, setCostPerItem] = useState();
     const [unit, setUnit] = useState("");
-    const [weight, setWeight] = useState('');
+    const [weight, setWeight] = useState("");
     const [pageTitle, setPageTitle] = useState("");
     const [pageDescription, setPageDescription] = useState("");
     const [newTags, setNewTags] = useState([]);
     const [pendingTag, setPendingTag] = useState("");
     const [categorySelect, setCategorySelect] = useState("today");
     const [vendorSelect, setVendorSelect] = useState("today");
+    const [currency, setCurrency] = useState("");
 
     const [selectedOptions, setSelectedOptions] = useState(["rustic"]);
     const [inputValue, setInputValue] = useState("");
@@ -196,21 +269,164 @@ export function AddProduct() {
 
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
-    const [currency, setCurrency] = useState('');
 
-    const [formErrors, setFormErrors] = useState({});
+    const [mediaFilesUrl, setMediaFilesUrl] = useState([]);
+
+    const [fileUrl, setFileUrl] = useState();
+
+    const getProductData = async (id) => {
+
+        setSkeleton(true);
+
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/seller/product-view/${id}`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
+            console.log("getProductData response", response.data);
+            console.log("getProductData response",  response?.data?.product?.seller_email);
 
 
+            setSellerListSelected(
+                response?.data?.product?.seller_email ? [response.data.product.seller_email] : []
+            );
 
+            setSellerEmail(response?.data?.product?.seller_email);
+            setCurrency(response?.data?.currency);
+            setProductName(response?.data?.product?.product_name);
+            setDescriptionContent(response?.data?.product?.description);
+            setValue(response?.data?.product?.tags);
+            setPrice(response?.data?.variants?.[0].price);
+            setCompareatPrice(response?.data?.variants?.[0].compare_at_price);
+            setChargeTaxChecked(response?.data?.variants?.[0].taxable);
+            setSku(response?.data?.variants?.[0].sku);
+            setBarcode(response?.data?.variants?.[0].barcode);
+            if (response?.data?.product?.product_type !== null) {
+                setProductHandle(response?.data?.product?.product_type);
+            }else{
+                setProductHandle('');
+            }
+            setTitleMetafield(response?.data?.product?.search_engine_title);
+            setDescriptionMetafield(
+                response?.data?.product?.search_engine_meta_description
+            );
+            setWeight(response?.data?.variants?.[0].weight);
+            setUnit(response?.data?.variants?.[0].weight_unit);
+
+            if (response?.data?.product?.search_engine_title !== null) {
+                setPageTitle(response?.data?.product?.search_engine_title);
+            }else {
+                setPageTitle('')
+            }
+
+            if (response?.data?.product?.search_engine_meta_description !== null) {
+                setPageDescription(response.data.product.search_engine_meta_description);
+            } else {
+                setPageDescription('');
+            }
+            // setPageDescription(
+            //     response?.data?.product?.search_engine_meta_description
+            // );
+            setStatus(response?.data?.product?.status);
+            if (response?.data?.product?.tags !== '') {
+                setNewTags(response?.data?.product?.tags.split(","));
+            }
+            setCollectionOptionsSelected(
+                response?.data?.product?.collections.split(",")
+            );
+            if (response?.data?.product?.vendor !== null) {
+                setVendor(response?.data?.product?.vendor);
+            }else{
+                setVendor('');
+            }
+
+            console.log('img',response?.data?.product_images)
+            setMediaFilesUrl(response?.data?.product_images);
+            setVariantOptions(response?.data?.options?.[0]?.name);
+            setVariantOptions2(response?.data?.options?.[1]?.name);
+            setVariantOptions3(response?.data?.options?.[2]?.name);
+            setVariantsInputFileds(response?.data?.selected_variant);
+
+            setQuantity(response?.data?.variants?.[0].quantity);
+
+            if (
+                response?.data?.variants?.[0]?.inventory_management == "shopify"
+            ) {
+                setTrackQuantityIsChecked(true);
+            } else {
+                setTrackQuantityIsChecked(false);
+            }
+
+            if (response?.data?.variants?.[0]?.inventory_policy == "continue") {
+                setAllowCustomer(true);
+            } else {
+                setAllowCustomer(false);
+            }
+            if (response?.data?.options?.[0]?.name) {
+                setVariants(1);
+            }
+            if (response?.data?.options?.[1]?.name) {
+                setVariants(2);
+            }
+            if (response?.data?.options?.[2]?.name) {
+                setVariants(3);
+            }
+
+            let option1_data = response?.data?.options?.[0]?.values.split(",");
+            if (option1_data && option1_data.length > 0) {
+                let savedArr = option1_data.map((item, index) => {
+                    let obj = {};
+                    obj.value = item;
+                    return obj;
+                }, []);
+                savedArr[savedArr.length] = { value: "" };
+
+                setInputFields(savedArr);
+            }
+            let option2_data = response?.data?.options?.[1]?.values.split(",");
+            if (option2_data && option2_data.length > 0) {
+                let savedArr2 = option2_data.map((item, index) => {
+                    let obj = {};
+                    obj.value = item;
+                    return obj;
+                }, []);
+                savedArr2[savedArr2.length] = { value: "" };
+
+                setInputFields2(savedArr2);
+            }
+            let option3_data = response?.data?.options?.[2]?.values.split(",");
+            if (option3_data && option3_data.length > 0) {
+                let savedArr3 = option3_data.map((item, index) => {
+                    let obj = {};
+                    obj.value = item;
+                    return obj;
+                }, []);
+                savedArr3[savedArr3.length] = { value: "" };
+
+                setInputFields3(savedArr3);
+            }
+
+            setSkeleton(false);
+            setLoading(false)
+        } catch (error) {
+            console.log(error)
+            setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
+            setSkeleton(false);
+        }
+    };
+
+    useEffect(() => {
+        getProductData(params.edit_product_id);
+    }, []);
 
     const inputHandleChange = (index, val) => {
-
         let totalLength = inputFields.length;
         const newInputFields = [...inputFields];
         newInputFields[index].value = val;
         setInputFields(newInputFields);
-
-
 
         if (totalLength - 1 == index && val.length == 1) {
             handleAddField();
@@ -226,7 +442,7 @@ export function AddProduct() {
         },
         {
             name: variantOptions2,
-            value:inputFields2,
+            value: inputFields2,
         },
         {
             name: variantOptions3,
@@ -234,27 +450,26 @@ export function AddProduct() {
         },
     ];
 
-    const transformedFormat = data_option.map(item => {
+    const transformedFormat = data_option.map((item) => {
         return {
             ...item,
-            value: item.value.map(valueObj => valueObj.value)
+            value: item.value.map((valueObj) => valueObj.value),
         };
     });
 
-
-
-    const variantsInputFiledsHandler = (e, index, type, title) => {
-        const { value } = e.target;
-        console.log("value, index, type", value, index, type);
+    const variantsInputFiledsHandler = (value, index, type, name) => {
+        console.log("variantsInputFiledsHandler called", index, value,type,name);
+        let updatedState = [];
 
         setVariantsInputFileds((prevState) => {
-            const updatedState = [...prevState];
-            console.log("updatedState", updatedState);
+            updatedState = [...prevState];
 
             const updatedObject = { ...updatedState[index] };
-            updatedObject.title = title;
+            updatedObject.title = name;
             switch (type) {
+
                 case "price":
+
                     updatedObject.price = value;
                     break;
                 case "sku":
@@ -263,26 +478,26 @@ export function AddProduct() {
                 case "quantity":
                     updatedObject.quantity = value;
                     break;
-
                 case "compare_at_price":
                     updatedObject.compare_at_price = value;
                     break;
+                default:
+
+                    break;
             }
+
             updatedState[index] = updatedObject;
 
             return updatedState;
         });
-
-        setRefresh((prevRefresh) => !prevRefresh);
+        console.log("setVariantsInputFileds updatedState", updatedState);
+        let markup = calculateMarkup(updatedState);
+        setVariantsMarkup(markup);
     };
 
     const handleAddField = () => {
         setInputFields([...inputFields, { value: "" }]);
     };
-
-    useEffect(() => {
-        console.log('varinat',inputFields);
-    }, [inputFields]);
 
     const handleRemoveField = (index) => {
         const newInputFields = [...inputFields];
@@ -330,48 +545,38 @@ export function AddProduct() {
         setInputFields3(newInputFields);
     };
 
-
     const getCollectionData = async () => {
-
         const sessionToken = getAccessToken();
         try {
+            const response = await axios.get(`${apiUrl}/seller/collections`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
 
-            const response = await axios.get(`${apiUrl}/collections`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-
-          console.log('response',response?.data)
             const arr = response?.data?.data.map(title => ({ value: title, label: title }));
-            setCollectionOptions(arr)
+            setCollectionOptions(arr);
+
             let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
                 value: email,
                 label: `${name} (${email})`
             }));
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
+
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
-
-
         } catch (error) {
             console.log(error)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
+            setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
         }
-    }
-
+    };
 
     useEffect(() => {
         getCollectionData();
-
     }, []);
-
-
-
 
     const tagString = newTags.join(",");
 
@@ -387,7 +592,6 @@ export function AddProduct() {
 
             setPendingTag(value);
         }
-
     };
     const addNewTag = (tag) => {
         const tagsSet = new Set(newTags);
@@ -436,6 +640,11 @@ export function AddProduct() {
         }
     };
 
+
+    const handleStatusChange = (selectedOption) => {
+        setStatus(selectedOption);
+    };
+
     useEffect(() => {
         function handleScroll() {
             if (window.scrollY > 0) {
@@ -462,6 +671,9 @@ export function AddProduct() {
         <Button onClick={handleProductsPagination}>Load more...</Button>
     ) : null;
 
+
+
+
     const noResultsMarkup =
         !productsLoading && allProducts.length == 0 ? (
             <EmptySearchResult
@@ -486,11 +698,12 @@ export function AddProduct() {
         handleQueryChange("");
     };
 
-    const makeState = (num) => {
+    const makeState = (num, variantsData) => {
         let arr = [];
-        for (let i = 0; i < num; i++) {
+
+        for (let i = variantsData.length; i < num; i++) {
             arr.push({
-                name: "",
+                title: "",
                 sku: "",
                 price: "",
                 quantity: "",
@@ -498,196 +711,298 @@ export function AddProduct() {
             });
         }
 
-        setVariantsInputFileds(arr);
+        // return [...variantsInputFileds, arr];
+
+        return [...variantsData, ...arr];
+
+        // setVariantsInputFileds((prevState)=> [...prevState, ...arr])
     };
-    useEffect(() => {
-        console.log('input',variantsInputFileds);
-    }, [variantsInputFileds]);
-    useEffect(() => {
-        console.log(inputFields.length);
-    }, [inputFields]);
+
     // =================Products Modal Code Ends Here================
 
     // =================Collections Modal Code Ends Here================
 
-    let markup = [];
+    const createRow = (text, priceIndex, skuIndex, data) => {
+        console.log(
+            "inside  create row",
+            priceIndex,
+            inputFields,
+            inputFields2,
+            inputFields3,
+            data
+        );
+        // setVariantsInputFileds((prevState) => {
+        //     const updatedState = [...prevState];
+        //     const updatedObject = { ...updatedState[skuIndex] };
+        //     updatedObject.title = text;
+
+        //     updatedState[skuIndex] = updatedObject;
+        //     return updatedState;
+        // });
 
 
 
-    useEffect(() => {
-        const calculateMarkup = () => {
-            let globalIndex = -1;
-            let newMarkup = [];
 
-            const createRow = (text, priceIndex, skuIndex) =>    {
-                console.log("updatedState", variantsInputFileds);
-                setVariantsInputFileds((prevState) => {
-                    const updatedState = [...prevState];
+        return (
+            <>
+                <IndexTable.Row key={priceIndex} position={priceIndex}>
+                    <IndexTable.Cell>
+                        <Text variant="bodyMd" fontWeight="bold" as="span">
+                            {data?.title}
+                        </Text>
+                    </IndexTable.Cell>
 
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.price}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    priceIndex,
+                                    "price",
+                                    text
+                                )
+                            }
+                            // prefix="$"
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.quantity}
+                            // value={variantsInputFileds[skuIndex]?.sku}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "quantity",
+                                    text
+                                )
+                            }
+                            // prefix="$"
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.sku}
+                            // value={variantsInputFileds[skuIndex]?.sku}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "sku",
+                                    text
+                                )
+                            }
+                            // prefix="$"
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
 
-                    const updatedObject = { ...updatedState[skuIndex] };
-                    updatedObject.name = text;
-                    updatedObject.price = price;
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.compare_at_price}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "compare_at_price",
+                                    text
+                                )
+                            }
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+                </IndexTable.Row>
+            </>
+        );
+    };
 
+    const calculateMarkup = (data = null) => {
 
+        console.log('variantsInputFileds_dsd',variantsInputFileds)
+        let variantsData = data ?? variantsInputFileds;
+        let copyData = data ?? variantsInputFileds;
+        let titles = copyData?.map((d) => d?.title);
+        console.log(
+            "inside calculateMarkup",
+            inputFields,
+            inputFields2,
+            inputFields3,
+            variantsData,
+            data
+        );
+        let globalIndex = -1;
+        let newMarkup = [];
+        if (
+            (variants === 1 || inputFields2[0].value.length === 0) &&
+            inputFields[0].value.length > 0
+        ) {
+            console.log("inputFields", inputFields);
+            {
+                variantsData.length < inputFields.length - 1 &&
+                (variantsData = makeState(
+                    inputFields.length - 1,
+                    variantsData
+                ));
+            }
+            newMarkup = inputFields.map((input, index) => {
+                if (input.value.length === 0) {
+                    return null;
+                } else {
+                    globalIndex++;
+                    const updatedState = [...variantsData];
+                    const updatedObject = { ...updatedState[globalIndex] };
+                    updatedObject.title = input.value;
 
-                    updatedState[skuIndex] = updatedObject;
+                    updatedState[globalIndex] = updatedObject;
+                    setVariantsInputFileds(updatedState);
+                    return createRow(
+                        input.value,
+                        globalIndex,
+                        globalIndex,
+                        updatedState[globalIndex]
+                    );
+                }
+            });
+        } else if (
+            (variants === 2 || inputFields3[0].value.length === 0) &&
+            inputFields2[0].value.length > 0
+        ) {
+            {
+                variantsData.length <
+                (inputFields.length - 1) * (inputFields2.length - 1) &&
+                (variantsData = makeState(
+                    (inputFields2.length - 1) * (inputFields.length - 1),
+                    variantsData
+                ));
+            }
 
-
-                    return updatedState;
-                });
-
-                return(
-                <>
-
-                    <IndexTable.Row key={globalIndex} position={globalIndex}>
-                        <IndexTable.Cell>
-                            <Text variant="bodyMd" fontWeight="bold" as="span">
-                                {text}
-                            </Text>
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-
-                                onChange={(e) =>
-                                    variantsInputFiledsHandler(
-                                        e,
-                                        priceIndex,
-                                        "price",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "quantity",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "sku",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "compare_at_price",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                    </IndexTable.Row>
-                </>
-            ); }
-
-            if (
-                (variants === 1 || inputFields2[0].value.length === 0) &&
-                inputFields[0].value.length > 0
-            ) {
-                console.log(1);
-                makeState(inputFields.length - 1);
-                newMarkup = inputFields.map((input, index) => {
-                    if (input.value.length === 0) {
+            newMarkup = inputFields.flatMap((input, index) => {
+                return inputFields2.map((input2, index2) => {
+                    if (input2.value.length === 0 || input.value.length === 0) {
                         return null;
                     } else {
                         globalIndex++;
-                        console.log("globalIndex", globalIndex);
-                        return createRow(input.value, globalIndex, globalIndex);
+
+                        let updatedState = [...variantsData];
+                        let updatedObject = { ...updatedState[globalIndex] };
+                        updatedObject.title = `${input.value} / ${input2.value}`;
+
+                        if (titles.includes(updatedObject.title)) {
+                            let i = titles.indexOf(updatedObject.title);
+
+                            let copy = copyData[i];
+                            updatedObject = { ...copy };
+                        } else {
+                            updatedObject = {
+                                title: `${input.value} / ${input2.value}`,
+                                sku: "",
+                                price: "",
+                                quantity: "",
+                                compare_at_price: "",
+                            };
+                        }
+
+                        //             if (!(titles.includes(updatedObject.title))) {
+                        //                 updatedObject = {
+                        //     title: "",
+                        //     sku: "",
+                        //     price: "",
+                        //     quantity: "",
+                        //     compare_at_price: "",
+                        // }
+                        //             }
+
+                        //             for (let copy of copyData) {
+                        //                 if (copy.title == updatedObject.title) {
+                        //                     return (updatedObject = { ...copy });
+                        //                 }
+                        //                 }
+
+                        updatedState[globalIndex] = updatedObject;
+
+                        setVariantsInputFileds(updatedState);
+                        return createRow(
+                            `${input.value} / ${input2.value}`,
+                            globalIndex,
+                            globalIndex,
+                            updatedState[globalIndex]
+                        );
                     }
                 });
-            } else if (
-                (variants === 2 || inputFields3[0].value.length === 0) &&
-                inputFields2[0].value.length > 0
-            ) {
-                makeState((inputFields2.length - 1) * (inputFields.length - 1));
-
-                newMarkup = inputFields.flatMap((input, index) => {
-                    return inputFields2.map((input2, index2) => {
+            });
+        } else if (variants === 3 && inputFields3[0].value.length > 0) {
+            {
+                variantsData.length <
+                (inputFields.length - 1) *
+                (inputFields2.length - 1) *
+                (inputFields3.length - 1) &&
+                (variantsData = makeState(
+                    (inputFields3.length - 1) *
+                    (inputFields2.length - 1) *
+                    (inputFields.length - 1),
+                    variantsData
+                ));
+            }
+            console.log(3);
+            newMarkup = inputFields.flatMap((input, index) => {
+                return inputFields2.flatMap((input2, index2) => {
+                    return inputFields3.map((input3, index3) => {
                         if (
+                            input3.value.length === 0 ||
                             input2.value.length === 0 ||
                             input.value.length === 0
                         ) {
                             return null;
                         } else {
                             globalIndex++;
-                            console.log(globalIndex);
+                            let updatedState = [...variantsData];
+                            let updatedObject = {
+                                ...updatedState[globalIndex],
+                            };
+                            updatedObject.title = `${input.value} / ${input2.value} / ${input3.value}`;
+
+                            if (titles.includes(updatedObject.title)) {
+                                let i = titles.indexOf(updatedObject.title);
+
+                                let copy = copyData[i];
+                                updatedObject = { ...copy };
+                            } else {
+                                updatedObject = {
+                                    title: `${input.value} / ${input2.value} / ${input3.value}`,
+                                    sku: "",
+                                    price: "",
+                                    quantity: "",
+                                    compare_at_price: "",
+                                };
+                            }
+
+                            updatedState[globalIndex] = updatedObject;
+                            setVariantsInputFileds(updatedState);
+                            console.log("createRow se pehle", updatedState);
                             return createRow(
-                                `${input.value}/${input2.value}`,
+                                `${input.value} / ${input2.value} / ${input3.value}`,
                                 globalIndex,
-                                globalIndex
+                                globalIndex,
+                                updatedState[globalIndex]
                             );
                         }
                     });
                 });
-            } else if (variants === 3 && inputFields3[0].value.length > 0) {
-                makeState(
-                    (inputFields3.length - 1) *
-                        (inputFields2.length - 1) *
-                        (inputFields.length - 1)
-                );
-                console.log(3);
-                newMarkup = inputFields.flatMap((input, index) => {
-                    return inputFields2.flatMap((input2, index2) => {
-                        return inputFields3.map((input3, index3) => {
-                            if (
-                                input3.value.length === 0 ||
-                                input2.value.length === 0 ||
-                                input.value.length === 0
-                            ) {
-                                return null;
-                            } else {
-                                globalIndex++;
-                                console.log(globalIndex);
-                                return createRow(
-                                    `${input.value}/${input2.value}/${input3.value}`,
-                                    globalIndex,
-                                    globalIndex
-                                );
-                            }
-                        });
-                    });
-                });
-            }
+            });
+        }
 
-            return newMarkup;
-        };
+        return newMarkup;
+    };
 
-        const markup = calculateMarkup();
+    useEffect(() => {
+        let markup = calculateMarkup();
         setVariantsMarkup(markup);
     }, [inputFields, inputFields2, inputFields3]);
 
@@ -768,38 +1083,6 @@ export function AddProduct() {
         [CollectionsOptionsData, optionsLoading, collectionOptionsSelected]
     );
 
-
-
-    const sellerUpdateText = useCallback(
-        (value) => {
-            setSellerEmailInputValue(value);
-
-            if (!optionsLoading) {
-                setOptionsLoading(true);
-            }
-
-            setTimeout(() => {
-                if (value === "") {
-                    setSellerEmailList(CollectionsOptionsData);
-                    setOptionsLoading(false);
-                    return;
-                }
-
-                const filterRegex = new RegExp(value, "i");
-                const resultOptions = CollectionsOptionsData.filter((option) =>
-                    option.label.match(filterRegex)
-                );
-                let endIndex = resultOptions.length - 1;
-                if (resultOptions.length === 0) {
-                    endIndex = 0;
-                }
-                setSellerEmailList(resultOptions);
-                setOptionsLoading(false);
-            }, 300);
-        },
-        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
-    );
-
     const handleChargeTax = useCallback(
         (newChecked) => setChargeTaxChecked(newChecked),
         []
@@ -813,7 +1096,7 @@ export function AddProduct() {
         return string
             .toLowerCase()
             .split(" ")
-            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .map((word) => word.replace(word[0], word[0]?.toUpperCase()))
             .join("");
     }
 
@@ -822,15 +1105,6 @@ export function AddProduct() {
             const collectionOptions = [...collectionOptionsSelected];
             collectionOptions.splice(collectionOptions.indexOf(collection), 1);
             setCollectionOptionsSelected(collectionOptions);
-        },
-        [collectionOptionsSelected]
-    );
-
-    const removeSellerEmail = useCallback(
-        (collection) => () => {
-            const collectionOptions = [...sellerEmailListSelected];
-            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
-            setSellerListSelected(collectionOptions);
         },
         [collectionOptionsSelected]
     );
@@ -856,47 +1130,13 @@ export function AddProduct() {
             </div>
         ) : null;
 
-
-    const sellerContentMarkup =
-        sellerEmailListSelected.length > 0 ? (
-            <div className="Product-Tags-Stack">
-                <Stack spacing="extraTight" alignment="center">
-                    {sellerEmailListSelected.map((option) => {
-                        let tagLabel = "";
-                        tagLabel = option.replace("_", " ");
-                        tagLabel = tagTitleCase(tagLabel);
-                        return (
-                            <Tag
-                                key={`option${option}`}
-                                onRemove={removeSellerEmail(option)}
-                            >
-                                {tagLabel}
-                            </Tag>
-                        );
-                    })}
-                </Stack>
-            </div>
-        ) : null;
-
     const collectionTextField = (
         <Autocomplete.TextField
             // onChange={collectionUpdateText}
-            error={formErrors.collectionSelect}
             label="Collections"
             value={collectionInputValue}
             placeholder="Select some options"
             verticalContent={collectionsContentMarkup}
-        />
-    );
-
-    const sellerEmailTextField = (
-        <Autocomplete.TextField
-            // onChange={sellerUpdateText}
-            error={formErrors.sellerEmail}
-            label="Seller Email*"
-            value={sellerEmailInputValue}
-            placeholder="Select Seller"
-            verticalContent={sellerContentMarkup}
         />
     );
 
@@ -959,9 +1199,13 @@ export function AddProduct() {
             </DropZone>
         </Stack>
     );
+
+
+
     useEffect(() => {
         console.log("mediaFiles", mediaFiles);
-    }, [mediaFiles]);
+        console.log("quantity", quantity);
+    }, [mediaFiles,quantity]);
 
     const addVariantHandler = () => {
         let variantcount = variants + 1;
@@ -974,6 +1218,29 @@ export function AddProduct() {
         setImageFiles(temp_array);
     };
 
+
+    const handleRemoveMediaApi = async (index,src) => {
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/remove-img?id=${params.edit_product_id}&src=${src}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            setMediaFilesUrl(response?.data?.product_images);
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+    };
+
     const validImageTypes = [
         "image/gif",
         "image/jpeg",
@@ -981,10 +1248,11 @@ export function AddProduct() {
         "image/jpg",
         "image/svg",
     ];
-    const uploadedFiles = mediaFiles.length > 0 && (
-        <Stack id="jjj">
+
+    const uploadedFiles = (
+        <LegacyStack id="jjj">
             {mediaFiles.map((file, index) => (
-                <Stack alignment="center" key={index}>
+                <LegacyStack alignment="center" key={index}>
                     <div className="Polaris-Product-Gallery">
                         <Thumbnail
                             size="large"
@@ -999,14 +1267,72 @@ export function AddProduct() {
                             className="media_hover"
                             onClick={() => handleRemoveMedia(index)}
                         >
-                            <Icon source={DeleteMinor}> </Icon>
+                            <Icon source={DeleteMinor} />
                         </span>
                     </div>
-                </Stack>
+                </LegacyStack>
+            ))}
+            {mediaFilesUrl.map(({ id, src }, index) => (
+                <LegacyStack alignment="center" key={id}>
+                    <div className="Polaris-Product-Gallery">
+                        <Thumbnail
+                            size="large"
+                            alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
+                            source={src} // Use 'src' directly as the image source
+                        />
+
+                        <span
+                            className="media_hover"
+                            onClick={() =>
+                                handleRemoveMediaApi(
+                                    index,src
+                                )
+                            }
+                        >
+                                                <Icon
+                                                    source={
+                                                        DeleteMinor
+                                                    }
+                                                >
+                                                    {" "}
+                                                </Icon>
+                                            </span>
+                    </div>
+                </LegacyStack>
             ))}
 
+
+
+
+
+            {/*{product?.images && JSON.parse(product?.images).map((imageUrl, index) => {*/}
+            {/*    const file = imageUrl.startsWith('www')*/}
+            {/*        ? `https://${imageUrl}`*/}
+            {/*        : imageUrl;*/}
+
+
+            {/*    if (file) {*/}
+            {/*        return (*/}
+            {/*            <LegacyStack alignment="center" key={index}>*/}
+            {/*                <div className="Polaris-Product-Gallery">*/}
+            {/*                    <Thumbnail*/}
+            {/*                        size="large"*/}
+            {/*                        alt={product?.title}*/}
+            {/*                        source={file}*/}
+            {/*                    />*/}
+            {/*                </div>*/}
+            {/*            </LegacyStack>*/}
+            {/*        );*/}
+            {/*    }*/}
+
+            {/*    return null;*/}
+            {/*})}*/}
+
+
+
+            {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
             <div className="Polaris-Product-DropZone">
-                <Stack alignment="center">
+                <LegacyStack alignment="center">
                     <DropZone
                         accept="image/*, video/*"
                         type="image,video"
@@ -1016,10 +1342,14 @@ export function AddProduct() {
                     >
                         <DropZone.FileUpload actionTitle={"Add files"} />
                     </DropZone>
-                </Stack>
+                </LegacyStack>
             </div>
-        </Stack>
+            {/*)}*/}
+
+
+        </LegacyStack>
     );
+
 
     const handleProductHandle = (e) => {
         setProductHandle(e.target.value);
@@ -1143,21 +1473,21 @@ export function AddProduct() {
     const optionMarkup =
         options.length > 0
             ? options?.map((option) => {
-                  return (
-                      <Listbox.Option
-                          key={option}
-                          value={option}
-                          selected={selectedTags.includes(option)}
-                          accessibilityLabel={option}
-                      >
-                          <Listbox.TextOption
-                              selected={selectedTags.includes(option)}
-                          >
-                              {formatOptionText(option)}
-                          </Listbox.TextOption>
-                      </Listbox.Option>
-                  );
-              })
+                return (
+                    <Listbox.Option
+                        key={option}
+                        value={option}
+                        selected={selectedTags.includes(option)}
+                        accessibilityLabel={option}
+                    >
+                        <Listbox.TextOption
+                            selected={selectedTags.includes(option)}
+                        >
+                            {formatOptionText(option)}
+                        </Listbox.TextOption>
+                    </Listbox.Option>
+                );
+            })
             : null;
 
     const noResults = value && !getAllTags().includes(value);
@@ -1265,92 +1595,69 @@ export function AddProduct() {
         return string
             .toLowerCase()
             .split(" ")
-            .map((word) => word.replace(word[0], word[0].toUpperCase()))
+            .map((word) => word.replace(word[0], word[0]?.toUpperCase()))
             .join("");
     }
 
-
     //SUbmit Data
     const addProduct = async () => {
-
-
-        const errors = {};
-        if (productName.trim() === '') {
-            errors.productName = 'Product Name is required';
-        }
-
-        if (!sellerEmailListSelected) {
-            errors.sellerEmail = 'Seller Email is required';
-            console.log(errors);
-        }
-
-        if (!collectionOptionsSelected) {
-            errors.collectionSelect = 'Collection is required';
-            console.log(errors);
-        }
-
-
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            setBtnLoading(false)
-            return;
-        }
-        setLoading(true)
-        setBtnLoading(true)
+        console.log('dssd',quantity)
+        setBtnLoading(true);
         const sessionToken = getAccessToken();
+        setLoading(true)
         let formData = new FormData();
+        formData.append("product_id", params.edit_product_id);
 
-        formData.append('product_name',productName);
-        formData.append('description',descriptioncontent);
-        formData.append('product_price',price);
-        formData.append('product_compare_at_price',compareatPrice);
-        formData.append('taxable',chargeTaxChecked);
-        formData.append('inventory_management',trackQuantityIsChecked);
-        formData.append('product_quantity',quantity);
-        formData.append('inventory_policy',allowCustomer);
+        formData.append("product_name", productName);
+        formData.append("description", descriptioncontent);
+        formData.append("product_price", price);
+        formData.append("product_compare_at_price", compareatPrice);
+        formData.append("taxable", chargeTaxChecked);
+        formData.append("inventory_management", trackQuantityIsChecked);
+        formData.append("product_quantity", quantity);
+        formData.append("inventory_policy", allowCustomer);
         mediaFiles.forEach((item, index) => {
             formData.append(`images[${index}]`, item);
         });
-        formData.append('product_sku',sku);
-        formData.append('barcode',barcode);
-        formData.append('weight',weight);
-        formData.append('weight_unit',unit);
-        formData.append('search_engine_title',pageTitle);
-        formData.append('search_engine_meta_description',pageDescription);
-        formData.append('options',JSON.stringify(transformedFormat));
-        formData.append('status',status);
-        formData.append('variants',JSON.stringify(variantsInputFileds));
-        formData.append('seller_email',sellerEmailListSelected);
-        formData.append('tags',newTags);
-        formData.append('product_type',productHandle);
-        formData.append('vendor',vendor);
-        formData.append('collections',collectionOptionsSelected);
-
+        formData.append("product_sku", sku);
+        formData.append("barcode", barcode);
+        formData.append("weight", weight);
+        formData.append("weight_unit", unit);
+        formData.append("search_engine_title", pageTitle);
+        formData.append("search_engine_meta_description", pageDescription);
+        formData.append("options", JSON.stringify(transformedFormat));
+        formData.append("status", status);
+        formData.append("variants", JSON.stringify(variantsInputFileds));
+        formData.append("seller_email", sellerEmailListSelected);
+        formData.append("tags", newTags);
+        formData.append("product_type", productHandle);
+        formData.append("vendor", vendor);
+        formData.append("collections", collectionOptionsSelected);
 
         try {
-            const response = await axios.post(`${apiUrl}/add-product`,formData,
+            const response = await axios.post(
+                `${apiUrl}/add-product`,
+                formData,
                 {
                     headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-        console.log('res',response?.data?.message)
-            setBtnLoading(false)
+                        Authorization: "Bearer " + sessionToken,
+                    },
+                }
+            );
+            console.log("res", response?.data?.message);
+            setBtnLoading(false);
+            setToastMsg(response?.data?.message);
+            setSucessToast(true);
             setLoading(false)
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
             navigate('/productslisting')
             // setSkeleton(false)
-
         } catch (error) {
             console.log(error);
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
+            setBtnLoading(false);
+            setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
         }
-    }
-
-
+    };
 
     return (
         <div className="Discount-Detail-Page">
@@ -1385,9 +1692,9 @@ export function AddProduct() {
                     saveAction={{
                         onAction: addProduct,
                         loading: btnLoading,
-                        disabled: false,
                     }}
                     discardAction={{
+
                         onAction: handleDiscardModal,
                     }}
                 />
@@ -1403,7 +1710,7 @@ export function AddProduct() {
                     breadcrumbs={[
                         { content: "Discounts", onAction: handleDiscardModal },
                     ]}
-                    title="Add Product"
+                    title="Edit Product"
                     fullWidth
                 >
                     {discountError ? (
@@ -1423,7 +1730,7 @@ export function AddProduct() {
 
                     <Layout>
                         <Layout.Section>
-                            <Form >
+                            <Form>
                                 <FormLayout>
                                     <span className="VisuallyHidden">
                                         <Button submit id="createDiscountBtn">
@@ -1432,7 +1739,6 @@ export function AddProduct() {
                                     </span>
 
                                     <Card sectioned title="Product Details">
-
                                         {/* <Text variant="bodyMd" as="p" fontWeight="regular">
                       {`Add product details here `}
                     </Text> */}
@@ -1453,9 +1759,9 @@ export function AddProduct() {
                                             marginTop
                                             name="productName"
                                             value={productName}
-                                            onChange={(e) =>setProductName(e.target.value)}
-                                            error={formErrors.productName}
-
+                                            onChange={(e) =>
+                                                setProductName(e.target.value)
+                                            }
                                         />
                                         <div className="label_editor">
                                             <label>Description *</label>
@@ -1485,7 +1791,6 @@ export function AddProduct() {
                         {listboxMarkup}
                       </Combobox>
                     </div> */}
-
                                     </Card>
 
                                     <Card
@@ -1497,10 +1802,122 @@ export function AddProduct() {
                                             },
                                         ]}
                                     >
-                                        {dropZone}
+                                        {/*{dropZone}*/}
                                         {uploadedFiles}
 
+                                        {/*<Stack id="jjj">*/}
+                                        {/*    {mediaFilesUrl.map(*/}
+                                        {/*        ({ id, src }, index) => (*/}
+                                        {/*            <Stack alignment="center">*/}
+                                        {/*                <div className="Polaris-Product-Gallery">*/}
+                                        {/*                    <Thumbnail*/}
+                                        {/*                        size="large"*/}
+                                        {/*                        alt={*/}
+                                        {/*                            "header-img"*/}
+                                        {/*                        }*/}
+                                        {/*                        source={src}*/}
+                                        {/*                    />*/}
+                                        {/*                    <span*/}
+                                        {/*                        className="media_hover"*/}
+                                        {/*                        onClick={() =>*/}
+                                        {/*                            handleRemoveMediaApi(*/}
+                                        {/*                                index*/}
+                                        {/*                            )*/}
+                                        {/*                        }*/}
+                                        {/*                    >*/}
+                                        {/*                        <Icon*/}
+                                        {/*                            source={*/}
+                                        {/*                                DeleteMinor*/}
+                                        {/*                            }*/}
+                                        {/*                        >*/}
+                                        {/*                            {" "}*/}
+                                        {/*                        </Icon>*/}
+                                        {/*                    </span>*/}
+                                        {/*                </div>*/}
+                                        {/*            </Stack>*/}
+                                        {/*        )*/}
+                                        {/*    )}*/}
+
+
+
+
+
+
+                                        {/*    {mediaFiles.length > 0 && (*/}
+                                        {/*        <Stack id="jjj">*/}
+                                        {/*            {mediaFiles.map(*/}
+                                        {/*                (file, index) => (*/}
+                                        {/*                    <Stack*/}
+                                        {/*                        alignment="center"*/}
+                                        {/*                        key={index}*/}
+                                        {/*                    >*/}
+                                        {/*                        <div className="Polaris-Product-Gallery">*/}
+                                        {/*                            <Thumbnail*/}
+                                        {/*                                size="large"*/}
+                                        {/*                                alt={*/}
+                                        {/*                                    file.name*/}
+                                        {/*                                }*/}
+                                        {/*                                source={*/}
+                                        {/*                                    validImageTypes.indexOf(*/}
+                                        {/*                                        file.type*/}
+                                        {/*                                    ) >*/}
+                                        {/*                                    -1*/}
+                                        {/*                                        ? window.URL.createObjectURL(*/}
+                                        {/*                                            file*/}
+                                        {/*                                        )*/}
+                                        {/*                                        : NoteMinor*/}
+                                        {/*                                }*/}
+                                        {/*                            />*/}
+                                        {/*                            <span*/}
+                                        {/*                                className="media_hover"*/}
+                                        {/*                                onClick={() =>*/}
+                                        {/*                                    handleRemoveMedia(*/}
+                                        {/*                                        index*/}
+                                        {/*                                    )*/}
+                                        {/*                                }*/}
+                                        {/*                            >*/}
+                                        {/*                                <Icon*/}
+                                        {/*                                    source={*/}
+                                        {/*                                        DeleteMinor*/}
+                                        {/*                                    }*/}
+                                        {/*                                >*/}
+                                        {/*                                    {" "}*/}
+                                        {/*                                </Icon>*/}
+                                        {/*                            </span>*/}
+                                        {/*                        </div>*/}
+                                        {/*                    </Stack>*/}
+                                        {/*                )*/}
+                                        {/*            )}*/}
+
+                                        {/*            <div className="Polaris-Product-DropZone">*/}
+                                        {/*                <Stack alignment="center">*/}
+                                        {/*                    <DropZone*/}
+                                        {/*                        accept="image/*, video/*"*/}
+                                        {/*                        type="image,video"*/}
+                                        {/*                        openFileDialog={*/}
+                                        {/*                            openFileDialog*/}
+                                        {/*                        }*/}
+                                        {/*                        onDrop={*/}
+                                        {/*                            handleDropZoneDrop*/}
+                                        {/*                        }*/}
+                                        {/*                        onFileDialogClose={*/}
+                                        {/*                            toggleOpenFileDialog*/}
+                                        {/*                        }*/}
+                                        {/*                    >*/}
+                                        {/*                        <DropZone.FileUpload*/}
+                                        {/*                            actionTitle={*/}
+                                        {/*                                "Add files"*/}
+                                        {/*                            }*/}
+                                        {/*                        />*/}
+                                        {/*                    </DropZone>*/}
+                                        {/*                </Stack>*/}
+                                        {/*            </div>*/}
+                                        {/*        </Stack>*/}
+                                        {/*    )}*/}
+                                        {/*    ;*/}
+                                        {/*</Stack>*/}
                                     </Card>
+
                                     {/*
                   <Card sectioned title="Shipping Details">
                     <div className="Type-Section">
@@ -1677,7 +2094,9 @@ export function AddProduct() {
                                                     required
                                                     marginTop
                                                     value={weight}
-                                                    onChange={(value) => setWeight(value)}
+                                                    onChange={(value) =>
+                                                        setWeight(value)
+                                                    }
                                                 />
                                             </FormLayout>
                                         </div>
@@ -1722,229 +2141,231 @@ export function AddProduct() {
                                             }
                                         />
                                     </Card>
-                                    <Card sectioned title="Variant Details">
-                                        {variants > 0 && (
-                                            <Card.Section>
-                                                <div>
-                                                    <TextField
-                                                        label="Option Name"
-                                                        type="text"
-                                                        value={variantOptions}
-                                                        onChange={(value) =>
-                                                            setVariantOptions(
-                                                                value
-                                                            )
-                                                        }
-                                                    />
-                                                    <p
-                                                        style={{
-                                                            marginTop: "10px",
-                                                        }}
-                                                    >
-                                                        Product Value
-                                                    </p>
-                                                    {inputFields.map(
-                                                        (inputField, index) => (
-                                                            <div key={index}>
-                                                                <TextField
-                                                                    value={
-                                                                        inputField.value
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        inputHandleChange(
-                                                                            index,
+                                    {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
+                                        <Card sectioned title="Variant Details">
+                                            {variants > 0 && (
+                                                <Card.Section>
+                                                    <div>
+                                                        <TextField
+                                                            label="Option Name"
+                                                            type="text"
+                                                            value={variantOptions}
+                                                            onChange={(value) =>
+                                                                setVariantOptions(
+                                                                    value
+                                                                )
+                                                            }
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Product Value
+                                                        </p>
+                                                        {inputFields.map(
+                                                            (inputField, index) => (
+                                                                <div key={index}>
+                                                                    <TextField
+                                                                        value={
+                                                                            inputField.value
+                                                                        }
+                                                                        onChange={(
                                                                             value
-                                                                        )
-                                                                    }
-                                                                    connectedRight={[
-                                                                        // <Button primary onClick={handleAddField}>
-                                                                        //   Add Field
-                                                                        // </Button>,
-                                                                        (inputField
-                                                                            .value
-                                                                            .length >
-                                                                            0 ||
-                                                                            inputFields.length -
+                                                                        ) =>
+                                                                            inputHandleChange(
+                                                                                index,
+                                                                                value
+                                                                            )
+                                                                        }
+                                                                        connectedRight={[
+                                                                            // <Button primary onClick={handleAddField}>
+                                                                            //   Add Field
+                                                                            // </Button>,
+                                                                            (inputField
+                                                                                    .value
+                                                                                    .length >
+                                                                                0 ||
+                                                                                inputFields.length -
                                                                                 1 !=
                                                                                 index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </Card.Section>
-                                        )}
-                                        {variants > 1 && (
-                                            <Card.Section>
-                                                <div>
-                                                    <TextField
-                                                        label="Option Name"
-                                                        type="text"
-                                                        value={variantOptions2}
-                                                        onChange={(value) =>
-                                                            setVariantOptions2(
-                                                                value
+                                                                                <Button
+                                                                                    plain
+                                                                                    icon={
+                                                                                        DeleteMinor
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleRemoveField(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        ]}
+                                                                    />
+                                                                </div>
                                                             )
-                                                        }
-                                                    />
-                                                    <p
-                                                        style={{
-                                                            marginTop: "10px",
-                                                        }}
-                                                    >
-                                                        Product Value
-                                                    </p>
-                                                    {inputFields2.map(
-                                                        (inputField, index) => (
-                                                            <div key={index}>
-                                                                <TextField
-                                                                    value={
-                                                                        inputField.value
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        inputHandleChange2(
-                                                                            index,
+                                                        )}
+                                                    </div>
+                                                </Card.Section>
+                                            )}
+                                            {variants > 1 && (
+                                                <Card.Section>
+                                                    <div>
+                                                        <TextField
+                                                            label="Option Name"
+                                                            type="text"
+                                                            value={variantOptions2}
+                                                            onChange={(value) =>
+                                                                setVariantOptions2(
+                                                                    value
+                                                                )
+                                                            }
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Product Value
+                                                        </p>
+                                                        {inputFields2.map(
+                                                            (inputField, index) => (
+                                                                <div key={index}>
+                                                                    <TextField
+                                                                        value={
+                                                                            inputField.value
+                                                                        }
+                                                                        onChange={(
                                                                             value
-                                                                        )
-                                                                    }
-                                                                    connectedRight={[
-                                                                        (inputField
-                                                                            .value
-                                                                            .length >
-                                                                            0 ||
-                                                                            inputFields2.length -
+                                                                        ) =>
+                                                                            inputHandleChange2(
+                                                                                index,
+                                                                                value
+                                                                            )
+                                                                        }
+                                                                        connectedRight={[
+                                                                            (inputField
+                                                                                    .value
+                                                                                    .length >
+                                                                                0 ||
+                                                                                inputFields2.length -
                                                                                 1 !=
                                                                                 index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField2(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </Card.Section>
-                                        )}
-                                        {variants == 3 && (
-                                            <Card.Section>
-                                                <div>
-                                                    <TextField
-                                                        label="Option Name"
-                                                        type="text"
-                                                        value={variantOptions3}
-                                                        onChange={(value) =>
-                                                            setVariantOptions3(
-                                                                value
+                                                                                <Button
+                                                                                    plain
+                                                                                    icon={
+                                                                                        DeleteMinor
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleRemoveField2(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        ]}
+                                                                    />
+                                                                </div>
                                                             )
-                                                        }
-                                                    />
-                                                    <p
-                                                        style={{
-                                                            marginTop: "10px",
-                                                        }}
-                                                    >
-                                                        Product Value
-                                                    </p>
-                                                    {inputFields3.map(
-                                                        (inputField, index) => (
-                                                            <div key={index}>
-                                                                <TextField
-                                                                    value={
-                                                                        inputField.value
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        inputHandleChange3(
-                                                                            index,
+                                                        )}
+                                                    </div>
+                                                </Card.Section>
+                                            )}
+                                            {variants == 3 && (
+                                                <Card.Section>
+                                                    <div>
+                                                        <TextField
+                                                            label="Option Name"
+                                                            type="text"
+                                                            value={variantOptions3}
+                                                            onChange={(value) =>
+                                                                setVariantOptions3(
+                                                                    value
+                                                                )
+                                                            }
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Product Value
+                                                        </p>
+                                                        {inputFields3.map(
+                                                            (inputField, index) => (
+                                                                <div key={index}>
+                                                                    <TextField
+                                                                        value={
+                                                                            inputField.value
+                                                                        }
+                                                                        onChange={(
                                                                             value
-                                                                        )
-                                                                    }
-                                                                    connectedRight={[
-                                                                        (inputField
-                                                                            .value
-                                                                            .length >
-                                                                            0 ||
-                                                                            inputFields3.length -
+                                                                        ) =>
+                                                                            inputHandleChange3(
+                                                                                index,
+                                                                                value
+                                                                            )
+                                                                        }
+                                                                        connectedRight={[
+                                                                            (inputField
+                                                                                    .value
+                                                                                    .length >
+                                                                                0 ||
+                                                                                inputFields3.length -
                                                                                 1 !=
                                                                                 index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField3(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </Card.Section>
-                                        )}
+                                                                                <Button
+                                                                                    plain
+                                                                                    icon={
+                                                                                        DeleteMinor
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleRemoveField3(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        ]}
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </Card.Section>
+                                            )}
 
-                                        {!(variants > 2) && (
-                                            <Card.Section>
-                                                <div
-                                                    className="variants-secton"
-                                                    style={{
-                                                        display: "flex",
-                                                    }}
-                                                >
-                                                    <Icon
-                                                        source={MobilePlusMajor}
-                                                        color="base"
-                                                    />
-                                                    <Link
-                                                        onClick={
-                                                            addVariantHandler
-                                                        }
+                                            {!(variants > 2) && (
+                                                <Card.Section>
+                                                    <div
+                                                        className="variants-secton"
+                                                        style={{
+                                                            display: "flex",
+                                                        }}
                                                     >
-                                                        Add another option
-                                                    </Link>
-                                                </div>
-                                            </Card.Section>
-                                        )}
-                                        {/* <div className="Type-Section">
+                                                        <Icon
+                                                            source={MobilePlusMajor}
+                                                            color="base"
+                                                        />
+                                                        <Link
+                                                            onClick={
+                                                                addVariantHandler
+                                                            }
+                                                        >
+                                                            Add another option
+                                                        </Link>
+                                                    </div>
+                                                </Card.Section>
+                                            )}
+                                            {/* <div className="Type-Section">
                       <Text variant="bodyMd" as="p" fontWeight="regular">
                         {`Add variant details here, if this product comes in multiple versions, like different sizes or colors.`}
                       </Text>
                     </div> */}
-                                    </Card>
-                                    {variants > 0 && (
+                                        </Card>
+                                    )}
+                                    {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
                                         <Card title="Variants">
                                             <Card.Section>
                                                 <div className="Product-Variants-Table">
@@ -1984,12 +2405,15 @@ export function AddProduct() {
                                             options={[
                                                 {
                                                     label: "Draft",
-                                                    value: 'draft',
+                                                    value: "draft",
                                                 },
-                                                { label: "Active", value: 'active' },
+                                                {
+                                                    label: "Active",
+                                                    value: "active",
+                                                },
                                             ]}
-                                            onChange={() => setStatus(!status)}
-                                            value={status ? 'active' : 'draft'}
+                                            onChange={handleStatusChange}
+                                            value={status}
                                         />
                                     </div>
                                 </Card>
@@ -2011,6 +2435,7 @@ export function AddProduct() {
                                                 }
                                                 listTitle="Sellers"
                                             />
+
                                             {/*<InputField*/}
                                             {/*    label="Seller Email*"*/}
                                             {/*    placeholder="Enter Seller Email Here"*/}
@@ -2018,12 +2443,12 @@ export function AddProduct() {
                                             {/*    marginTop*/}
                                             {/*    name="email"*/}
                                             {/*    value={sellerEmail}*/}
-                                            {/*    onChange={(e) => setSellerEmail(e.target.value)}*/}
-                                            {/*    error={formErrors.sellerEmail}*/}
-
+                                            {/*    onChange={(e) =>*/}
+                                            {/*        setSellerEmail(*/}
+                                            {/*            e.target.value*/}
+                                            {/*        )*/}
+                                            {/*    }*/}
                                             {/*/>*/}
-
-
                                         </div>
                                     </div>
                                 </Card>
@@ -2063,7 +2488,7 @@ export function AddProduct() {
                                                 onChange={handleChange}
                                             />
                                         </div>
-                                        <div className="tags_spacing">{tagsToAddMarkup}</div>
+                                        <div>{tagsToAddMarkup}</div>
                                         <div className="label_editor">
                                             <InputField
                                                 label="Product Type"

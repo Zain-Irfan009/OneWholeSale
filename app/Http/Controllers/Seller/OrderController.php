@@ -42,7 +42,8 @@ class OrderController extends Controller
 
     public function ViewOrder(Request $request,$id){
         $user=auth()->user();
-        $session=Session::where('shop',$user->name)->first();
+        $session=Session::where('id',$user->shop_id)->first();
+
 
         $order=Order::find($id);
 
@@ -76,7 +77,8 @@ class OrderController extends Controller
             'order_commission'=>(string)((float)$order_commission),
             'line_items'=>$line_item_data,
             'date'=>$date,
-            'total_items'=>$total_items
+            'total_items'=>$total_items,
+            'currency'=>$session->money_format,
         ];
         return response()->json($data);
 
@@ -130,6 +132,7 @@ class OrderController extends Controller
 
     public function OrderFilter(Request $request)
     {
+
         $user=auth()->user();
 
         $order_array=array();
@@ -137,14 +140,25 @@ class OrderController extends Controller
         $order_sellers=OrderSeller::where('user_id',$user->id)->orderBy('id','Desc')->get();
 
         foreach ($order_sellers as $order_seller){
+//            if($request->status==0) {
+//                $order = Order::find($order_seller->order_id);
+//            }
+//            else if($request->status==1) {
+//                $order = Order::where('financial_status','paid')->where('id', $order_seller->order_id)->first();
+//            }
+//            else if($request->status==2){
+//                $order = Order::where('financial_status','pending')->where('id', $order_seller->order_id)->first();
+//            }
+
             if($request->status==0) {
                 $order = Order::find($order_seller->order_id);
+            }else if($request->status==1){
+                $order = Order::whereNull('fulfillment_status')->where('id', $order_seller->order_id)->first();
+            }else if($request->status==2){
+                $order = Order::where('fulfillment_status','partial')->where('id', $order_seller->order_id)->first();
             }
-            else if($request->status==1) {
-                $order = Order::where('financial_status','paid')->where('id', $order_seller->order_id)->first();
-            }
-            else if($request->status==2){
-                $order = Order::where('financial_status','pending')->where('id', $order_seller->order_id)->first();
+            else if($request->status==3){
+                $order = Order::where('fulfillment_status','fulfilled')->where('id', $order_seller->order_id)->first();
             }
             if($order) {
                 $data['id'] = $order->id;
@@ -185,6 +199,54 @@ class OrderController extends Controller
 
         $data = [
             'data' => $order_array
+        ];
+        return response()->json($data);
+    }
+
+    public function OrderFilterPayment(Request $request){
+
+        $user=auth()->user();
+        $shop=Session::where('id',$user->shop_id)->first();
+        $order_array=array();
+
+        $order_sellers=OrderSeller::where('user_id',$user->id)->orderBy('id','Desc')->get();
+
+        foreach ($order_sellers as $order_seller) {
+
+
+            if ($request->value == 'all') {
+                $order = Order::query();
+            } else if ($request->value == 'paid') {
+                $order = Order::where('financial_status', 'paid');
+            } else if ($request->value == 'unpaid') {
+                $order = Order::where('financial_status', 'unpaid');
+            }
+
+            if ($request->status == 1) {
+                $order = $order->whereNull('fulfillment_status');
+            } else if ($request->status == 2) {
+                $order = $order->where('fulfillment_status', 'partial');
+            } else if ($request->status == 3) {
+                $order =$order->where('fulfillment_status', 'fulfilled');
+            }
+
+
+
+            $order = $order->where('id', $order_seller->order_id)->first();
+
+            if($order) {
+                $data['id'] = $order->id;
+                $data['order_number'] = $order->order_number;
+                $data['financial_status'] = $order->financial_status;
+                $data['fulfillment_status'] = $order->fulfillment_status;
+                $data['created_at'] = $order->created_at;
+                array_push($order_array, $data);
+            }
+
+
+        }
+        $data = [
+            'orders' => $order_array
         ];
         return response()->json($data);
     }
