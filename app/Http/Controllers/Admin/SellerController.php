@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\SendMail;
+use App\Models\Collection;
 use App\Models\MailSmtpSetting;
 use App\Models\Product;
 use App\Models\Session;
@@ -39,6 +40,16 @@ class SellerController extends Controller
             ];
             return response()->json($data,422);
         }
+
+        $verify_shop=User::where('seller_shopname',$request->seller_shopname)->where('role','seller')->first();
+
+        if($verify_shop){
+            $data = [
+                'message' => 'Shop Name already exists',
+            ];
+            return response()->json($data,422);
+        }
+
 
         $validator = Validator::make($request->all(), [
             'password' => 'min:8|string|required_with:password_confirmation|same:password_confirmation',
@@ -89,6 +100,7 @@ class SellerController extends Controller
             $seller->save();
 
                 $this->SellerDetailMetafield($seller,$client);
+            $this->ActiveSellerMetafield($shop,$client);
             $data = [
                 'message' => 'Seller Added Successfully',
                 'seller'=>$seller
@@ -112,6 +124,16 @@ class SellerController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $client = new Rest($shop->shop, $shop->access_token);
         if($shop) {
+
+            $verify_shop=User::where('id','!=',$request->id)->where('seller_shopname',$request->seller_shopname)->where('role','seller')->first();
+
+            if($verify_shop){
+                $data = [
+                    'message' => 'Shop Name already exists',
+                ];
+                return response()->json($data,422);
+            }
+
             $seller = User::where('id', $request->id)->where('role', 'seller')->first();
             $custom_collection = $client->put( '/custom_collections/'.$seller->collection_id.'.json', [
                 'custom_collection' => [
@@ -161,16 +183,17 @@ class SellerController extends Controller
                     $seller->store_banner_image = $filename2;
                 }
 
-                if ($request->publish_seller_profile == 'true') {
-                    $publish_seller_profile = 1;
-                } else {
-                    $publish_seller_profile = 0;
-                }
-                $seller->publish_seller_profile = $publish_seller_profile;
+//                if ($request->publish_seller_profile == 'true') {
+//                    $publish_seller_profile = 1;
+//                } else {
+//                    $publish_seller_profile = 0;
+//                }
+//                $seller->publish_seller_profile = $publish_seller_profile;
                 $seller->seller_handle = $request->seller_handle;
                 $seller->shop_id = $shop->id;
                 $seller->save();
             $this->SellerDetailMetafield($seller,$client);
+                $this->ActiveSellerMetafield($shop,$client);
                 $data = [
                     'message' => 'Seller Updated Successfully',
                     'seller' => $seller
@@ -189,6 +212,7 @@ class SellerController extends Controller
     public function UpdateSellerStatus(Request $request){
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
+        $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
         $client = new Rest($shop->shop, $shop->access_token);
         if($shop){
             $seller = User::where('id', $request->id)->where('role', 'seller')->first();
@@ -236,6 +260,13 @@ class SellerController extends Controller
                 }
 
                 $this->ActiveSellerMetafield($shop,$client);
+                $this->ActiveSellerMetafield($shop,$client);
+                $type='Seller Status';
+                if($seller->status!=null) {
+                    $this->SendMail($seller, $Setting, $type);
+                }
+
+
                 $data = [
                     'message' => 'Seller Updated Successfully',
                     'seller'=>$seller
@@ -313,6 +344,8 @@ class SellerController extends Controller
                     User::where('id', $request->id)->where('role', 'seller')->forceDelete();
 //                }
             }
+
+            $this->ActiveSellerMetafield($shop,$client);
             $data = [
                 'message' => 'Seller Deleted Successfully',
             ];
@@ -445,7 +478,7 @@ class SellerController extends Controller
 
     public function SellerDetailMetafield($seller,$client){
         $seller_detail=array();
-        $seller_detail['publish_profile']=$seller->publish_seller_profile;
+//        $seller_detail['publish_profile']=$seller->publish_seller_profile;
         $seller_detail['name']=$seller->name;
         $seller_detail['seller_shopname']=$seller->seller_shopname;
         $seller_detail['email']=$seller->email;
@@ -539,5 +572,38 @@ class SellerController extends Controller
             $shop->save();
         }
 
+    }
+
+
+    public function SendMail($seller,$setting,$type){
+
+        if($seller->status==1){
+            $status="Active";
+        }elseif ($seller->status==0){
+            $status='Disabled';
+        }
+        $details['to'] = $seller->email;
+        $details['name'] = $seller->name;
+        $details['subject'] = 'OneWholesale';
+        $details['status'] = $status;
+        Mail::to($seller->email)->send(new SendMail($details, $setting,$type));
+    }
+
+
+    public function GetSellerData(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $get_user=User::where('email',$request->email)->first();
+        if($get_user){
+            $collections=Collection::where('shopify_id',$get_user->collection_id)->first();
+        }
+
+        $data = [
+            'collections'=>$collections,
+            'shop_name'=>$get_user->seller_shopname
+        ];
+
+        return response()->json($data);
     }
 }

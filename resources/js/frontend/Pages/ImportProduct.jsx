@@ -83,6 +83,11 @@ export function ImportProduct() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [formErrors, setFormErrors] = useState({});
 
+    const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
+        []
+    );
+
+
 
     const [sellerEmailList, setSellerEmailList] = useState(
         []
@@ -217,6 +222,8 @@ console.log('seller_email',seller_email)
     const handleAassignProductCloseAction=()=>{
         setUniqueId()
         // setSellerEmail('')
+        setSellerEmailInputValue('')
+        setSellerEmailList(orignalSellerEmailList)
         setModalAssignProduct(false)
     }
 
@@ -352,13 +359,13 @@ console.log('seller_email',seller_email)
 
             setTimeout(() => {
                 if (value === "") {
-                    setSellerEmailList(CollectionsOptionsData);
+                    setSellerEmailList(orignalSellerEmailList);
                     setOptionsLoading(false);
                     return;
                 }
 
                 const filterRegex = new RegExp(value, "i");
-                const resultOptions = CollectionsOptionsData.filter((option) =>
+                const resultOptions = sellerEmailList.filter((option) =>
                     option.label.match(filterRegex)
                 );
                 let endIndex = resultOptions.length - 1;
@@ -369,7 +376,7 @@ console.log('seller_email',seller_email)
                 setOptionsLoading(false);
             }, 300);
         },
-        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+        [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
 
 
@@ -407,7 +414,7 @@ console.log('seller_email',seller_email)
 
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            // onChange={sellerUpdateText}
+            onChange={sellerUpdateText}
             label="Seller Email*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
@@ -435,7 +442,7 @@ console.log('seller_email',seller_email)
                 label: `${name} (${email})`
             }));
             setSellerEmailList(arr_seller)
-
+            setOrignalSellerEmailList(arr_seller)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)

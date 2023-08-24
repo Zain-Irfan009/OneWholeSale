@@ -40,7 +40,7 @@ import { SkeltonPageForTable } from "../components/global/SkeltonPage";
 import { CustomBadge } from "../components/Utils/CustomBadge";
 // import { useAuthState } from '../../components/providers/AuthProvider'
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import { InputField } from "../components/Utils";
 import {getAccessToken} from "../assets/cookies";
 
@@ -57,6 +57,7 @@ export function SellersListing() {
   const [resetBtnLoading, setResetBtnLoading] = useState(false);
   const [disableBtnLoading, setDisableBtnLoading] = useState(false);
   const [enableBtnLoading, setEnableBtnLoading] = useState(false);
+    const location = useLocation();
 
     const [sendBtnLoading, setSendBtnLoading] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -157,24 +158,48 @@ export function SellersListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/sellers?page=${pagination}`,
+            if (pageCursorValue != '') {
+
+                var url = pageCursorValue;
+            } else {
+                var url = `${apiUrl}/sellers?${pageCursor}=${pageCursorValue}`;
+            }
+
+            const response = await axios.get(url,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+            if(location.state) {
+                setToastMsg(location.state?.customText)
+                setSucessToast(true)
+            }
 
             setCustomers(response?.data?.data)
-            setPaginationUrl(response?.data?.links);
-            if (
-                response?.data?.total >
-                response?.data?.per_page
-            ) {
-                setShowPagination(true);
+            // setPaginationUrl(response?.data?.links);
+            // if (
+            //     response?.data?.total >
+            //     response?.data?.per_page
+            // ) {
+            //     setShowPagination(true);
+            // } else {
+            //     setShowPagination(false);
+            // }
+
+            setNextPageCursor(response?.data?.next_page_url)
+            setPreviousPageCursor(response?.data?.prev_page_url)
+            if (response?.data?.next_page_url) {
+                setHasNextPage(true)
             } else {
-                setShowPagination(false);
+                setHasNextPage(false)
             }
+            if (response?.data?.prev_page_url) {
+                setHasPreviousPage(true)
+            } else {
+                setHasPreviousPage(false)
+            }
+
             setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -182,7 +207,7 @@ export function SellersListing() {
 
 
         } catch (error) {
-
+        console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -190,7 +215,7 @@ export function SellersListing() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [toggleLoadData]);
 
   const handleTabChange = useCallback(
     (selectedTabIndex) => setSelected(selectedTabIndex),
@@ -297,15 +322,16 @@ export function SellersListing() {
         }, 1000);
     }
 
-  const handlePagination = (value) => {
-    if (value == "next") {
-      setPageCursorValue(nextPageCursor);
-    } else {
-      setPageCursorValue(previousPageCursor);
-    }
-    setPageCursor(value);
-    setToggleLoadData(true);
-  };
+    const handlePagination = (value) => {
+        console.log("value", value, nextPageCursor)
+        if (value == "next") {
+            setPageCursorValue(nextPageCursor);
+        } else {
+            setPageCursorValue(previousPageCursor);
+        }
+        setPageCursor(value);
+        setToggleLoadData(!toggleLoadData);
+    };
 
   // ---------------------Index Table Code Start Here----------------------
 
@@ -497,9 +523,10 @@ export function SellersListing() {
     console.log(selectedResources, "eqeeeqeqeq");
   }, [selectedResources]);
 
-    useEffect(() => {
-        getData()
-    }, [toggleLoadData1]);
+    // useEffect(() => {
+    //
+    //     getData()
+    // }, [toggleLoadData1]);
 
 
 
@@ -1304,7 +1331,7 @@ export function SellersListing() {
                   {rowMarkup}
                 </IndexTable>
               </Card.Section>
-                {showPagination && (
+
               <Card.Section>
                 <div
                   className="data-table-pagination"
@@ -1323,14 +1350,14 @@ export function SellersListing() {
                   {/*/>*/}
 
                     <Pagination
-                        hasPrevious={pagination > 1}
-                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
-                        hasNext={pagination < paginationUrl.length}
-                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                        hasPrevious={hasPreviousPage ? true : false}
+                        onPrevious={() => handlePagination("prev")}
+                        hasNext={hasNextPage ? true : false}
+                        onNext={() => handlePagination("next")}
                     />
                 </div>
               </Card.Section>
-                )}
+
             </div>
           </Card>
         </Page>

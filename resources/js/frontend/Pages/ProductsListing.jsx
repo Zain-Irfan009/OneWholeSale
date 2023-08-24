@@ -41,7 +41,7 @@ import { SkeltonPageForTable } from "../components/global/SkeltonPage";
 import { CustomBadge } from "../components/Utils/CustomBadge";
 // import { useAuthState } from '../../components/providers/AuthProvider'
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import { InputField } from "../components/Utils";
 import {getAccessToken} from "../assets/cookies";
 import ReactSelect from "react-select";
@@ -51,6 +51,8 @@ export function ProductsListing() {
   const { apiUrl } = useContext(AppContext);
   // const { user } = useAuthState();
   const navigate = useNavigate();
+    const location = useLocation();
+
   const [loading, setLoading] = useState(true);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -87,6 +89,11 @@ export function ProductsListing() {
   const [previousPageCursor, setPreviousPageCursor] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
   const [tableLoading, setTableLoading] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
+
+    const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
+        []
+    );
 
     const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
     const [optionsLoading, setOptionsLoading] = useState(false);
@@ -110,13 +117,13 @@ export function ProductsListing() {
 
             setTimeout(() => {
                 if (value === "") {
-                    setSellerEmailList(CollectionsOptionsData);
+                    setSellerEmailList(orignalSellerEmailList);
                     setOptionsLoading(false);
                     return;
                 }
 
                 const filterRegex = new RegExp(value, "i");
-                const resultOptions = CollectionsOptionsData.filter((option) =>
+                const resultOptions = sellerEmailList.filter((option) =>
                     option.label.match(filterRegex)
                 );
                 let endIndex = resultOptions.length - 1;
@@ -127,7 +134,7 @@ export function ProductsListing() {
                 setOptionsLoading(false);
             }, 300);
         },
-        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+        [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
 
     const removeSellerEmail = useCallback(
@@ -168,8 +175,9 @@ export function ProductsListing() {
         ) : null;
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            // onChange={sellerUpdateText}
+            onChange={sellerUpdateText}
             label="Seller Email*"
+            error={formErrors.sellerEmail}
             value={sellerEmailInputValue}
             placeholder="Select Seller"
             verticalContent={sellerContentMarkup}
@@ -190,7 +198,7 @@ export function ProductsListing() {
   const [checked, setChecked] = useState(false);
   const [sellerEmail, setSellerEmail] = useState("");
     const [toggleLoadData1, setToggleLoadData1] = useState(true);
-    const [formErrors, setFormErrors] = useState({});
+
 
 
 
@@ -213,7 +221,10 @@ export function ProductsListing() {
     setDeleteSellerModal(false);
   };
 
+    const handleMultipleReassign = async () => {
 
+        setModalReassign(true);
+    }
 
   const handleReassignAction = (id) => {
     setUniqueId(id);
@@ -427,6 +438,11 @@ setSelectedStatus(selectedOption)
                     }
                 })
 
+            if(location.state?.customText) {
+                setToastMsg(location.state?.customText)
+                setSucessToast(true)
+            }
+
             console.log(response?.data)
             setProducts(response?.data?.products?.data)
             let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
@@ -435,6 +451,7 @@ setSelectedStatus(selectedOption)
             }));
             setSellerList(arr_seller)
             setSellerEmailList(arr_seller)
+            setOrignalSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
 
             setNextPageCursor(response?.data?.products?.next_page_url)
@@ -607,26 +624,141 @@ setSelectedStatus(selectedOption)
     }, [toggleLoadData]);
 
 
+    const promotedBulkActions = [
+        {
+            content: 'Select',
+
+        },
+    ];
+
+    const handleMultipleStatusEnableAll=async () => {
+
+
+        setLoading(true)
+        setDisableModal(false);
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/update-product-status-multiple?ids=${selectedResources}&status=1`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setDisableModal(false);
+
+
+            getData()
+
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+
+    const handleMultipleStatusDisableAll=async () => {
+
+
+        setLoading(true)
+        setDisableModal(false);
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/update-product-status-multiple?ids=${selectedResources}&status=0`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setDisableModal(false);
+            getData()
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+
+
+
+    //   const bulkActions = [
+  //   {
+  //     content: selectedResources.length > 0 && "Disable",
+  //     onAction: () => {
+  //       const newSelection = selectedResources.filter(
+  //         (id) => !customers.find((customer) => customer.id === id)
+  //       );
+  //       handleSelectionChange(newSelection);
+  //     },
+  //   },
+  //   {
+  //     content: allResourcesSelect ? "Disable all" : "Enable all",
+  //     onAction: () => {
+  //       const newSelection = allResourcesSelect
+  //         ? []
+  //         : customers.filter((o) => o.id);
+  //       handleSelectionChange(newSelection);
+  //     },
+  //   },
+  // ];
+
     const bulkActions = [
-    {
-      content: selectedResources.length > 0 && "Disable",
-      onAction: () => {
-        const newSelection = selectedResources.filter(
-          (id) => !customers.find((customer) => customer.id === id)
-        );
-        handleSelectionChange(newSelection);
-      },
-    },
-    {
-      content: allResourcesSelect ? "Disable all" : "Enable all",
-      onAction: () => {
-        const newSelection = allResourcesSelect
-          ? []
-          : customers.filter((o) => o.id);
-        handleSelectionChange(newSelection);
-      },
-    },
-  ];
+        // {
+        //   content: selectedResources.length > 0 && "Disable",
+        //   // content: selectedResources.length > 0 && "Enable all",
+        //   onAction: () => {
+        //     const newSelection = selectedResources.filter(
+        //       (id) => !customers?.find((customer) => customer.id === id)
+        //     );
+        //     handleSelectionChange(newSelection);
+        //   },
+        // },
+
+        {
+
+            content:  "Reassign" ,
+            onAction: () => handleMultipleReassign(),
+        },
+        {
+            // content: allResourcesSelect ? "Disable all" : "Enable all",
+            content:  "Enable all" ,
+            onAction: () => handleMultipleStatusEnableAll(),
+        },
+        {
+            // content: allResourcesSelect ? "Disable all" : "Enable all",
+            content:  "Disable all",
+            // onAction: () => {
+            //   const newSelection = allResourcesSelect
+            //     ? []
+            //     : customers.filter((o) => o.id);
+            //   handleSelectionChange(newSelection);
+            // },
+            onAction: () => handleMultipleStatusDisableAll(),
+        },
+
+
+    ];
 
   function handleRowClick(id) {
     const target = event.target;
@@ -1045,6 +1177,8 @@ setSelectedStatus(selectedOption)
 
   const handleReassignCloseAction = () => {
     setUniqueId();
+      setSellerEmailInputValue('')
+      setSellerEmailList(orignalSellerEmailList)
     setSellerEmail("");
     setModalReassign(false);
   };
@@ -1056,20 +1190,27 @@ setSelectedStatus(selectedOption)
 
         const sessionToken = getAccessToken();
         const errors = {};
-
+        console.log('selectedResources',selectedResources)
+    console.log('sellerEmailListSelected',sellerEmailListSelected)
 
         setBtnLoading(true)
-        let data = {
-            id: uniqueId,
-            email:sellerEmailListSelected
-        }
+
         try {
-            const response = await axios.post(`${apiUrl}/reassign-seller`,data,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
+
+
+            if (selectedResources.length === 0) {
+                var url = `${apiUrl}/reassign-seller?id=${uniqueId}&email=${sellerEmailListSelected}`
+            }else{
+                var url=`${apiUrl}/reassign-multiple-seller?ids=${selectedResources}&email=${sellerEmailListSelected}`
+            }
+                const response = await axios.get(url,
+                    {
+                        headers: {
+                            Authorization: "Bearer " + sessionToken
+                        }
+                    })
+
+
             setBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
@@ -1078,6 +1219,7 @@ setSelectedStatus(selectedOption)
 
 
         } catch (error) {
+            console.log(error)
             setBtnLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
@@ -1386,7 +1528,7 @@ setSelectedStatus(selectedOption)
                   itemCount={products?.length}
                   loading={tableLoading}
                   hasMoreItems
-                  selectable={false}
+                  selectable={true}
                   selectedItemsCount={
                     allResourcesSelected ? "All" : selectedResources.length
                   }
@@ -1405,6 +1547,7 @@ setSelectedStatus(selectedOption)
                     { title: "Action" },
                   ]}
                   bulkActions={bulkActions}
+                  promotedBulkActions={promotedBulkActions}
                 >
 
                   {rowMarkup}

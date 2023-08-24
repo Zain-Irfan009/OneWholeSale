@@ -205,9 +205,10 @@ export function AddSeller() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-            navigate(`/edit-seller/${response?.data?.seller?.id}`);
+
             setBtnLoading(false)
             setLoading(false)
+            navigate(`/edit-seller/${response?.data?.seller?.id}`, { state: { customText: response?.data?.message } });
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             setSkeleton(false)
@@ -218,6 +219,7 @@ export function AddSeller() {
             setLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
+            setSkeleton(false)
         }
     }
 
@@ -331,9 +333,9 @@ export function AddSeller() {
                             <InputField
                                 label="Email *"
                                 placeholder="Enter Seller's Email"
-                                type="text"
+                                type="email"
                                 marginTop
-                                name="title"
+                                name="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 error={formErrors.email}

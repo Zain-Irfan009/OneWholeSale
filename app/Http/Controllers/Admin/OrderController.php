@@ -161,31 +161,65 @@ class OrderController extends Controller
                     if ($user) {
                         array_push($unique_user_array,$user->id);
                         $seller_commission = SellerCommission::where('user_id', $user->id)->where('shop_id', $shop->id)->first();
-                        if ($seller_commission) {
-                            if ($seller_commission->commission_type == '%') {
-                                $commission = ($seller_commission->first_commission / 100) * $item->price;
-                                $total_commission = $commission * $item->quantity;
-                            } else if ($seller_commission->commission_type == 'fixed') {
-                                $total_commission = $seller_commission->first_commission * $item->quantity;
+
+                        if($product->vape_seller=="Yes") {
+
+                            $item_price=$item->price - $product->excise_tax;
+
+                            if ($seller_commission) {
+
+                                if ($seller_commission->commission_type == '%') {
+                                    $commission = ($seller_commission->first_commission / 100) * $item_price;
+                                    $commission=$commission * $item->quantity;
+                                    $total_commission = $commission + $product->excise_tax;
+                                } else if ($seller_commission->commission_type == 'fixed') {
+                                    $total_commission = $seller_commission->first_commission * $item->quantity;
+                                }
                             }
 
-                        } else {
-                            $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
-                            if ($global_commission) {
-                                if ($global_commission->commission_type == '%') {
-                                    $commission = ($global_commission->global_commission / 100) * $item->price;
-                                    $total_commission = $commission * $item->quantity;
+                            else {
+                                $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
+                                if ($global_commission) {
+                                    if ($global_commission->commission_type == '%') {
+                                        $commission = ($global_commission->global_commission / 100) * $item_price;
+                                        $commission=$commission * $item->quantity;
+                                        $total_commission = $commission + $product->excise_tax ;
 
-                                } else if ($global_commission->commission_type == 'fixed') {
-                                    $total_commission = $global_commission->global_commission * $item->quantity;
+                                    } else if ($global_commission->commission_type == 'fixed') {
+                                        $total_commission = $global_commission->global_commission * $item->quantity;
+                                    }
+
+                                }
+
+                            }
+                            $admin_earning = ($item->price * $item->quantity)- $total_commission;
+                        }
+                        else {
+                            if ($seller_commission) {
+                                if ($seller_commission->commission_type == '%') {
+                                    $commission = ($seller_commission->first_commission / 100) * $item->price;
+                                    $total_commission = $commission * $item->quantity;
+                                } else if ($seller_commission->commission_type == 'fixed') {
+                                    $total_commission = $seller_commission->first_commission * $item->quantity;
+                                }
+
+                            } else {
+                                $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
+                                if ($global_commission) {
+                                    if ($global_commission->commission_type == '%') {
+                                        $commission = ($global_commission->global_commission / 100) * $item->price;
+                                        $total_commission = $commission * $item->quantity;
+
+                                    } else if ($global_commission->commission_type == 'fixed') {
+                                        $total_commission = $global_commission->global_commission * $item->quantity;
+                                    }
+
                                 }
 
                             }
 
+                            $admin_earning = ($item->price * $item->quantity) - $total_commission;
                         }
-
-                        $admin_earning = ($item->price * $item->quantity) - $total_commission;
-
 
                         $newOrder->user_id = $user->id;
                         $newOrder->user_name = $user->name;

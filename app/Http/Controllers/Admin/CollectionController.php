@@ -29,8 +29,8 @@ class CollectionController extends Controller
     public function SyncCollection(Request $request, $next = null){
 //        $user = auth()->user();
 //        $session = Session::where('shop', $user->name)->first();
-        $session = Session::where('shop', 'onewholesalelive.myshopify.com')->first();
-//        $session = Session::where('shop', 'tlx-new-brand.myshopify.com')->first();
+//        $session = Session::where('shop', 'onewholesalelive.myshopify.com')->first();
+        $session = Session::where('shop', 'tlx-new-brand.myshopify.com')->first();
         $shop = new Rest($session->shop, $session->access_token);
         $result = $shop->get('custom_collections', [], ['limit' => 250]);
         $collections = $result->getDecodedBody();
@@ -51,11 +51,12 @@ class CollectionController extends Controller
     {
         $shop = Session::where('shop', $shop)->first();
 
+        if(!isset($collection->rules)) {
             $new_collection = Collection::where('shopify_id', $collection->id)->where('shop_id', $shop->id)->first();
             if ($new_collection == null) {
                 $new_collection = new Collection();
             }
-        $new_collection->shopify_id = $collection->id;
+            $new_collection->shopify_id = $collection->id;
             $new_collection->handle = $collection->handle;
             $new_collection->title = $collection->title;
             $new_collection->body_html = $collection->body_html;
@@ -65,7 +66,7 @@ class CollectionController extends Controller
             $new_collection->shop_id = $shop->id;
             $new_collection->save();
 
-
+        }
 
 
     }

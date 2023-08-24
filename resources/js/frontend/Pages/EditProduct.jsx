@@ -83,8 +83,14 @@ export function EditProduct() {
     const [vendor, setVendor] = useState("");
     const [sellerEmail, setSellerEmail] = useState("");
     const [optionsLoading, setOptionsLoading] = useState(false);
+    const [showExciseField, setShowExciseField] = useState(true);
+    const [exciseTax, setExciseTax] = useState(0);
 
     const [sellerEmailList, setSellerEmailList] = useState(
+        []
+    );
+
+    const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
         []
     );
     const [sellerEmailListSelected, setSellerListSelected] =
@@ -99,6 +105,8 @@ export function EditProduct() {
         useState("");
     const removeSellerEmail = useCallback(
         (collection) => () => {
+            setCollectionOptionsSelected('')
+            setVendor('')
             const collectionOptions = [...sellerEmailListSelected];
             collectionOptions.splice(collectionOptions.indexOf(collection), 1);
             setSellerListSelected(collectionOptions);
@@ -124,13 +132,13 @@ export function EditProduct() {
 
             setTimeout(() => {
                 if (value === "") {
-                    setSellerEmailList(CollectionsOptionsData);
+                    setSellerEmailList(orignalSellerEmailList);
                     setOptionsLoading(false);
                     return;
                 }
 
                 const filterRegex = new RegExp(value, "i");
-                const resultOptions = CollectionsOptionsData.filter((option) =>
+                const resultOptions = sellerEmailList.filter((option) =>
                     option.label.match(filterRegex)
                 );
                 let endIndex = resultOptions.length - 1;
@@ -144,7 +152,7 @@ export function EditProduct() {
 
             }, 300);
         },
-        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+        [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
 
     const sellerContentMarkup =
@@ -162,7 +170,7 @@ export function EditProduct() {
 
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            // onChange={sellerUpdateText}
+            onChange={sellerUpdateText}
             label="Seller Email*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
@@ -266,11 +274,21 @@ export function EditProduct() {
     const [variantOptions3, setVariantOptions3] = useState("");
     const [variantsInputFileds, setVariantsInputFileds] = useState([]);
     const [refresh, setRefresh] = useState(false);
-
+    const [vapeSeller, setVapeSeller] = useState('Yes');
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
 
     const [mediaFilesUrl, setMediaFilesUrl] = useState([]);
+
+
+    const handleVapeStatusChange = (selectedOption) => {
+        if(selectedOption=="Yes"){
+            setShowExciseField(true)
+        }else{
+            setShowExciseField(false)
+        }
+        setVapeSeller(selectedOption);
+    };
 
     const [fileUrl, setFileUrl] = useState();
 
@@ -298,6 +316,13 @@ export function EditProduct() {
             setProductName(response?.data?.product?.product_name);
             setDescriptionContent(response?.data?.product?.description);
             setValue(response?.data?.product?.tags);
+            setVapeSeller(response?.data?.product?.vape_seller);
+            if(response?.data?.product?.vape_seller=="Yes"){
+                setShowExciseField(true)
+            }else{
+                setShowExciseField(false)
+            }
+            setExciseTax(response?.data?.product?.excise_tax);
             setPrice(response?.data?.variants?.[0].price);
             setCompareatPrice(response?.data?.variants?.[0].compare_at_price);
             setChargeTaxChecked(response?.data?.variants?.[0].taxable);
@@ -562,6 +587,7 @@ export function EditProduct() {
                 label: `${name} (${email})`
             }));
             setSellerEmailList(arr_seller)
+            setOrignalSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
 
             // setBtnLoading(false)
@@ -638,6 +664,34 @@ export function EditProduct() {
             setProductsLoading(true);
             setToggleLoadProducts(true);
         }
+    };
+
+
+
+    const handleOptionSelect = async (selectedOption) => {
+        // Handle option selection here
+        setSellerListSelected(selectedOption)
+
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/get-seller-data?email=${selectedOption}`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
+
+            setCollectionOptionsSelected(
+                response?.data?.collections.title.split(",")
+            );
+            setVendor(response?.data?.shop_name)
+
+
+        } catch (error) {
+            console.log(error)
+            // setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
+        }
+
     };
 
 
@@ -1616,6 +1670,8 @@ export function EditProduct() {
         formData.append("inventory_management", trackQuantityIsChecked);
         formData.append("product_quantity", quantity);
         formData.append("inventory_policy", allowCustomer);
+        formData.append('vape_seller',vapeSeller);
+        formData.append('excise_tax',exciseTax);
         mediaFiles.forEach((item, index) => {
             formData.append(`images[${index}]`, item);
         });
@@ -1649,7 +1705,7 @@ export function EditProduct() {
             setToastMsg(response?.data?.message);
             setSucessToast(true);
             setLoading(false)
-            navigate('/productslisting')
+            navigate('/productslisting', { state: { customText: 'Product Updated Successfully' } })
             // setSkeleton(false)
         } catch (error) {
             console.log(error);
@@ -2430,8 +2486,11 @@ export function EditProduct() {
                                                 selected={sellerEmailListSelected}
                                                 textField={sellerEmailTextField}
                                                 loading={optionsLoading}
+                                                // onSelect={
+                                                //     setSellerListSelected
+                                                // }
                                                 onSelect={
-                                                    setSellerListSelected
+                                                    handleOptionSelect
                                                 }
                                                 listTitle="Sellers"
                                             />
@@ -2551,6 +2610,38 @@ export function EditProduct() {
                       value={descriptionMetafield}
                       onChange={handleDescriptionMetafield}
                     /> */}
+                                    </div>
+                                </Card>
+
+                                <Card sectioned>
+                                    <div className="Type-Section">
+                                        <Select
+                                            label="Vape Seller"
+                                            options={[
+                                                {
+                                                    label: "Yes",
+                                                    value: 'Yes',
+                                                },
+                                                { label: "No", value: 'No' },
+                                            ]}
+                                            onChange={handleVapeStatusChange}
+                                            value={vapeSeller}
+                                        />
+
+                                        {showExciseField && (
+                                            <div>
+                                                <div className="margin-top" />
+                                                <InputField
+                                                    label="Excise tax"
+                                                    placeholder="Enter Excise Tax"
+                                                    type="text"
+                                                    marginTop
+                                                    name="excisetax"
+                                                    value={exciseTax}
+                                                    onChange={(e) => setExciseTax(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </Card>
                             </div>

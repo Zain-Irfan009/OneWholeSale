@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProductPushJob;
 use App\Mail\SendMail;
+use App\Models\Collection;
 use App\Models\CsvImport;
 use App\Models\MailConfiguration;
 use App\Models\MailSmtpSetting;
 use App\Models\Option;
 use App\Models\Product;
+use App\Models\ProductCollect;
 use App\Models\ProductHistory;
 use App\Models\ProductImage;
 use App\Models\Session;
@@ -302,6 +304,8 @@ if(isset($request->images)) {
             $product->product_status = 'Approved';
         }
         $product->type='Normal';
+        $product->vape_seller=$request->vape_seller;
+        $product->excise_tax=$request->excise_tax;
 
         if ($response->images) {
             $image = $response->images[0]->src;
@@ -380,12 +384,28 @@ if(isset($request->images)) {
 
         $user=User::where('email',$request->seller_email)->first();
         if($user) {
-            $collect_product = $client->post('/collects.json', [
-                'collect' => [
-                    'collection_id' => $user->collection_id,
-                    'product_id' => $response->id,
-                ]
-            ]);
+
+            $delete_collect_product = $client->delete('/collects/'.$product->collect_id.'.json');
+            $delete_collect_product = $delete_collect_product->getDecodedBody();
+
+
+            if(!isset($delete_collect_product['errors']) || $delete_collect_product==null) {
+
+                $collect_product = $client->post('/collects.json', [
+                    'collect' => [
+                        'collection_id' => $user->collection_id,
+                        'product_id' => $response->id,
+                    ]
+                ]);
+            } elseif ($delete_collect_product['errors']=='Not Found'){
+                $collect_product = $client->post('/collects.json', [
+                    'collect' => [
+                        'collection_id' => $user->collection_id,
+                        'product_id' => $response->id,
+                    ]
+                ]);
+            }
+
 
             $collect_product = $collect_product->getDecodedBody();
 
@@ -395,7 +415,45 @@ if(isset($request->images)) {
                 $product->seller_email = $user->email;
                 $product->save();
             }
+
+
+            if(isset($request->collections)) {
+                $get_collect_products=ProductCollect::where('product_shopify_id',$response->id)->get();
+                foreach ($get_collect_products as $get_collect_product){
+                    $delete_collect_product_del = $client->delete('/collects/'.$get_collect_product->collect_id.'.json');
+                    $delete_collect_product_del = $delete_collect_product_del->getDecodedBody();
+
+
+                }
+                ProductCollect::where('product_shopify_id',$response->id)->delete();
+
+
+                $ex_collection_titles=explode(',',$request->collections);
+                foreach ($ex_collection_titles as $ex_collection_title){
+
+                    $check_collection=Collection::where('title',$ex_collection_title)->first();
+                    if($check_collection){
+
+                        $collect_exisiting_product = $client->post('/collects.json', [
+                            'collect' => [
+                                'collection_id' => $check_collection->shopify_id,
+                                'product_id' => $response->id,
+                            ]
+                        ]);
+                        $collect_exisiting_product = $collect_exisiting_product->getDecodedBody();
+                        if (!isset($collect_exisiting_product['errors'])) {
+                        $product_collect=new ProductCollect();
+                        $product_collect->product_shopify_id=$response->id;
+                        $product_collect->collection_shopify_id=$check_collection->shopify_id;
+                        $product_collect->collect_id=$collect_exisiting_product['collect']['id'];
+                        $product_collect->shop_id=$session->id;
+                        $product_collect->save();
+                    }}
+
+                }
+            }
         }
+        $this->SendMail($product,$product->product_status );
         $data = [
             'message' => 'Product Created Successfully',
         ];
@@ -457,7 +515,7 @@ if(isset($request->images)) {
                             'status'=>$status
                         ]
                     ];
-                    $this->SendMail($product,$request->product_status);
+
 
                     $product_status_update=$client->put( '/products/' . $product->shopify_id . '.json',$product_data);
                     $product_status_update=$product_status_update->getDecodedBody();
@@ -555,7 +613,7 @@ if(isset($request->images)) {
             if($product){
                 $product_api = $client->delete( '/products/' . $product->shopify_id . '.json');
                 $product_api=$product_api->getDecodedBody();
-                if(!isset($product_api['errors'])){
+//                if(!isset($product_api['errors'])){
 
                     Option::where('shopify_product_id',$product->shopify_id)->delete();
                     Variant::where('shopify_product_id',$product->shopify_id)->delete();
@@ -564,7 +622,7 @@ if(isset($request->images)) {
                     $data = [
                         'message' => 'Product Deleted Successfully',
                     ];
-                }
+//                }
             }
         }
         return response()->json($data);
@@ -608,22 +666,54 @@ if(isset($request->images)) {
     }
 
     public function UpdateProductStatusMultiple(Request $request){
-        $session=Session::where('shop',$request->shop)->first();
-        $client = new Rest($session->shop, $session->access_token);
-        foreach ($request->product_ids as $product_id) {
-            if ($session) {
-                $product = Product::find($product_id);
-                if ($product) {
-                    $product->product_status = $request->product_status;
-                    $product->save();
+        $user=auth()->user();
 
-                }
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
+
+        $product_ids=explode(',',$request->ids);
+        foreach ($product_ids as $product_id) {
+            $product=Product::find($product_id);
+            if($request->status==1){
+                $status='active';
+                $product_status='Approved';
+            }else{
+                $status='draft';
+                $product_status='Disabled';
             }
+
+
+            $product_data=[
+                'product'=>[
+                    'status'=>$status
+                ]
+            ];
+
+            $product_status_update=$client->put( '/products/' . $product->shopify_id . '.json',$product_data);
+            $product_status_update=$product_status_update->getDecodedBody();
+
+
+            if(!isset($product_status_update['errors'])) {
+                $product->product_status = $product_status;
+                $product->status = $product_status_update['product']['status'];
+                $product->save();
+
+                $product_history=new ProductHistory();
+                $product_history->product_shopify_id=$product_status_update['product']['id'];
+                $product_history->shop_id=$session->id;
+                $product_history->product_name=$product_status_update['product']['title'];
+                $product_history->status=$product_status_update['product']['status'];
+                $product_history->date=Carbon::now();
+
+                $this->SendMail($product,$product_status);
+            }
+
         }
         $data = [
             'message' => 'Status Changed Successfully',
         ];
         return response()->json($data);
+
     }
 
     public function SendMail($product,$status){
@@ -1001,6 +1091,67 @@ if(isset($request->images)) {
 
         return response()->json($data);
 
+
+    }
+
+
+    public function ReassignMultipleSeller(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $p_ids=explode(',',$request->ids);
+        $client = new Rest($session->shop, $session->access_token);
+        if($session) {
+            foreach ($p_ids as $p_id) {
+                $product = Product::find($p_id);
+
+                if ($product) {
+
+                    $user = User::where('email', $request->email)->first();
+                    if ($user) {
+
+                        $delete_collect_product = $client->delete('/collects/' . $product->collect_id . '.json');
+                        $delete_collect_product = $delete_collect_product->getDecodedBody();
+                        if (!isset($delete_collect_product['errors'])) {
+
+                            $collect_product = $client->post('/collects.json', [
+                                'collect' => [
+                                    'collection_id' => $user->collection_id,
+                                    'product_id' => $product->shopify_id
+                                ]
+                            ]);
+                        }
+
+
+                        $collect_product = $collect_product->getDecodedBody();
+
+                        if (!isset($collect_product['errors'])) {
+
+                            $product->user_id = $user->id;
+                            $product->seller_email = $user->email;
+                            $product->seller_name = $user->name;
+                            $product->collect_id = $collect_product['collect']['id'];
+                            $product->save();
+
+                            $data = [
+                                'message' => 'Product Assigned Successfully',
+                            ];
+                        } else {
+                            $data = [
+                                'message' => $collect_product['errors']['product_id'][0],
+                            ];
+                            return response()->json($data, 422);
+                        }
+                    } else {
+                        return response()->json([
+                            'message' => 'This Email Seller Not Found',
+                        ], 422);
+                    }
+                }
+            }
+        }
+
+        return response()->json($data);
 
     }
 

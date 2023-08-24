@@ -1044,7 +1044,7 @@ export function EditVProduct() {
     };
 
     const discardAddProduct = () => {
-        navigate("/productslisting");
+        navigate("/products");
     };
 
     const handleCreateDiscount = () => {
@@ -1636,7 +1636,7 @@ export function EditVProduct() {
 
         try {
             const response = await axios.post(
-                `${apiUrl}/add-product`,
+                `${apiUrl}/seller/add-product`,
                 formData,
                 {
                     headers: {
@@ -1649,7 +1649,7 @@ export function EditVProduct() {
             setToastMsg(response?.data?.message);
             setSucessToast(true);
             setLoading(false)
-            navigate('/productslisting')
+            navigate('/products')
             // setSkeleton(false)
         } catch (error) {
             console.log(error);

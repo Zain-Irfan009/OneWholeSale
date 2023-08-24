@@ -225,6 +225,32 @@ export function Dashboard() {
             setErrorToast(true)
         }
     }
+
+
+    const synccollection =async () =>  {
+
+
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/sync-collection`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+
+
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+    }
+
+
     const getStoreEarning =async () =>  {
 
 
@@ -642,6 +668,7 @@ export function Dashboard() {
     }
 
     useEffect(() => {
+        synccollection()
         getData();
         getSellerData();
         getStoreStatsFirst()

@@ -79,8 +79,13 @@ export function AddProduct() {
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
+    const [exciseTax, setExciseTax] = useState(0);
     const [sellerEmail, setSellerEmail] = useState("");
     const [collectionSelect, setCollectionSelect] = useState("");
+    const [showExciseField, setShowExciseField] = useState(true);
+
+
+    const [vapeSeller, setVapeSeller] = useState('Yes');
 
     const CollectionsOptionsData = useMemo(
         () => [
@@ -98,8 +103,21 @@ export function AddProduct() {
         []
     );
 
+    const handleVapeStatusChange = (selectedOption) => {
+       if(selectedOption=="Yes"){
+           setShowExciseField(true)
+       }else{
+           setShowExciseField(false)
+       }
+        setVapeSeller(selectedOption);
+    };
+    const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
+        []
+    );
+
     const [sellerEmailListSelected, setSellerListSelected] =
         useState("");
+
 
 
     const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
@@ -201,6 +219,33 @@ export function AddProduct() {
     const [formErrors, setFormErrors] = useState({});
 
 
+
+
+    const handleOptionSelect = async (selectedOption) => {
+        // Handle option selection here
+        setSellerListSelected(selectedOption)
+
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/get-seller-data?email=${selectedOption}`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
+
+            setCollectionOptionsSelected(
+                response?.data?.collections.title.split(",")
+            );
+            setVendor(response?.data?.shop_name)
+
+
+        } catch (error) {
+            console.log(error)
+            // setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
+        }
+
+    };
 
 
     const inputHandleChange = (index, val) => {
@@ -351,6 +396,7 @@ export function AddProduct() {
                 label: `${name} (${email})`
             }));
             setSellerEmailList(arr_seller)
+            setOrignalSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -772,6 +818,8 @@ export function AddProduct() {
 
     const sellerUpdateText = useCallback(
         (value) => {
+
+
             setSellerEmailInputValue(value);
 
             if (!optionsLoading) {
@@ -780,24 +828,27 @@ export function AddProduct() {
 
             setTimeout(() => {
                 if (value === "") {
-                    setSellerEmailList(CollectionsOptionsData);
+                    console.log(sellerEmailList)
+                    setSellerEmailList(orignalSellerEmailList);
                     setOptionsLoading(false);
                     return;
                 }
 
                 const filterRegex = new RegExp(value, "i");
-                const resultOptions = CollectionsOptionsData.filter((option) =>
+                const resultOptions = sellerEmailList.filter((option) =>
                     option.label.match(filterRegex)
                 );
                 let endIndex = resultOptions.length - 1;
                 if (resultOptions.length === 0) {
                     endIndex = 0;
                 }
+
+                console.log('resultOptions',resultOptions)
                 setSellerEmailList(resultOptions);
                 setOptionsLoading(false);
             }, 300);
         },
-        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+        [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
 
     const handleChargeTax = useCallback(
@@ -828,10 +879,13 @@ export function AddProduct() {
 
     const removeSellerEmail = useCallback(
         (collection) => () => {
+            setCollectionOptionsSelected('')
+            setVendor('')
             const collectionOptions = [...sellerEmailListSelected];
             collectionOptions.splice(collectionOptions.indexOf(collection), 1);
             setSellerListSelected(collectionOptions);
         },
+
         [collectionOptionsSelected]
     );
 
@@ -891,8 +945,9 @@ export function AddProduct() {
 
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            // onChange={sellerUpdateText}
+            onChange={sellerUpdateText}
             error={formErrors.sellerEmail}
+
             label="Seller Email*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
@@ -1308,6 +1363,8 @@ export function AddProduct() {
         formData.append('inventory_management',trackQuantityIsChecked);
         formData.append('product_quantity',quantity);
         formData.append('inventory_policy',allowCustomer);
+        formData.append('vape_seller',vapeSeller);
+        formData.append('excise_tax',exciseTax);
         mediaFiles.forEach((item, index) => {
             formData.append(`images[${index}]`, item);
         });
@@ -1325,6 +1382,7 @@ export function AddProduct() {
         formData.append('product_type',productHandle);
         formData.append('vendor',vendor);
         formData.append('collections',collectionOptionsSelected);
+        formData.append('unique_var','new');
 
 
         try {
@@ -1339,7 +1397,7 @@ export function AddProduct() {
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            navigate('/productslisting')
+            navigate('/productslisting', { state: { customText: response?.data?.message } })
             // setSkeleton(false)
 
         } catch (error) {
@@ -2006,8 +2064,11 @@ export function AddProduct() {
                                                 selected={sellerEmailListSelected}
                                                 textField={sellerEmailTextField}
                                                 loading={optionsLoading}
+                                                // onSelect={
+                                                //     setSellerListSelected
+                                                // }
                                                 onSelect={
-                                                    setSellerListSelected
+                                                    handleOptionSelect
                                                 }
                                                 listTitle="Sellers"
                                             />
@@ -2101,6 +2162,8 @@ export function AddProduct() {
                                                 setVendor(e.target.value)
                                             }
                                         />
+
+
                                         {/* <Select
                       label="Vendor"
                       options={categories}
@@ -2126,6 +2189,37 @@ export function AddProduct() {
                       value={descriptionMetafield}
                       onChange={handleDescriptionMetafield}
                     /> */}
+                                    </div>
+                                </Card>
+
+                                <Card sectioned>
+                                    <div className="Type-Section">
+                                        <Select
+                                            label="Vape Seller"
+                                            options={[
+                                                {
+                                                    label: "Yes",
+                                                    value: 'Yes',
+                                                },
+                                                { label: "No", value: 'No' },
+                                            ]}
+                                            onChange={handleVapeStatusChange}
+                                            value={vapeSeller}
+                                        />
+                                        {showExciseField && (
+                                            <div>
+                                                <div className="margin-top" />
+                                                <InputField
+                                                    label="Excise tax"
+                                                    placeholder="Enter Excise Tax"
+                                                    type="text"
+                                                    marginTop
+                                                    name="excisetax"
+                                                    value={exciseTax}
+                                                    onChange={(e) => setExciseTax(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </Card>
                             </div>

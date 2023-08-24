@@ -44,7 +44,7 @@ import { AppContext } from "../components/providers/ContextProvider";
 
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams,useLocation } from "react-router-dom";
 import axios from "axios";
 import EmptyCheckBox from "../assets/icons/EmptyCheckBox.png";
 import FillCheckBox from "../assets/icons/FillCheckBox.png";
@@ -67,7 +67,7 @@ export function EditSeller() {
   const [sellerPolicycontent, setSellerPolicyContent] = useState("");
   const [showSaveBar, setShowSaveBar] = useState(false);
 
-
+    const location = useLocation();
 
 
   const [publishSellerPageProfile, setPublishSellerPageProfile] =
@@ -135,6 +135,10 @@ export function EditSeller() {
 
           setLoading(false)
 
+          if(location.state) {
+              setToastMsg(location.state?.customText)
+              setSucessToast(true)
+          }
 
           // setCustomers(response?.data)
 
@@ -328,7 +332,7 @@ console.log('error',error)
         formData.append('store_banner_image', file5 ? file5 : fileUrl5);
         formData.append('seller_shop_image', file4 ? file4 : fileUrl4);
         formData.append('seller_image', file3 ? file3 : fileUrl3);
-        formData.append('publish_seller_profile',publishSellerPageProfile);
+        // formData.append('publish_seller_profile',publishSellerPageProfile);
         formData.append('seller_handle',handle);
         formData.append('id',params.edit_seller_id);
         formData.append('seller_name',name);
@@ -354,9 +358,11 @@ console.log('error',error)
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
+            navigate('/sellerslisting', { state: { customText: response?.data?.message } });
             // setSkeleton(false)
 
         } catch (error) {
+            setLoading(false)
             setBtnLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
@@ -398,19 +404,19 @@ console.log('error',error)
           breadcrumbs={[{ content: "Discounts", onAction: handleDiscardModal }]}
           title="Edit Seller"
           fullWidth
-          primaryAction={
-              <div className="top_toggle_div">
-              <input
-                  id="toggle"
-                  type="checkbox"
-                  className="tgl tgl-light"
-                  checked={publishSellerPageProfile}
-                  onChange={handleSellerPageProfile}
-              />
-              <label htmlFor="toggle" className="tgl-btn"></label>
-                  <div className="div_label">Publish</div>
-              </div>
-          }
+          // primaryAction={
+          //     <div className="top_toggle_div">
+          //     <input
+          //         id="toggle"
+          //         type="checkbox"
+          //         className="tgl tgl-light"
+          //         checked={publishSellerPageProfile}
+          //         onChange={handleSellerPageProfile}
+          //     />
+          //     <label htmlFor="toggle" className="tgl-btn"></label>
+          //         <div className="div_label">Publish</div>
+          //     </div>
+          // }
         >
 
 
@@ -459,9 +465,10 @@ console.log('error',error)
                       placeholder="Enter Seller's Email"
                       type="text"
                       marginTop
+                      readOnly
                       name="title"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      // onChange={(e) => setEmail(e.target.value)}
                       error={formErrors.email}
                     />
 

@@ -729,7 +729,7 @@ export function AddNewProduct() {
     };
 
     const discardAddProduct = () => {
-        navigate("/productslisting");
+        navigate("/products");
     };
 
     const handleCreateDiscount = () => {
@@ -1339,7 +1339,7 @@ export function AddNewProduct() {
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            navigate('/productslisting')
+            navigate('/products')
             // setSkeleton(false)
 
         } catch (error) {
