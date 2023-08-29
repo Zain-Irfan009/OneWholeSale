@@ -86,6 +86,7 @@ Route::get('/api/auth/callback', function (Request $request) {
 
     $response = Registry::register('/api/webhooks/app-uninstall', Topics::APP_UNINSTALLED, $shop, $session->getAccessToken());
     $response_order_create = Registry::register('/api/webhooks/order-create', Topics::ORDERS_CREATE, $shop, $session->getAccessToken());
+    $response_order_update = Registry::register('/api/webhooks/order-update', Topics::ORDERS_UPDATED, $shop, $session->getAccessToken());
     $response_collection_create = Registry::register('/api/webhooks/collection-create', Topics::COLLECTIONS_CREATE, $shop, $session->getAccessToken());
     $response_collection_update = Registry::register('/api/webhooks/collection-update', Topics::COLLECTIONS_UPDATE, $shop, $session->getAccessToken());
     $response_collection_delete = Registry::register('/api/webhooks/collection-delete', Topics::COLLECTIONS_DELETE, $shop, $session->getAccessToken());

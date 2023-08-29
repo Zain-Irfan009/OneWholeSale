@@ -50,7 +50,7 @@ class ProductController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $product=Product::where('id',$id)->first();
         $variants = Variant::where('shopify_product_id', $product->shopify_id)->get();
-        $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price')->where('shopify_product_id', $product->shopify_id)->get();
+        $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price','src')->where('shopify_product_id', $product->shopify_id)->get();
         $options=Option::where('shopify_product_id',$product->shopify_id)->get();
         $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
 
@@ -112,6 +112,7 @@ if(isset($request->variants) ) {
 
     if( count($variants) > 0){
 
+
     foreach ($variants as $index => $variant) {
 
         $title = explode("/", $variant->title);
@@ -137,7 +138,7 @@ if(isset($request->variants) ) {
                 'barcode' => $request->barcode,
                 'taxable' => $request->taxable,
                 'price' => number_format($variant->price, 2),
-                'compare_at_price' => number_format($variant->compare_at_price, 2),
+                'compare_at_price' => ($variant->compare_at_price=="") ? 0 : number_format($variant->compare_at_price, 2),
                 'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
                 'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
 
@@ -221,9 +222,15 @@ if(isset($request->images)) {
 
 
             if($request->tags) {
-                $tags = $request->tags;
+                if($request->vape_seller=='Yes'){
+                    $excise_tax=number_format($request->excise_tax, 2, '.', '');
+                    $tags=$request->tags.','.'Excise_'.$excise_tax;
+                }else {
+                    $tags = $request->tags;
+                }
             }else{
-                $tags='';
+                $excise_tax=number_format($request->excise_tax, 2, '.', '');
+                $tags='Excise_'.$excise_tax;
             }
 
 
@@ -559,7 +566,7 @@ if(isset($request->images)) {
 
             if($product){
 
-                $user=User::where('email',$request->email)->first();
+                $user=User::where('seller_shopname',$request->email)->first();
                 if($user){
 
                     $delete_collect_product = $client->delete('/collects/'.$product->collect_id.'.json');
@@ -596,7 +603,7 @@ if(isset($request->images)) {
                     }
                 }else{
                     return response()->json([
-                        'message' => 'This Email Seller Not Found',
+                        'message' => 'This Seller Shop Not Found',
                     ],422);
                 }
             }
@@ -924,6 +931,7 @@ if(isset($request->images)) {
     public function AssignImportProducts(Request $request){
 
         $user=auth()->user();
+
         $session=Session::where('shop',$user->name)->first();
         $client = new Rest($session->shop, $session->access_token);
         if($session){
@@ -932,10 +940,10 @@ if(isset($request->images)) {
 
             if($product){
 
-                $user=User::where('email',$request->email)->first();
+                $user=User::where('seller_shopname',$request->email)->first();
 
 
-                if($user->id==$product->user_id){
+                if($request->id==$product->user_id){
                     return response()->json([
                         'message' => 'Product is Already Assigned to this Seller',
                     ],422);
@@ -982,7 +990,7 @@ if(isset($request->images)) {
                     }
                 }else{
                     return response()->json([
-                        'message' => 'This Email Seller Not Found',
+                        'message' => 'This Seller Shop Not Found',
                     ],422);
                 }
                 return response()->json($data);
@@ -1107,7 +1115,7 @@ if(isset($request->images)) {
 
                 if ($product) {
 
-                    $user = User::where('email', $request->email)->first();
+                    $user = User::where('seller_shopname', $request->email)->first();
                     if ($user) {
 
                         $delete_collect_product = $client->delete('/collects/' . $product->collect_id . '.json');
@@ -1144,7 +1152,7 @@ if(isset($request->images)) {
                         }
                     } else {
                         return response()->json([
-                            'message' => 'This Email Seller Not Found',
+                            'message' => 'This Seller Shop Not Found',
                         ], 422);
                     }
                 }
@@ -1155,5 +1163,51 @@ if(isset($request->images)) {
 
     }
 
+
+    public function AddProductImage(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        $product=Product::find($request->product_id);
+        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
+        $images_array = array();
+
+            $image=$request->images;
+            $destinationPath = 'productimages/';
+            $filename = now()->format('YmdHi') . str_replace([' ', '(', ')'], '-', Str::random(10).'.png');
+            $image->move($destinationPath, $filename);
+            $filename = (asset('productimages/' . $filename));
+
+        $productImagesJson = [
+                'alt' => Str::random(10).'_'.Str::random(2) ,
+                'position' =>1,
+                'src' => $filename,
+            ];
+
+            $assignImagetoProducts = $client->post('/products/' . $product->shopify_id . '/images.json', [
+                'image' => $productImagesJson
+            ]);
+        $assignImagetoProducts=$assignImagetoProducts->getDecodedBody();
+        if(!isset($assignImagetoProducts['errors'])) {
+            $product_image = new ProductImage();
+            $product_image->shop_id = $session->id;
+            $product_image->shopify_product_id = $product->shopify_id;
+            $product_image->position = $assignImagetoProducts['image']['position'];
+            $product_image->src = $assignImagetoProducts['image']['src'];
+            $product_image->save();
+
+            $product->featured_image= $assignImagetoProducts['image']['src'];
+            $product->save();
+
+            $data = [
+
+                'product_images'=>$product_images,
+
+
+            ];
+
+            return response()->json($data);
+        }
+    }
 
     }

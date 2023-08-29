@@ -185,7 +185,7 @@ export function EditSellerCommission() {
                     }
                 })
 
-            setSellerEmail(response?.data?.data?.seller_email)
+            setSellerEmail(response?.data?.data?.store_name)
             setCommissionType(response?.data?.data?.commission_type)
             setCommissionType(response?.data?.data?.commission_type)
             setFirstCommission(response?.data?.data?.first_commission)
@@ -217,7 +217,7 @@ console.log(error)
 
 
         let data = {
-            seller_email:sellerEmail,
+            store_name:sellerEmail,
             commission_type:commissionType,
             first_commission:firstCommission,
             second_commission:secondCommission,
@@ -315,7 +315,7 @@ console.log(error)
 
                                     <InputField
                                         marginTop
-                                        label="Seller Email*"
+                                        label="Seller Shop*"
                                         placeholder="Enter Seller Email Here"
                                         type="email"
 

@@ -51,6 +51,12 @@ class SendMail extends Mailable
             );
         }
 
+        else if($this->type=='Order Message'){
+            return new Envelope(
+                subject: 'OneWholesale',
+            );
+        }
+
         else {
             return new Envelope(
                 subject: 'Product Approved',
@@ -74,6 +80,13 @@ class SendMail extends Mailable
 
                 return new Content(
                     view: 'email.seller_status',
+                );
+            }
+
+            else if($this->type=='Order Message'){
+
+                return new Content(
+                    view: 'email.order_message',
                 );
             }
             else {

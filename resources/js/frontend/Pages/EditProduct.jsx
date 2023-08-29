@@ -62,6 +62,8 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import EmptyCheckBox from "../assets/icons/EmptyCheckBox.png";
 import FillCheckBox from "../assets/icons/FillCheckBox.png";
+import Empty from "../assets/empty.jpg";
+import {Loader} from "../components/Loader";
 import { getAccessToken } from "../assets/cookies";
 
 export function EditProduct() {
@@ -76,6 +78,7 @@ export function EditProduct() {
     const [sucessToast, setSucessToast] = useState(false);
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
+    const [varinatImageModal, SetVarinatImageModal] = useState(false);
     const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
     const [status, setStatus] = useState("active");
     const [showSaveBar, setShowSaveBar] = useState(false);
@@ -84,7 +87,11 @@ export function EditProduct() {
     const [sellerEmail, setSellerEmail] = useState("");
     const [optionsLoading, setOptionsLoading] = useState(false);
     const [showExciseField, setShowExciseField] = useState(true);
+    const [variantImageData, setVariantImageData] = useState(true);
+
     const [exciseTax, setExciseTax] = useState(0);
+    const [imageSrc, setImageSrc] = useState("");
+    const [clickVariant, setClickVariant] = useState("");
 
     const [sellerEmailList, setSellerEmailList] = useState(
         []
@@ -197,7 +204,9 @@ export function EditProduct() {
     const [quantity, setQuantity] = useState("");
     const [openFileDialog, setOpenFileDialog] = useState(false);
     const [mediaFiles, setImageFiles] = useState([]);
+    const [mediaVariantFiles, setVariantImageFiles] = useState([]);
     const [rejectedFiles, setRejectedFiles] = useState([]);
+    const [rejectedVariantFiles, setVariantRejectedFiles] = useState([]);
     const hasImageError = rejectedFiles.length > 0;
     const [productHandle, setProductHandle] = useState("");
     const [titleMetafield, setTitleMetafield] = useState("");
@@ -289,6 +298,13 @@ export function EditProduct() {
         }
         setVapeSeller(selectedOption);
     };
+
+
+    const AddVariantImage = async () => {
+        // let markup = calculateMarkup();
+        // setVariantsMarkup(markup);
+    }
+
 
     const [fileUrl, setFileUrl] = useState();
 
@@ -492,6 +508,11 @@ export function EditProduct() {
             const updatedObject = { ...updatedState[index] };
             updatedObject.title = name;
             switch (type) {
+
+                case "src":
+
+                    updatedObject.src = value;
+                    break;
 
                 case "price":
 
@@ -757,6 +778,7 @@ export function EditProduct() {
 
         for (let i = variantsData.length; i < num; i++) {
             arr.push({
+                src:"",
                 title: "",
                 sku: "",
                 price: "",
@@ -800,6 +822,21 @@ export function EditProduct() {
         return (
             <>
                 <IndexTable.Row key={priceIndex} position={priceIndex}>
+
+
+                    <IndexTable.Cell>
+                        <div onClick={() => handleVariantImageModal(priceIndex)}>
+                            <img
+                                style={{ width: '30px' }}
+                                size="small"
+                                src={data?.src}
+                                shape="square"
+                                name="title"
+                                alt="Image Title"
+                            />
+                        </div>
+                        </IndexTable.Cell>
+
                     <IndexTable.Cell>
                         <Text variant="bodyMd" fontWeight="bold" as="span">
                             {data?.title}
@@ -1029,6 +1066,7 @@ export function EditProduct() {
                                 updatedObject = { ...copy };
                             } else {
                                 updatedObject = {
+                                    src:"",
                                     title: `${input.value} / ${input2.value} / ${input3.value}`,
                                     sku: "",
                                     price: "",
@@ -1095,6 +1133,12 @@ export function EditProduct() {
 
     const handleDiscardModal = () => {
         setDiscardModal(!discardModal);
+    };
+
+
+    const handleVariantImageModal = (variant) => {
+        setClickVariant(variant)
+        SetVarinatImageModal(!varinatImageModal);
     };
 
     const discardAddProduct = () => {
@@ -1232,6 +1276,46 @@ export function EditProduct() {
         []
     );
 
+    const handleVariantDropZoneDrop = useCallback(
+        async (_droppedFiles, acceptedFiles, rejectedFiles) => {
+            console.log('mediaFiles',acceptedFiles)
+            setVariantImageFiles((mediaFiles) => [...mediaFiles, ...acceptedFiles]);
+            setVariantRejectedFiles(rejectedFiles);
+            const sessionToken = getAccessToken();
+            let formData = new FormData();
+            formData.append('product_id',params.edit_product_id);
+            formData.append('images',...acceptedFiles);
+            setSkeleton(true)
+
+            try {
+                const response = await axios.post(`${apiUrl}/add-product-image`, formData, {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                });
+
+                setMediaFilesUrl(response?.data?.product_images);
+                setSkeleton(false)
+                // console.log('res', response?.data?.message);
+                // setBtnLoading(false);
+                // setLoading(false);
+                // setToastMsg(response?.data?.message);
+                // setSucessToast(true);
+                // navigate('/productslisting', { state: { customText: response?.data?.message } });
+                // setSkeleton(false)
+
+            } catch (error) {
+                setSkeleton(false)
+                console.log(error);
+                setBtnLoading(false);
+                setToastMsg(error?.response?.data?.message);
+                setErrorToast(true);
+            }
+        },
+        []
+    );
+
+
     const fileUpload = (
         <DropZone.FileUpload
             actionTitle={"Add files"}
@@ -1272,6 +1356,12 @@ export function EditProduct() {
         setImageFiles(temp_array);
     };
 
+    // const handleVariantRemoveMedia = (index) => {
+    //     let temp_array = mediaVariantFiles.slice();
+    //     temp_array.splice(index, 1);
+    //     setVariantImageFiles(temp_array);
+    // };
+
 
     const handleRemoveMediaApi = async (index,src) => {
 
@@ -1302,6 +1392,18 @@ export function EditProduct() {
         "image/jpg",
         "image/svg",
     ];
+console.log("variantsInputFiledsvariantsInputFileds")
+    const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+    const handleCheckboxChange = (index, src) => {
+        console.log('src', src);
+        console.log('variantsInputFileds', variantsInputFileds[clickVariant]);
+        const updatedVariant = { ...variantsInputFileds[clickVariant] };
+        updatedVariant.src = src;
+        setImageSrc(src);
+        setSelectedImageIndex(index);
+
+        variantsInputFileds[clickVariant] = updatedVariant;
+    };
 
     const uploadedFiles = (
         <LegacyStack id="jjj">
@@ -1402,6 +1504,87 @@ export function EditProduct() {
 
 
         </LegacyStack>
+    );
+
+
+    const variantUploadedFiles = (
+        <div>
+            {skeleton ? (
+                <Loader />
+            ) : (
+        <LegacyStack id="jjj">
+            {/*{mediaVariantFiles.map((file, index) => (*/}
+            {/*    <LegacyStack alignment="center" key={index}>*/}
+            {/*        <div className="Polaris-Product-Gallery">*/}
+            {/*            <Thumbnail*/}
+            {/*                size="large"*/}
+            {/*                alt={file.name}*/}
+            {/*                source={*/}
+            {/*                    validImageTypes.indexOf(file.type) > -1*/}
+            {/*                        ? window.URL.createObjectURL(file)*/}
+            {/*                        : NoteMinor*/}
+            {/*                }*/}
+            {/*            />*/}
+            {/*            /!*<span*!/*/}
+            {/*            /!*    className="media_hover"*!/*/}
+            {/*            /!*    onClick={() => handleVariantRemoveMedia(index)}*!/*/}
+            {/*            /!*>*!/*/}
+            {/*            /!*    <Icon source={DeleteMinor} />*!/*/}
+            {/*            /!*</span>*!/*/}
+            {/*        </div>*/}
+            {/*    </LegacyStack>*/}
+            {/*))}*/}
+
+
+
+            {mediaFilesUrl.map(({ id, src }, index) => (
+                <LegacyStack alignment="center" key={id}>
+                    <div className="Polaris-Product-Gallery">
+                        <label className="checkbox-container">
+                            <input
+                                type="radio" // Change to radio type
+                                className="checkbox"
+                                onChange={() => handleCheckboxChange(index,src)}
+                                checked={selectedImageIndex === index}
+                            />
+                            <Thumbnail
+                                size="large"
+                                alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
+                                source={src} // Use 'src' directly as the image source
+                            />
+                            {/* Additional code for delete functionality */}
+                        </label>
+                    </div>
+                </LegacyStack>
+            ))}
+
+
+
+
+
+
+
+
+            {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
+            <div className="Polaris-Product-DropZone">
+                <LegacyStack alignment="center">
+                    <DropZone
+                        accept="image/*, video/*"
+                        type="image,video"
+                        openFileDialog={openFileDialog}
+                        onDrop={handleVariantDropZoneDrop}
+                        onFileDialogClose={toggleOpenFileDialog}
+                    >
+                        <DropZone.FileUpload actionTitle={"Add files"} />
+                    </DropZone>
+                </LegacyStack>
+            </div>
+            {/*)}*/}
+
+
+        </LegacyStack>
+            )}
+        </div>
     );
 
 
@@ -1741,6 +1924,30 @@ export function EditProduct() {
                     </TextContainer>
                 </Modal.Section>
             </Modal>
+
+
+            <Modal
+                open={varinatImageModal}
+                onClose={handleVariantImageModal}
+                title="Update Variant Image"
+                primaryAction={{
+                    content: "Done",
+                    // destructive: true,
+                    onAction: AddVariantImage,
+                }}
+            >
+                <Modal.Section>
+                    <TextContainer>
+                        <p>
+                            You can only choose images as variant media
+                        </p>
+                    </TextContainer>
+
+                    <div>  {variantUploadedFiles}</div>
+
+                </Modal.Section>
+            </Modal>
+
 
             {showSaveBar && (
                 <ContextualSaveBar
@@ -2430,6 +2637,7 @@ export function EditProduct() {
                                                             variantsMarkup?.length
                                                         }
                                                         headings={[
+                                                            { title: "" },
                                                             { title: "Name" },
                                                             { title: "Price" },
                                                             {
@@ -2616,7 +2824,7 @@ export function EditProduct() {
                                 <Card sectioned>
                                     <div className="Type-Section">
                                         <Select
-                                            label="Vape Seller"
+                                            label="Vape Product"
                                             options={[
                                                 {
                                                     label: "Yes",

@@ -74,18 +74,18 @@ export function AddProduct() {
     const [sucessToast, setSucessToast] = useState(false);
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
-    const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
-    const [status, setStatus] = useState('active');
+    const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(true);
+    const [status, setStatus] = useState('draft');
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");
     const [exciseTax, setExciseTax] = useState(0);
     const [sellerEmail, setSellerEmail] = useState("");
     const [collectionSelect, setCollectionSelect] = useState("");
-    const [showExciseField, setShowExciseField] = useState(true);
+    const [showExciseField, setShowExciseField] = useState(false);
 
 
-    const [vapeSeller, setVapeSeller] = useState('Yes');
+    const [vapeSeller, setVapeSeller] = useState('No');
 
     const CollectionsOptionsData = useMemo(
         () => [
@@ -159,6 +159,12 @@ export function AddProduct() {
         variants: null,
         status: "",
     });
+
+
+    const handleStatusChange = (selectedOption) => {
+        setStatus(selectedOption);
+    };
+
 
     // =================Products Modal Code Start Here================
 
@@ -2046,8 +2052,8 @@ export function AddProduct() {
                                                 },
                                                 { label: "Active", value: 'active' },
                                             ]}
-                                            onChange={() => setStatus(!status)}
-                                            value={status ? 'active' : 'draft'}
+                                            onChange={handleStatusChange}
+                                            value={status}
                                         />
                                     </div>
                                 </Card>
@@ -2195,7 +2201,7 @@ export function AddProduct() {
                                 <Card sectioned>
                                     <div className="Type-Section">
                                         <Select
-                                            label="Vape Seller"
+                                            label="Vape Product"
                                             options={[
                                                 {
                                                     label: "Yes",

@@ -189,9 +189,9 @@ export function CommissionListing() {
 
             setCurrency(response?.data?.currency)
             setCommissions(response?.data?.data?.data)
-            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
-                value: email,
-                label: `${name} (${email})`
+            let arr_seller = response?.data?.sellers.map(({ id,name, email,seller_shopname }) => ({
+                value: id,
+                label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
             setLoading(false)
@@ -285,9 +285,10 @@ export function CommissionListing() {
             console.log(response)
             setCurrency(response?.data?.currency)
             setCommissions(response?.data?.data?.data)
-            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
-                value: email,
-                label: `${name} (${email})`
+            let arr_seller = response?.data?.sellers.map(({ id,name,seller_shopname, email }) => ({
+                value: id,
+                // label: `${name} (${email})`
+                label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
             setLoading(false)
@@ -329,9 +330,9 @@ export function CommissionListing() {
                 })
             setCurrency(response?.data?.currency)
             setCommissions(response?.data?.data?.data)
-            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
-                value: email,
-                label: `${name} (${email})`
+            let arr_seller = response?.data?.sellers.map(({ id,name, email,seller_shopname }) => ({
+                value: id,
+                label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
             setLoading(false)
@@ -367,7 +368,7 @@ export function CommissionListing() {
 
     const rowMarkup = commissions? commissions?.map(
         // ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission }, index) => (
-        ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning }, index) => (
+        ({ id,has_order,has_user, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -382,13 +383,21 @@ export function CommissionListing() {
 
                     </Text>
                 </IndexTable.Cell>
+
+                <IndexTable.Cell className='Polaris-IndexTable-Product-Column'>
+
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {has_order?.order_number != null ? has_order?.order_number : '---'}
+
+                    </Text>
+                </IndexTable.Cell>
                 <IndexTable.Cell className='Capitalize-Cell'>
                     {created_at != null ? formatDate(created_at) : "---"}
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {seller_name != null ? seller_name : '---'}
+                        {has_user?.seller_shopname != null ? has_user?.seller_shopname : '---'}
 
                     </Text>
                 </IndexTable.Cell>
@@ -407,6 +416,9 @@ export function CommissionListing() {
 
                 <IndexTable.Cell>
                     {unit_product_commission != null ? `${currency} ${unit_product_commission.toFixed(2)}` : '---'}
+                </IndexTable.Cell>
+                <IndexTable.Cell>
+                  0
                 </IndexTable.Cell>
                 <IndexTable.Cell>
                     {total_product_commission != null ? `${currency} ${total_product_commission.toFixed(2)}` : '---'}
@@ -596,13 +608,15 @@ export function CommissionListing() {
                                     // emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
+                                        { title: 'Order Number' },
                                         { title: 'Date' },
-                                        { title: 'Seller Name' },
+                                        { title: 'Seller Store' },
                                         { title: 'Product Name' },
                                         { title: 'Quantity' },
-                                        { title: 'Price' },
-                                        { title: 'Unit Product Commission' },
-                                        { title: 'Total Product Commission' },
+                                        { title: 'Unit Price' },
+                                        { title: 'Unit Payout' },
+                                        { title: 'Tax' },
+                                        { title: 'Total Payout' },
                                         { title: 'Total Admin Earning' },
                                         // { title: 'Refunded Admin Earning' },
                                         // { title: 'VAT on Commission' },

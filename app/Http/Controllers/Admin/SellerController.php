@@ -87,6 +87,8 @@ class SellerController extends Controller
             $seller->email=$request->seller_email;
             $seller->seller_store_address=$request->seller_store_address;
             $seller->seller_zipcode=$request->seller_zipcode;
+            $seller->taxPayingSeller=$request->taxPayingSeller;
+            $seller->tax=$request->tax;
             $seller->seller_contact=$request->seller_contact;
             $seller->seller_store_description=$request->seller_store_description;
             $seller->seller_description=$request->seller_description;
@@ -151,6 +153,8 @@ class SellerController extends Controller
                 $seller->seller_shopname = $request->seller_shopname;
                 $seller->email = $request->seller_email;
                 $seller->seller_store_address = $request->seller_store_address;
+                $seller->taxPayingSeller=$request->taxPayingSeller;
+                $seller->tax=$request->tax;
                 $seller->seller_zipcode = $request->seller_zipcode;
                 $seller->seller_contact = $request->seller_contact;
                 $seller->seller_store_description = $request->seller_store_description;
@@ -361,14 +365,14 @@ class SellerController extends Controller
         if($shop){
             if($request->status==1){
                 $status=1;
-                $sellers=User::where('status',$status)->where('role','seller')->where('shop_id',$shop->id)->get();
+                $sellers=User::where('status',$status)->where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->get();
             }
             else if($request->status==2) {
                 $status = 0;
-                $sellers = User::where('status', $status)->where('role', 'seller')->where('shop_id', $shop->id)->get();
+                $sellers = User::where('status', $status)->where('role', 'seller')->where('shop_id', $shop->id)->orderBy('id','desc')->get();
             }
                 else{
-                    $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
+                    $sellers=User::where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->get();
                 }
             }
 
@@ -468,7 +472,7 @@ class SellerController extends Controller
     {
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $sellers=User::where('name', 'like', '%' . $request->value . '%')->orWhere('email','like', '%' . $request->value . '%')->orWhere('seller_shopname','like', '%' . $request->value . '%')->where('shop_id',$session->id)->get();
+        $sellers=User::where('name', 'like', '%' . $request->value . '%')->orWhere('email','like', '%' . $request->value . '%')->orWhere('seller_shopname','like', '%' . $request->value . '%')->where('shop_id',$session->id)->orderBy('id','desc')->get();
         $data = [
             'data' => $sellers
         ];
@@ -598,7 +602,6 @@ class SellerController extends Controller
         if($get_user){
             $collections=Collection::where('shopify_id',$get_user->collection_id)->first();
         }
-
         $data = [
             'collections'=>$collections,
             'shop_name'=>$get_user->seller_shopname

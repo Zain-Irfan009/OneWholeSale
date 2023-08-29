@@ -211,10 +211,10 @@ export function ImportProduct() {
 
         //Assign Seller Modal
 
-    const handleAssignProductToSeller = (id,seller_email) => {
+    const handleAssignProductToSeller = (id,seller_email,vendor_store_name) => {
 console.log('seller_email',seller_email)
         setUniqueId(id)
-        setSellerListSelected([seller_email]);
+        setSellerListSelected([vendor_store_name]);
 
         // setSellerListSelected([])
         setModalAssignProduct(true)
@@ -437,9 +437,9 @@ console.log('seller_email',seller_email)
 
             console.log('response',response?.data)
 
-            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
-                value: email,
-                label: `${name} (${email})`
+            let arr_seller = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
+                value: seller_shopname,
+                label: `${seller_shopname}`
             }));
             setSellerEmailList(arr_seller)
             setOrignalSellerEmailList(arr_seller)
@@ -464,7 +464,7 @@ console.log('seller_email',seller_email)
 
 
     const rowMarkup = importData?.map(
-        ({ id, product_shopify_id,title,vendor_name,seller_email }, index) => (
+        ({ id, product_shopify_id,title,vendor_name,seller_email,vendor_store_name }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -516,7 +516,7 @@ console.log('seller_email',seller_email)
 
                 <IndexTable.Cell>
                     <Tooltip content="Assign Product to Seller">
-                        <Button size="micro" onClick={() => handleAssignProductToSeller( id,seller_email )}>
+                        <Button size="micro" onClick={() => handleAssignProductToSeller( id,seller_email,vendor_store_name )}>
                             <Icon source={EditMinor}></Icon>
                         </Button>
                     </Tooltip>

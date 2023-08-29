@@ -112,6 +112,7 @@ export function ViewOrder() {
     const [orderNum, setOrderNum] = useState();
     const [orderDate, setOrderDate] = useState();
     const [totalItems, setTotalItems] = useState();
+    const [currency, setCurrency] = useState('');
 
     const [billingName, setBillingName] = useState();
     const [billingAddress, setBillingAddress] = useState();
@@ -184,6 +185,7 @@ export function ViewOrder() {
             // setShopName(response?.data?.order?.seller_shopname)
             setLineItems(response?.data?.line_items)
             setOrderSellers(response?.data?.order_sellers)
+            setCurrency(response?.data?.currency)
 
 
 
@@ -325,7 +327,7 @@ console.log('check',cartPrices)
                                                             <div className="Product-Title-Section">
                                                                 <h2 className="Product-Title">{item.title}</h2>
                                                                 <h2 className="Product-Title">
-                                                                    {abandonedCheckout?.oldCurrencyCode}
+                                                                    {currency}{" "}
                                                                     {item.price && Number(item.price).toFixed(2)}
                                                                 </h2>
                                                             </div>
@@ -359,7 +361,7 @@ console.log('check',cartPrices)
                                                         {totalItems > 1 ? `${totalItems} items` : `${totalItems} item`}
                                                     </p>
                                                     <p>
-                                                        {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                        {currency}{" "}
                                                         {subtotalPrice}
                                                     </p>
                                                 </Stack>
@@ -370,7 +372,7 @@ console.log('check',cartPrices)
                                                     <p>Tax</p>
                                                     <p>{cartPrices?.shippingName}</p>
                                                     <p>
-                                                        {abandonedCheckout?.oldCurrencyCode}
+                                                        {currency}{" "}
                                                         {totalTax}
                                                     </p>
                                                 </Stack>
@@ -401,7 +403,7 @@ console.log('check',cartPrices)
                                                 <Stack>
                                                     <p>Total</p>
                                                     <p>
-                                                        {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                        {currency}{" "}
                                                         {totalPrice}
                                                     </p>
                                                 </Stack>
@@ -411,7 +413,7 @@ console.log('check',cartPrices)
                                                 <Stack>
                                                     <p>To be paid by customer</p>
                                                     <p>
-                                                        {abandonedCheckout?.oldCurrencyCode}{" "}
+                                                        {currency}{" "}
                                                         {totalPrice}
                                                     </p>
                                                 </Stack>
@@ -473,11 +475,11 @@ console.log('check',cartPrices)
                                             {/*Tip Charge Earning -<span className="order_status_span">   $0.00</span>*/}
                                             {/*  </p>*/}
                                             <p className="order_status_p">
-                                            Total Order Commission -<span className="order_status_span">   ${totalOrderCommission}</span>
+                                            Total Order Commission -<span className="order_status_span">    {currency}{" "} {totalOrderCommission}</span>
                                               </p>
 
                                             <p className="order_status_p">
-                                                Total Admin Earning -<span className="order_status_span">   ${totalAdminEarning}</span>
+                                                Total Admin Earning -<span className="order_status_span">     {currency}{" "}{totalAdminEarning}</span>
                                             </p>
                                         </div>
 

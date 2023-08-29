@@ -21,7 +21,6 @@ class SmtpEmailMiddlware
      */
     public function handle(Request $request, Closure $next)
     {
-
         if(isset($request->ids)){
             $ids=explode(',',$request->ids);
             $ids=$ids[0];
@@ -61,13 +60,6 @@ class SmtpEmailMiddlware
                 }
             }
         }
-
-
-
-
-
-
-
 
         return $next($request);
     }

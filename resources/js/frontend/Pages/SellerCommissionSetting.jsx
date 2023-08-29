@@ -245,9 +245,9 @@ export function SellerCommissionSetting() {
         console.log(response)
             setSellerCommission(response?.data?.data?.data)
             setLoading(false)
-            let arr_seller = response?.data?.sellers?.map(({ name, email }) => ({
-                value: email,
-                label: `${name} (${email})`
+            let arr_seller = response?.data?.sellers?.map(({ id,name, email,seller_shopname}) => ({
+                value: id,
+                label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
 
@@ -307,6 +307,8 @@ console.log(error)
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+
+            console.log(response?.data)
             setSellerCommission(response?.data?.data?.data)
             setLoading(false)
 

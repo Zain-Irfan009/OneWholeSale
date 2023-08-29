@@ -1,34 +1,34 @@
 import React, { useState, useCallback, useEffect, useContext } from "react";
 import {
-  Page,
-  Layout,
-  Card,
-  Modal,
-  Text,
-  Stack,
-  ButtonGroup,
-  Button,
-  PageActions,
-  Form,
-  FormLayout,
-  Toast,
-  List,
-  TextContainer,
-  Banner,
-  Loading,
-  Scrollable,
-  Avatar,
-  EmptyState,
-  TextField,
-  Listbox,
-  EmptySearchResult,
-  AutoSelection,
-  Tabs,
-  Icon,
+    Page,
+    Layout,
+    Card,
+    Modal,
+    Text,
+    Stack,
+    ButtonGroup,
+    Button,
+    PageActions,
+    Form,
+    FormLayout,
+    Toast,
+    List,
+    TextContainer,
+    Banner,
+    Loading,
+    Scrollable,
+    Avatar,
+    EmptyState,
+    TextField,
+    Listbox,
+    EmptySearchResult,
+    AutoSelection,
+    Tabs,
+    Icon,
     SkeletonBodyText,
     SkeletonDisplayText,
     SkeletonPage,
-  ContextualSaveBar,
+    ContextualSaveBar, Select,
 } from "@shopify/polaris";
 import {
   SearchMinor,
@@ -111,7 +111,19 @@ export function AddSeller() {
     setSellerPolicyContent(data);
   }
 
+    const [taxPayingSeller, SetTaxPayingSeller] = useState('No');
+    const [showTaxField, setShowTaxField] = useState(false);
 
+    const [tax, setTax] = useState(0);
+
+    const handleTaxPayingStatusChange = (selectedOption) => {
+        if(selectedOption=="Yes"){
+            setShowTaxField(true)
+        }else{
+            setShowTaxField(false)
+        }
+        SetTaxPayingSeller(selectedOption);
+    };
 
   // =================Products Modal Code Ends Here================
 
@@ -187,6 +199,8 @@ export function AddSeller() {
             seller_name:name,
             seller_shopname:shopName,
             seller_email:email,
+            taxPayingSeller:taxPayingSeller,
+            tax:tax,
             seller_store_address:storeAddress,
             seller_zipcode:zipcode,
             seller_contact:contact,
@@ -400,6 +414,36 @@ export function AddSeller() {
                                     onChange={handleSellerPolicy}
 
                                 />
+                            </div>
+
+                            <div className="label_editor">
+                            <Select
+                                label="Tax Paying Seller"
+                                options={[
+                                    {
+                                        label: "Yes",
+                                        value: 'Yes',
+                                    },
+                                    { label: "No", value: 'No' },
+                                ]}
+                                onChange={handleTaxPayingStatusChange}
+                                value={taxPayingSeller}
+                            />
+
+                                {showTaxField && (
+                                    <div>
+                                        <div className="margin-top" />
+                                        <InputField
+                                            label="Tax"
+                                            placeholder="Enter Tax"
+                                            type="text"
+                                            marginTop
+                                            name="tax"
+                                            value={tax}
+                                            onChange={(e) => setTax(e.target.value)}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </Card>
 

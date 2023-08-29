@@ -1,35 +1,35 @@
 import React, { useState, useCallback, useEffect, useContext } from "react";
 import {
-  Page,
-  Layout,
-  Card,
-  Modal,
-  Text,
-  Stack,
-  ButtonGroup,
-  Button,
-  PageActions,
-  Form,
-  FormLayout,
-  Toast,
-  List,
-  TextContainer,
-  Banner,
-  Loading,
-  Scrollable,
-  Avatar,
-  EmptyState,
-  TextField,
-  Listbox,
-  EmptySearchResult,
-  AutoSelection,
-  Tabs,
-  Icon,
-  DropZone,
-  Thumbnail,
-  Popover,
-  ActionList,
-  ContextualSaveBar,
+    Page,
+    Layout,
+    Card,
+    Modal,
+    Text,
+    Stack,
+    ButtonGroup,
+    Button,
+    PageActions,
+    Form,
+    FormLayout,
+    Toast,
+    List,
+    TextContainer,
+    Banner,
+    Loading,
+    Scrollable,
+    Avatar,
+    EmptyState,
+    TextField,
+    Listbox,
+    EmptySearchResult,
+    AutoSelection,
+    Tabs,
+    Icon,
+    DropZone,
+    Thumbnail,
+    Popover,
+    ActionList,
+    ContextualSaveBar, Select,
 } from "@shopify/polaris";
 import {
   SearchMinor,
@@ -105,6 +105,20 @@ export function EditSeller() {
   ];
 
 
+    const [taxPayingSeller, SetTaxPayingSeller] = useState('No');
+    const [showTaxField, setShowTaxField] = useState(false);
+
+    const [tax, setTax] = useState(0);
+
+    const handleTaxPayingStatusChange = (selectedOption) => {
+        if(selectedOption=="Yes"){
+            setShowTaxField(true)
+        }else{
+            setShowTaxField(false)
+        }
+        SetTaxPayingSeller(selectedOption);
+    };
+
 
   const getSellerData = async (id) => {
       setLoading(true)
@@ -132,6 +146,15 @@ export function EditSeller() {
           setFileUrl4(response?.data?.seller_shop_image)
           setPublishSellerPageProfile(response?.data?.publish_seller_profile)
           setHandle(response?.data?.collection_handle)
+
+          SetTaxPayingSeller(response?.data?.taxPayingSeller);
+          if(response?.data?.taxPayingSeller=="Yes"){
+              setShowTaxField(true)
+          }else{
+              setShowTaxField(false)
+          }
+          setTax(response?.data?.tax);
+
 
           setLoading(false)
 
@@ -335,6 +358,8 @@ console.log('error',error)
         // formData.append('publish_seller_profile',publishSellerPageProfile);
         formData.append('seller_handle',handle);
         formData.append('id',params.edit_seller_id);
+        formData.append('taxPayingSeller',taxPayingSeller);
+        formData.append('tax',tax);
         formData.append('seller_name',name);
         formData.append('seller_shopname',shopName);
         formData.append('seller_email',email);
@@ -529,6 +554,37 @@ console.log('error',error)
                         onChange={handleSellerPolicy}
                       />
                     </div>
+
+
+                      <div className="label_editor">
+                          <Select
+                              label="Tax Paying Seller"
+                              options={[
+                                  {
+                                      label: "Yes",
+                                      value: 'Yes',
+                                  },
+                                  { label: "No", value: 'No' },
+                              ]}
+                              onChange={handleTaxPayingStatusChange}
+                              value={taxPayingSeller}
+                          />
+
+                          {showTaxField && (
+                              <div>
+                                  <div className="margin-top" />
+                                  <InputField
+                                      label="Tax"
+                                      placeholder="Enter Tax"
+                                      type="text"
+                                      marginTop
+                                      name="tax"
+                                      value={tax}
+                                      onChange={(e) => setTax(e.target.value)}
+                                  />
+                              </div>
+                          )}
+                      </div>
                   </Card>
 
                   <Card sectioned title="Store Banner Image">

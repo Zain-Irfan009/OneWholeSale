@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SendMail;
 use App\Models\CommissionLog;
 use App\Models\GlobalCommission;
 use App\Models\LineItem;
+use App\Models\MailSmtpSetting;
 use App\Models\Order;
 use App\Models\OrderSeller;
 use App\Models\Product;
@@ -15,6 +17,7 @@ use http\Client\Curl\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Mail;
 use Shopify\Clients\Rest;
 
 class OrderController extends Controller
@@ -164,15 +167,23 @@ class OrderController extends Controller
 
                         if($product->vape_seller=="Yes") {
 
-                            $item_price=$item->price - $product->excise_tax;
+                            $item_price=$item->price * $item->quantity;
+                            $excise_tax=$product->excise_tax * $item->quantity;
+                            $amount_without_excise_tax=$item_price - $excise_tax;
 
                             if ($seller_commission) {
 
                                 if ($seller_commission->commission_type == '%') {
-                                    $commission = ($seller_commission->first_commission / 100) * $item_price;
-                                    $commission=$commission * $item->quantity;
-                                    $total_commission = $commission + $product->excise_tax;
+
+                                    $unit_product_commission=$item->price - $product->excise_tax;
+                                    $unit_product_commission=$unit_product_commission * ($seller_commission->first_commission / 100) ;
+                                    $unit_product_commission=$unit_product_commission + $product->excise_tax;
+
+
+                                    $commission = $amount_without_excise_tax * ($seller_commission->first_commission / 100) ;
+                                    $total_commission = $commission + $excise_tax;
                                 } else if ($seller_commission->commission_type == 'fixed') {
+                                    $unit_product_commission=$seller_commission->first_commission;
                                     $total_commission = $seller_commission->first_commission * $item->quantity;
                                 }
                             }
@@ -181,18 +192,22 @@ class OrderController extends Controller
                                 $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
                                 if ($global_commission) {
                                     if ($global_commission->commission_type == '%') {
-                                        $commission = ($global_commission->global_commission / 100) * $item_price;
-                                        $commission=$commission * $item->quantity;
-                                        $total_commission = $commission + $product->excise_tax ;
+                                        $unit_product_commission=$item->price - $product->excise_tax;
+                                        $unit_product_commission=$unit_product_commission * ($global_commission->global_commission / 100) ;
+                                        $unit_product_commission=$unit_product_commission + $product->excise_tax;
+
+                                        $commission = $amount_without_excise_tax * ($global_commission->global_commission / 100) ;
+                                        $total_commission = $commission + $excise_tax;
 
                                     } else if ($global_commission->commission_type == 'fixed') {
+                                        $unit_product_commission= $global_commission->global_commission;
                                         $total_commission = $global_commission->global_commission * $item->quantity;
                                     }
 
                                 }
 
                             }
-                            $admin_earning = ($item->price * $item->quantity)- $total_commission;
+                            $admin_earning = $item_price - $total_commission;
                         }
                         else {
                             if ($seller_commission) {
@@ -200,6 +215,7 @@ class OrderController extends Controller
                                     $commission = ($seller_commission->first_commission / 100) * $item->price;
                                     $total_commission = $commission * $item->quantity;
                                 } else if ($seller_commission->commission_type == 'fixed') {
+                                    $commission=$seller_commission->first_commission;
                                     $total_commission = $seller_commission->first_commission * $item->quantity;
                                 }
 
@@ -211,6 +227,7 @@ class OrderController extends Controller
                                         $total_commission = $commission * $item->quantity;
 
                                     } else if ($global_commission->commission_type == 'fixed') {
+                                        $commission=$global_commission->global_commission;
                                         $total_commission = $global_commission->global_commission * $item->quantity;
                                     }
 
@@ -237,13 +254,22 @@ class OrderController extends Controller
                             $commission_log->seller_name = $user->name;
                             $commission_log->seller_email = $user->email;
                             $commission_log->order_id = $newOrder->id;
-                            $commission_log->commission = $commission;
+                            if($product->vape_seller=="Yes"){
+                                $commission_log->commission = $unit_product_commission;
+                            }else {
+                                $commission_log->commission = $commission;
+                            }
                             $commission_log->shopify_product_id = $item->product_id;
                             $commission_log->shopify_order_id = $order->id;
                             $commission_log->product_name = $new_line->title;
                             $commission_log->quantity = $new_line->quantity;
                             $commission_log->price = $new_line->price;
-                            $commission_log->unit_product_commission = $commission;
+
+                            if($product->vape_seller=="Yes"){
+                                $commission_log->unit_product_commission = $unit_product_commission;
+                            }else {
+                                $commission_log->unit_product_commission = $commission;
+                            }
                             $commission_log->total_admin_earning = $admin_earning;
                             $commission_log->total_product_commission = $total_commission;
                             $commission_log->shop_id = $shop->id;
@@ -265,7 +291,17 @@ class OrderController extends Controller
                     $order_seller->user_id = $unique_record;
                     $order_seller->save();
 
+                    $get_line_items=LineItem::where('order_id',$newOrder->id)->where('user_id',$unique_record)->get();
+                     $message='';
+                      foreach ($get_line_items as $get_line_item){
+                          $message=$message."Product: ".$get_line_item['title'].' of Quantity: '.$get_line_item['quantity'].',';
+                      }
+
+                      $this->OrderMail($unique_record,$message);
+
                 }
+
+
             }
         }
     }
@@ -358,7 +394,8 @@ class OrderController extends Controller
                 'line_items'=>$line_item_data,
                 'date'=>$date,
                 'total_items'=>$total_items,
-                'order_sellers'=>$order_seller_array
+                'order_sellers'=>$order_seller_array,
+                  'currency'=>$session->money_format,
             ];
             return response()->json($data);
 
@@ -466,5 +503,20 @@ $orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
         }
     }
 }
+
+
+        public function OrderMail($user_id,$message){
+
+        $user=\App\Models\User::find($user_id);
+        $session=Session::find($user->shop_id);
+        $type="Order Message";
+            $Setting = MailSmtpSetting::where('shop_id', $user->shop_id)->first();
+            $details['to'] = $user->email;
+            $details['name'] = $user->name;
+            $details['subject'] = 'OneWholesale';
+            $details['message'] = $message;
+            $details['shop_name'] =$session->shop ;
+            Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
+        }
 
 }

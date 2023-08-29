@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class CommissionLog extends Model
 {
     use HasFactory;
+
+    public function has_order(){
+        return  $this->belongsTo('App\Models\Order', 'order_id', 'id');
+    }
+
+    public function has_user(){
+        return  $this->belongsTo('App\Models\User', 'user_id', 'id');
+    }
 }

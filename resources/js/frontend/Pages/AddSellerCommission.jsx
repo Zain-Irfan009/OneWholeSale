@@ -199,9 +199,9 @@ export function AddSellerCommission() {
 
             console.log('response',response?.data)
 
-            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
-                value: email,
-                label: `${name} (${email})`
+            let arr_seller = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
+                value: seller_shopname,
+                label: `${seller_shopname}`
             }));
             setSellerEmailList(arr_seller)
 
@@ -319,7 +319,7 @@ export function AddSellerCommission() {
     const sellerEmailTextField = (
         <Autocomplete.TextField
             onChange={sellerUpdateText}
-            label="Seller Email*"
+            label="Seller Shop*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
             verticalContent={sellerContentMarkup}
@@ -526,7 +526,7 @@ export function AddSellerCommission() {
 
 
         let data = {
-            seller_email:sellerEmailListSelected,
+            store_name:sellerEmailListSelected,
             commission_type:commissionType,
             first_commission:firstCommission,
             second_commission:secondCommission,

@@ -242,7 +242,7 @@ class DashboardController extends Controller
     public function OutOfStockProduct(Request $request){
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
-        $products = Product::where('quantity', 0)->where('shop_id',$shop->id)
+        $products = Product::where('quantity', '<', 0)->where('shop_id',$shop->id)
             ->limit(5)
             ->latest()->get();
         $outof_stock_products=array();

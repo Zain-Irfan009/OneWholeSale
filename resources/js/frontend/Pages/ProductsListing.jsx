@@ -176,7 +176,7 @@ export function ProductsListing() {
     const sellerEmailTextField = (
         <Autocomplete.TextField
             onChange={sellerUpdateText}
-            label="Seller Email*"
+            label="Seller Shop*"
             error={formErrors.sellerEmail}
             value={sellerEmailInputValue}
             placeholder="Select Seller"
@@ -445,13 +445,18 @@ setSelectedStatus(selectedOption)
 
             console.log(response?.data)
             setProducts(response?.data?.products?.data)
-            let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
+            let arr_seller = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
                 value: email,
-                label: `${name} (${email})`
+                label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
-            setSellerEmailList(arr_seller)
-            setOrignalSellerEmailList(arr_seller)
+            let arr_seller1 = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
+                value: seller_shopname,
+                label: `${seller_shopname}`
+            }));
+
+            setSellerEmailList(arr_seller1)
+            setOrignalSellerEmailList(arr_seller1)
             setCurrency(response?.data?.currency)
 
             setNextPageCursor(response?.data?.products?.next_page_url)

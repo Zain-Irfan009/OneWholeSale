@@ -72,7 +72,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('search-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchProduct']);
     Route::get('search-seller-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchSellerProduct']);
     Route::get('remove-img',[\App\Http\Controllers\Admin\ProductController::class,'RemoveImage']);
-
+    Route::post('add-product-image',[\App\Http\Controllers\Admin\ProductController::class,'AddProductImage']);
 
     //import Product
     Route::get('import-products',[\App\Http\Controllers\Admin\ProductController::class,'ImportProducts']);
@@ -347,5 +347,26 @@ Route::post('/webhooks/order-create', function (Request $request) {
 });
 
 
+Route::post('/webhooks/order-update', function (Request $request) {
+    try {
 
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='order update';
+        $logs->save();
+        $order=json_decode($request->getContent());
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
+        $ordercontroller->singleOrder($order,$shop->shop);
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Order update catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
 

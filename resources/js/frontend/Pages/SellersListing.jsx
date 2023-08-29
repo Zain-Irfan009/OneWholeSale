@@ -175,7 +175,7 @@ export function SellersListing() {
                 setToastMsg(location.state?.customText)
                 setSucessToast(true)
             }
-
+console.log(response?.data)
             setCustomers(response?.data?.data)
             // setPaginationUrl(response?.data?.links);
             // if (
