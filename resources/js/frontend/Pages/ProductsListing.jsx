@@ -566,6 +566,36 @@ setSelectedStatus(selectedOption)
     }
 
 
+    const syncProduct  = async (id) => {
+
+        setSkeleton(true)
+        setLoading(true)
+        const sessionToken = getAccessToken();
+        try {
+
+            const response = await axios.get(`${apiUrl}/sync-product?id=${id}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            getData();
+            setLoading(false)
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setSkeleton(false)
+
+        } catch (error) {
+
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+
+    }
+
+
+
     const handleDisableAction = async(id) => {
 
         setSkeleton(true)
@@ -793,6 +823,7 @@ setSelectedStatus(selectedOption)
         type,
         price,
         quantity,
+          has_variants_count,
         product_status,
       },
       index
@@ -825,7 +856,13 @@ setSelectedStatus(selectedOption)
         </IndexTable.Cell>
 
           <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
-        <IndexTable.Cell>{quantity != null ? quantity : "---"}</IndexTable.Cell>
+          <IndexTable.Cell>
+              {has_variants_count &&
+              has_variants_count.length > 0 &&
+              has_variants_count[0].total_quantity !== 0
+                  ? has_variants_count[0].total_quantity
+                  : 0}
+          </IndexTable.Cell>
 
           {product_status === 'Approved' ? (
         <IndexTable.Cell className="approved">
@@ -873,7 +910,10 @@ setSelectedStatus(selectedOption)
                     content: product_status=='Approval Pending' ?"Enable" : product_status=='Approved' ? "Disable" :  product_status=='Disabled' ? "Enable" : '' ,
                     onAction: () =>  product_status=='Approval Pending' ?  handleEnableAction(id) : product_status=='Approved' ? handleDisableAction(id) :product_status=='Disabled' ? handleEnableAction(id) : '',
                 },
-
+                  {
+                      content: "Sync From your Store",
+                      onAction: ()=>syncProduct(id),
+                  },
 
                 {
                   content: "Delete",

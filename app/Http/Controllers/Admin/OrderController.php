@@ -13,6 +13,7 @@ use App\Models\OrderSeller;
 use App\Models\Product;
 use App\Models\SellerCommission;
 use App\Models\Session;
+use App\Models\Variant;
 use http\Client\Curl\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,7 @@ class OrderController extends Controller
     {
         $user = auth()->user();
         $shop = Session::where('shop', $user->name)->first();
-        $orders = Order::where('shop_id', $shop->id)->orderBy('id','Desc')->paginate(20);
+        $orders = Order::where('shop_id', $shop->id)->orderBy('order_number','Desc')->paginate(20);
         return response()->json($orders);
     }
 
@@ -57,7 +58,7 @@ class OrderController extends Controller
     {
 
         $shop = Session::where('shop', $shop)->first();
-        if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {
+//        if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {
 
 
             $newOrder = Order::where('shopify_order_id', $order->id)->where('shop_id', $shop->id)->first();
@@ -66,8 +67,17 @@ class OrderController extends Controller
             if ($newOrder == null) {
                 $newOrder = new Order();
                 $flag=1;
-
             }
+//            else{
+//                if ($order->financial_status != 'refunded' ||  $order->cancelled_at == null) {
+//                $commission_get_logs=  CommissionLog::where('shopify_order_id',$order->id)->sum('total_payout');
+//                  $user_get=\App\Models\User::find($newOrder->user_id);
+//                if($user_get) {
+//                    $user_get->total_commission = $user_get->total_commission - $commission_get_logs;
+//                    $user_get->save();
+//                }
+//            }
+//            }
             $newOrder->shopify_order_id = $order->id;
             $newOrder->email = $order->email;
             $newOrder->order_number = $order->name;
@@ -156,8 +166,15 @@ class OrderController extends Controller
                    $new_line->user_id=$product->user_id;
                    $new_line->save();
 
-                   $product->quantity=$product->quantity -$item->quantity;
-                   $product->save();
+//                    if($flag==1) {
+                        $variant = Variant::where('shopify_product_id', $item->product_id)->where('shopify_id', $item->variant_id)->where('shop_id', $shop->id)->first();
+                        if ($variant) {
+                            $variant->quantity = $variant->quantity - $item->quantity;
+                            $variant->save();
+                        }
+//                    }
+//                   $product->quantity=$product->quantity -$item->quantity;
+//                   $product->save();
                    $user = \App\Models\User::find($product->user_id);
 
 
@@ -174,6 +191,23 @@ class OrderController extends Controller
                             if ($seller_commission) {
 
                                 if ($seller_commission->commission_type == '%') {
+
+                                    $unit_payout_subtract=1-($seller_commission->first_commission / 100);
+                                    $unit_payout_subtract_excise=$item->price - $product->excise_tax;
+                                    $unit_payout=$unit_payout_subtract_excise * $unit_payout_subtract;
+                                    $unit_payout=$unit_payout + $product->excise_tax;
+
+                                    $sub_total_payout=$unit_payout* $item->quantity;
+
+                                    if($user->taxPayingSeller && $user->taxPayingSeller=='Yes'){
+                                        $sub_total_payout_tax=$sub_total_payout*($user->tax/100);
+                                        $total_payout=$sub_total_payout+$sub_total_payout_tax;
+                                    }else{
+                                        $sub_total_payout_tax=$sub_total_payout*0;
+                                        $total_payout=$sub_total_payout+0;
+                                    }
+
+
 
                                     $unit_product_commission=$item->price - $product->excise_tax;
                                     $unit_product_commission=$unit_product_commission * ($seller_commission->first_commission / 100) ;
@@ -192,6 +226,23 @@ class OrderController extends Controller
                                 $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
                                 if ($global_commission) {
                                     if ($global_commission->commission_type == '%') {
+
+                                        $unit_payout_subtract=1-($global_commission->global_commission / 100);
+                                        $unit_payout_subtract_excise=$item->price - $product->excise_tax;
+                                        $unit_payout=$unit_payout_subtract_excise * $unit_payout_subtract;
+                                        $unit_payout=$unit_payout + $product->excise_tax;
+
+                                        $sub_total_payout=$unit_payout* $item->quantity;
+
+                                        if($user->taxPayingSeller && $user->taxPayingSeller=='Yes'){
+                                            $sub_total_payout_tax=$sub_total_payout*($user->tax/100);
+                                            $total_payout=$sub_total_payout+$sub_total_payout_tax;
+                                        }else{
+                                            $sub_total_payout_tax=$sub_total_payout*0;
+                                            $total_payout=$sub_total_payout+0;
+                                        }
+
+
                                         $unit_product_commission=$item->price - $product->excise_tax;
                                         $unit_product_commission=$unit_product_commission * ($global_commission->global_commission / 100) ;
                                         $unit_product_commission=$unit_product_commission + $product->excise_tax;
@@ -212,6 +263,20 @@ class OrderController extends Controller
                         else {
                             if ($seller_commission) {
                                 if ($seller_commission->commission_type == '%') {
+
+                                    $unit_payout=1-($seller_commission->first_commission / 100);
+                                    $unit_payout=$item->price * $unit_payout;
+
+                                    $sub_total_payout=$unit_payout* $item->quantity;
+
+                                    if($user->taxPayingSeller && $user->taxPayingSeller=='Yes'){
+                                        $sub_total_payout_tax=$sub_total_payout*($user->tax/100);
+                                        $total_payout=$sub_total_payout+$sub_total_payout_tax;
+                                    }else{
+                                        $sub_total_payout_tax=$sub_total_payout*0;
+                                        $total_payout=$sub_total_payout+0;
+                                    }
+
                                     $commission = ($seller_commission->first_commission / 100) * $item->price;
                                     $total_commission = $commission * $item->quantity;
                                 } else if ($seller_commission->commission_type == 'fixed') {
@@ -223,6 +288,21 @@ class OrderController extends Controller
                                 $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
                                 if ($global_commission) {
                                     if ($global_commission->commission_type == '%') {
+
+                                        $unit_payout=1-($global_commission->global_commission / 100);
+                                        $unit_payout=$item->price * $unit_payout;
+
+                                        $sub_total_payout=$unit_payout* $item->quantity;
+
+                                        if($user->taxPayingSeller && $user->taxPayingSeller=='Yes'){
+                                            $sub_total_payout_tax=$sub_total_payout*($user->tax/100);
+                                            $total_payout=$sub_total_payout+$sub_total_payout_tax;
+                                        }else{
+                                            $sub_total_payout_tax=$sub_total_payout*0;
+                                            $total_payout=$sub_total_payout+0;
+                                        }
+
+
                                         $commission = ($global_commission->global_commission / 100) * $item->price;
                                         $total_commission = $commission * $item->quantity;
 
@@ -244,10 +324,14 @@ class OrderController extends Controller
                         $newOrder->seller_shopname = $user->seller_shopname;
                         $newOrder->save();
 
-                        if ($flag == 1) {
-                            $commission_log = new CommissionLog();
+//                        if ($flag == 1) {
 
-                            $user->total_commission = $user->total_commission + $total_commission;
+                            $commission_log=CommissionLog::where('shopify_order_id',$order->id)->where('shopify_line_item_id',$item->id)->first();
+                            if($commission_log==null) {
+                                $commission_log = new CommissionLog();
+                            }
+//                            $user->total_commission = $user->total_commission + $total_commission;
+                            $user->total_commission = $user->total_commission + $total_payout;
                             $user->save();
 
                             $commission_log->user_id = $user->id;
@@ -261,6 +345,8 @@ class OrderController extends Controller
                             }
                             $commission_log->shopify_product_id = $item->product_id;
                             $commission_log->shopify_order_id = $order->id;
+                            $commission_log->shopify_line_item_id = $item->id;
+                            $commission_log->shopify_variant_id = $item->variant_id;
                             $commission_log->product_name = $new_line->title;
                             $commission_log->quantity = $new_line->quantity;
                             $commission_log->price = $new_line->price;
@@ -272,10 +358,14 @@ class OrderController extends Controller
                             }
                             $commission_log->total_admin_earning = $admin_earning;
                             $commission_log->total_product_commission = $total_commission;
+                            $commission_log->unit_payout = $unit_payout;
+                            $commission_log->sub_total_payout = $sub_total_payout;
+                            $commission_log->sub_total_payout_tax = $sub_total_payout_tax;
+                            $commission_log->total_payout = $total_payout;
                             $commission_log->shop_id = $shop->id;
                             $commission_log->save();
 
-                        }
+//                        }
                     }
 
                 }
@@ -303,6 +393,14 @@ class OrderController extends Controller
 
 
             }
+//        }
+
+        if ($order->financial_status == 'refunded' ||  $order->cancelled_at != null) {
+            $commission_get_logs=  CommissionLog::where('shopify_order_id',$order->id)->sum('total_payout');
+//            $user->total_commission = $user->total_commission - $commission_get_logs;
+//            $user->save();
+            CommissionLog::where('shopify_order_id',$order->id)->delete();
+
         }
     }
 
@@ -378,7 +476,11 @@ class OrderController extends Controller
                 $line_item_array['quantity']=$line_item->quantity;
                 $line_item_array['price']=$line_item->price;
 
-                if($product && $product->featured_image){
+                $variant=Variant::where('shopify_id',$line_item->shopify_variant_id)->first();
+                if($variant && $variant->src){
+                    $line_item_array['image'] = $variant->src;
+                }
+                else if($product && $product->featured_image){
                 $line_item_array['image'] = $product->featured_image;
             }else{
                     $line_item_array['image'] = public_path('empty.jpg');
@@ -516,6 +618,7 @@ $orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
             $details['subject'] = 'OneWholesale';
             $details['message'] = $message;
             $details['shop_name'] =$session->shop ;
+            $details['shop_id'] =$session->id ;
             Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
         }
 

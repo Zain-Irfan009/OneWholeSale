@@ -16,4 +16,8 @@ class CommissionLog extends Model
     public function has_user(){
         return  $this->belongsTo('App\Models\User', 'user_id', 'id');
     }
+
+    public function has_variant(){
+        return  $this->belongsTo('App\Models\Variant', 'shopify_variant_id', 'shopify_id');
+    }
 }

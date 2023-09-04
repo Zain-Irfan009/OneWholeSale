@@ -62,7 +62,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import EmptyCheckBox from "../assets/icons/EmptyCheckBox.png";
 import FillCheckBox from "../assets/icons/FillCheckBox.png";
 import {getAccessToken} from "../assets/cookies";
-
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 export function AddProduct() {
     const { apiUrl } = useContext(AppContext);
     // const { user } = useAuthState();
@@ -103,24 +103,37 @@ export function AddProduct() {
         []
     );
 
+    const [productTypeList, setProductTypeList] = useState(
+        []
+    );
+
     const handleVapeStatusChange = (selectedOption) => {
-       if(selectedOption=="Yes"){
-           setShowExciseField(true)
-       }else{
-           setShowExciseField(false)
-       }
+        if(selectedOption=="Yes"){
+            setShowExciseField(true)
+        }else{
+            setShowExciseField(false)
+        }
         setVapeSeller(selectedOption);
     };
     const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
         []
     );
 
+
+    const [orignalProductTypeEmailList, setOrignalProductTypeList] = useState(
+        []
+    );
+
     const [sellerEmailListSelected, setSellerListSelected] =
+        useState("");
+
+    const [productTypeListSelected, setProductTypeListSelected] =
         useState("");
 
 
 
     const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
+    const [productTypeInputValue, setProductTypeInputValue] = useState("");
 
     const [collectionOptionsSelected, setCollectionOptionsSelected] =
         useState("");
@@ -254,6 +267,14 @@ export function AddProduct() {
     };
 
 
+
+    const handleProductTypeOptionSelect = async (selectedOption) => {
+        // Handle option selection here
+        setProductTypeListSelected(selectedOption)
+
+    };
+
+
     const inputHandleChange = (index, val) => {
 
         let totalLength = inputFields.length;
@@ -263,7 +284,7 @@ export function AddProduct() {
 
 
 
-        if (totalLength - 1 == index && val.length == 1) {
+            if (totalLength - 1 == index && val.length > 0) {
             handleAddField();
         }
     };
@@ -318,6 +339,10 @@ export function AddProduct() {
                 case "compare_at_price":
                     updatedObject.compare_at_price = value;
                     break;
+
+                case "barcode":
+                    updatedObject.barcode = value;
+                    break;
             }
             updatedState[index] = updatedObject;
 
@@ -346,7 +371,7 @@ export function AddProduct() {
         const newInputFields = [...inputFields2];
         newInputFields[index].value = val;
         setInputFields2(newInputFields);
-        if (totalLength - 1 == index && val.length == 1) {
+        if (totalLength - 1 == index && val.length > 0) {
             handleAddField2();
         }
     };
@@ -366,7 +391,7 @@ export function AddProduct() {
         const newInputFields = [...inputFields3];
         newInputFields[index].value = val;
         setInputFields3(newInputFields);
-        if (totalLength - 1 == index && val.length == 1) {
+        if (totalLength - 1 == index && val.length > 0) {
             handleAddField3();
         }
     };
@@ -394,7 +419,7 @@ export function AddProduct() {
                     }
                 })
 
-          console.log('response',response?.data)
+            console.log('response',response?.data)
             const arr = response?.data?.data.map(title => ({ value: title, label: title }));
             setCollectionOptions(arr)
             let arr_seller = response?.data?.sellers.map(({ name, email }) => ({
@@ -404,6 +429,14 @@ export function AddProduct() {
             setSellerEmailList(arr_seller)
             setOrignalSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
+
+            let arr_product_type = response?.data?.product_types.map((productType) => ({
+                value: productType,
+                label: productType
+            }));
+            setProductTypeList(arr_product_type)
+            setOrignalProductTypeList(arr_product_type)
+
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -590,82 +623,99 @@ export function AddProduct() {
                 });
 
                 return(
-                <>
+                    <>
 
-                    <IndexTable.Row key={globalIndex} position={globalIndex}>
-                        <IndexTable.Cell>
-                            <Text variant="bodyMd" fontWeight="bold" as="span">
-                                {text}
-                            </Text>
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
+                        <IndexTable.Row key={globalIndex} position={globalIndex}>
+                            <IndexTable.Cell>
+                                <Text variant="bodyMd" fontWeight="bold" as="span">
+                                    {text}
+                                </Text>
+                            </IndexTable.Cell>
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
 
-                                onChange={(e) =>
-                                    variantsInputFiledsHandler(
-                                        e,
-                                        priceIndex,
-                                        "price",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "quantity",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "sku",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
+                                    onChange={(e) =>
+                                        variantsInputFiledsHandler(
+                                            e,
+                                            priceIndex,
+                                            "price",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "quantity",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "sku",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
 
-                        <IndexTable.Cell>
-                            <InputField
-                                type="text"
-                                // value={variantsInputFileds[skuIndex]?.sku}
-                                onChange={(value) =>
-                                    variantsInputFiledsHandler(
-                                        value,
-                                        skuIndex,
-                                        "compare_at_price",
-                                        text
-                                    )
-                                }
-                                // prefix="$"
-                                autoComplete="off"
-                            />
-                        </IndexTable.Cell>
-                    </IndexTable.Row>
-                </>
-            ); }
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "compare_at_price",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "barcode",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+                        </IndexTable.Row>
+                    </>
+                ); }
 
             if (
                 (variants === 1 || inputFields2[0].value.length === 0) &&
@@ -709,8 +759,8 @@ export function AddProduct() {
             } else if (variants === 3 && inputFields3[0].value.length > 0) {
                 makeState(
                     (inputFields3.length - 1) *
-                        (inputFields2.length - 1) *
-                        (inputFields.length - 1)
+                    (inputFields2.length - 1) *
+                    (inputFields.length - 1)
                 );
                 console.log(3);
                 newMarkup = inputFields.flatMap((input, index) => {
@@ -857,6 +907,43 @@ export function AddProduct() {
         [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
 
+
+    const productTypeUpdateText = useCallback(
+        (value) => {
+
+
+            setProductTypeInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    console.log(sellerEmailList)
+                    setProductTypeList(orignalProductTypeEmailList);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = productTypeList.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+
+                console.log('resultOptions',resultOptions)
+                setProductTypeList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [productTypeList, optionsLoading, productTypeListSelected]
+    );
+
+
     const handleChargeTax = useCallback(
         (newChecked) => setChargeTaxChecked(newChecked),
         []
@@ -894,6 +981,18 @@ export function AddProduct() {
 
         [collectionOptionsSelected]
     );
+
+    const removeProductType = useCallback(
+        (collection) => () => {
+
+            const collectionOptions = [...productTypeListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setProductTypeListSelected(collectionOptions);
+        },
+
+        [collectionOptionsSelected]
+    );
+
 
     const collectionsContentMarkup =
         collectionOptionsSelected.length > 0 ? (
@@ -938,6 +1037,28 @@ export function AddProduct() {
             </div>
         ) : null;
 
+
+    const productTypeContentMarkup =
+        productTypeListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {productTypeListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeProductType(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+
     const collectionTextField = (
         <Autocomplete.TextField
             // onChange={collectionUpdateText}
@@ -960,6 +1081,19 @@ export function AddProduct() {
             verticalContent={sellerContentMarkup}
         />
     );
+
+    const productTypeTextField = (
+        <Autocomplete.TextField
+            onChange={productTypeUpdateText}
+
+
+            label="Product Type"
+            value={productTypeInputValue}
+            // placeholder="Select Product Type"
+            verticalContent={productTypeContentMarkup}
+        />
+    );
+
 
     const handlePrice = (e) => setPrice(e.target.value);
 
@@ -1042,9 +1176,45 @@ export function AddProduct() {
         "image/jpg",
         "image/svg",
     ];
+
+    const handleDragEnd = async (result) => {
+
+        console.log('result',result)
+        if (!result.destination) {
+            return;
+        }
+
+        const sessionToken = getAccessToken();
+
+        const items = Array.from(mediaFiles);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        // Update the state with the new mediaFiles order
+        setImageFiles(items);
+
+
+
+    };
+
+
     const uploadedFiles = mediaFiles.length > 0 && (
         <Stack id="jjj">
+
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <div className="drag-custom">
+                    <Droppable  droppableId="mediaFiles" direction="horizontal"   className="custom-class">
+                        {(provided) => (
+                            <div ref={provided.innerRef} {...provided.droppableProps}>
             {mediaFiles.map((file, index) => (
+                <Draggable key={String(index)} draggableId={String(index)} index={index}>
+                    {(provided) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="Polaris-Product-Gallery"
+                        >
                 <Stack alignment="center" key={index}>
                     <div className="Polaris-Product-Gallery">
                         <Thumbnail
@@ -1064,8 +1234,17 @@ export function AddProduct() {
                         </span>
                     </div>
                 </Stack>
-            ))}
 
+                        </div>
+                    )}
+                </Draggable>
+            ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </div>
+            </DragDropContext>
             <div className="Polaris-Product-DropZone">
                 <Stack alignment="center">
                     <DropZone
@@ -1204,21 +1383,21 @@ export function AddProduct() {
     const optionMarkup =
         options.length > 0
             ? options?.map((option) => {
-                  return (
-                      <Listbox.Option
-                          key={option}
-                          value={option}
-                          selected={selectedTags.includes(option)}
-                          accessibilityLabel={option}
-                      >
-                          <Listbox.TextOption
-                              selected={selectedTags.includes(option)}
-                          >
-                              {formatOptionText(option)}
-                          </Listbox.TextOption>
-                      </Listbox.Option>
-                  );
-              })
+                return (
+                    <Listbox.Option
+                        key={option}
+                        value={option}
+                        selected={selectedTags.includes(option)}
+                        accessibilityLabel={option}
+                    >
+                        <Listbox.TextOption
+                            selected={selectedTags.includes(option)}
+                        >
+                            {formatOptionText(option)}
+                        </Listbox.TextOption>
+                    </Listbox.Option>
+                );
+            })
             : null;
 
     const noResults = value && !getAllTags().includes(value);
@@ -1385,7 +1564,12 @@ export function AddProduct() {
         formData.append('variants',JSON.stringify(variantsInputFileds));
         formData.append('seller_email',sellerEmailListSelected);
         formData.append('tags',newTags);
-        formData.append('product_type',productHandle);
+
+        if (productTypeInputValue) {
+            formData.append('product_type', productTypeInputValue);
+        } else {
+            formData.append('product_type', productTypeListSelected);
+        }
         formData.append('vendor',vendor);
         formData.append('collections',collectionOptionsSelected);
         formData.append('unique_var','new');
@@ -1398,7 +1582,7 @@ export function AddProduct() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-        console.log('res',response?.data?.message)
+            console.log('res',response?.data?.message)
             setBtnLoading(false)
             setLoading(false)
             setToastMsg(response?.data?.message)
@@ -1814,6 +1998,7 @@ export function AddProduct() {
                                                                     value={
                                                                         inputField.value
                                                                     }
+
                                                                     onChange={(
                                                                         value
                                                                     ) =>
@@ -1827,12 +2012,12 @@ export function AddProduct() {
                                                                         //   Add Field
                                                                         // </Button>,
                                                                         (inputField
-                                                                            .value
-                                                                            .length >
+                                                                                .value
+                                                                                .length >
                                                                             0 ||
                                                                             inputFields.length -
-                                                                                1 !=
-                                                                                index) && (
+                                                                            1 !=
+                                                                            index) && (
                                                                             <Button
                                                                                 plain
                                                                                 icon={
@@ -1850,6 +2035,7 @@ export function AddProduct() {
                                                             </div>
                                                         )
                                                     )}
+
                                                 </div>
                                             </Card.Section>
                                         )}
@@ -1890,12 +2076,12 @@ export function AddProduct() {
                                                                     }
                                                                     connectedRight={[
                                                                         (inputField
-                                                                            .value
-                                                                            .length >
+                                                                                .value
+                                                                                .length >
                                                                             0 ||
                                                                             inputFields2.length -
-                                                                                1 !=
-                                                                                index) && (
+                                                                            1 !=
+                                                                            index) && (
                                                                             <Button
                                                                                 plain
                                                                                 icon={
@@ -1953,12 +2139,12 @@ export function AddProduct() {
                                                                     }
                                                                     connectedRight={[
                                                                         (inputField
-                                                                            .value
-                                                                            .length >
+                                                                                .value
+                                                                                .length >
                                                                             0 ||
                                                                             inputFields3.length -
-                                                                                1 !=
-                                                                                index) && (
+                                                                            1 !=
+                                                                            index) && (
                                                                             <Button
                                                                                 plain
                                                                                 icon={
@@ -2026,6 +2212,11 @@ export function AddProduct() {
                                                             {
                                                                 title: "Compare At",
                                                             },
+
+                                                            {
+                                                                title: "Barcode",
+                                                            },
+
                                                         ]}
                                                         selectable={false}
                                                     >
@@ -2104,6 +2295,7 @@ export function AddProduct() {
                       {`You can add product handle and product's metafields from here.`}
                     </Text> */}
                                         <div className="margin-top" />
+                                        <div className="hidden_fields">
                                         <Autocomplete
                                             allowMultiple
                                             options={collectionOptions}
@@ -2115,6 +2307,7 @@ export function AddProduct() {
                                             }
                                             listTitle="Collections"
                                         />
+                                        </div>
                                         {/* <Select
                       label="Categories"
                       options={categories}
@@ -2132,15 +2325,31 @@ export function AddProduct() {
                                         </div>
                                         <div className="tags_spacing">{tagsToAddMarkup}</div>
                                         <div className="label_editor">
-                                            <InputField
-                                                label="Product Type"
-                                                placeholder="Enter Product Type"
-                                                type="text"
-                                                marginTop
-                                                name="handle"
-                                                value={productHandle}
-                                                onChange={handleProductHandle}
+                                            {/*<InputField*/}
+                                            {/*    label="Product Type"*/}
+                                            {/*    placeholder="Enter Product Type"*/}
+                                            {/*    type="text"*/}
+                                            {/*    marginTop*/}
+                                            {/*    name="handle"*/}
+                                            {/*    value={productHandle}*/}
+                                            {/*    onChange={handleProductHandle}*/}
+                                            {/*/>*/}
+
+                                            <Autocomplete
+
+                                                options={productTypeList}
+                                                selected={productTypeListSelected}
+                                                textField={productTypeTextField}
+                                                loading={optionsLoading}
+                                                // onSelect={
+                                                //     setSellerListSelected
+                                                // }
+                                                onSelect={
+                                                    handleProductTypeOptionSelect
+                                                }
+                                                listTitle="Product Type"
                                             />
+
                                         </div>
                                         {/* <div className="label_editor">
                       <h2 class="Polaris-Text--root Polaris-Text--headingMd">
@@ -2156,7 +2365,8 @@ export function AddProduct() {
                       value={titleMetafield}
                       onChange={handleTitleMetafield}
                     /> */}
-                                        <div className="margin-top" />
+                                        <div className="margin-top " />
+                                        <div className="hidden_fields">
                                         <InputField
                                             label="Vendor"
                                             placeholder="Enter Vendor Name"
@@ -2168,6 +2378,7 @@ export function AddProduct() {
                                                 setVendor(e.target.value)
                                             }
                                         />
+                                        </div>
 
 
                                         {/* <Select

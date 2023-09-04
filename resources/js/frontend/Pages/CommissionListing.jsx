@@ -368,7 +368,7 @@ export function CommissionListing() {
 
     const rowMarkup = commissions? commissions?.map(
         // ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission }, index) => (
-        ({ id,has_order,has_user, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning }, index) => (
+        ({ id,has_order,has_user, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,unit_payout,sub_total_payout,sub_total_payout_tax,total_payout,has_variant }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -403,7 +403,11 @@ export function CommissionListing() {
                 </IndexTable.Cell>
 
                 <IndexTable.Cell className='Capitalize-Cell'>
-                    {product_name != null ? product_name : '---'}
+                    {product_name != null && has_variant
+                        ? `${product_name} (${has_variant.sku})`
+                        : product_name != null
+                            ? product_name
+                            : '---'}
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
@@ -415,17 +419,17 @@ export function CommissionListing() {
 
 
                 <IndexTable.Cell>
-                    {unit_product_commission != null ? `${currency} ${unit_product_commission.toFixed(2)}` : '---'}
+                    {unit_payout != null ? `${currency} ${unit_payout.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
                 <IndexTable.Cell>
-                  0
+                    {sub_total_payout != null ? `${currency} ${sub_total_payout.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
                 <IndexTable.Cell>
-                    {total_product_commission != null ? `${currency} ${total_product_commission.toFixed(2)}` : '---'}
+                    {sub_total_payout_tax != null ? `${currency} ${sub_total_payout_tax.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>
-                    {total_admin_earning != null ? `${currency} ${total_admin_earning.toFixed(2)}` : '---'}
+                    {total_payout != null ? `${currency} ${total_payout.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
 
                 {/*<IndexTable.Cell>*/}
@@ -615,9 +619,10 @@ export function CommissionListing() {
                                         { title: 'Quantity' },
                                         { title: 'Unit Price' },
                                         { title: 'Unit Payout' },
+                                        { title: 'Subtotal Payout' },
                                         { title: 'Tax' },
                                         { title: 'Total Payout' },
-                                        { title: 'Total Admin Earning' },
+                                        // { title: 'Total Admin Earning' },
                                         // { title: 'Refunded Admin Earning' },
                                         // { title: 'VAT on Commission' },
                                     ]}

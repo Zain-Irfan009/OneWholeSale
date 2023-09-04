@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('reassign-seller',[\App\Http\Controllers\Admin\ProductController::class,'ReassignSeller']);
     Route::get('reassign-multiple-seller',[\App\Http\Controllers\Admin\ProductController::class,'ReassignMultipleSeller']);
     Route::delete('delete-product',[\App\Http\Controllers\Admin\ProductController::class,'DeleteProduct']);
+    Route::get('sync-product',[\App\Http\Controllers\Admin\ProductController::class,'SyncProduct']);
     Route::get('product-filter',[\App\Http\Controllers\Admin\ProductController::class,'ProductFilter']);
     Route::get('edit-product/{id}',[\App\Http\Controllers\Admin\ProductController::class,'EditProduct'])->middleware('smtp');
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple'])->middleware('smtp');
@@ -73,6 +74,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('search-seller-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchSellerProduct']);
     Route::get('remove-img',[\App\Http\Controllers\Admin\ProductController::class,'RemoveImage']);
     Route::post('add-product-image',[\App\Http\Controllers\Admin\ProductController::class,'AddProductImage']);
+    Route::get('drag-image',[\App\Http\Controllers\Admin\ProductController::class,'DragImage']);
+
 
     //import Product
     Route::get('import-products',[\App\Http\Controllers\Admin\ProductController::class,'ImportProducts']);
@@ -370,3 +373,82 @@ Route::post('/webhooks/order-update', function (Request $request) {
     }
 });
 
+
+Route::post('/webhooks/product-create', function (Request $request) {
+
+
+    try {
+
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='product create';
+        $logs->save();
+        $product=json_decode($request->getContent());
+
+
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
+        $productcontroller->createShopifyProducts($product,$shop->shop);
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Product Create catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+Route::post('/webhooks/product-update', function (Request $request) {
+
+
+    try {
+
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='product update';
+        $logs->save();
+        $product=json_decode($request->getContent());
+
+
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
+        $productcontroller->createShopifyProducts($product,$shop->shop);
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Product update catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+Route::post('/webhooks/product-delete', function (Request $request) {
+
+
+    try {
+
+        $logs=new \App\Models\log();
+        $logs->log=json_encode($request->getContent());
+        $logs->verify='product delete';
+        $logs->save();
+        $product=json_decode($request->getContent());
+
+
+
+        $shop=$request->header('x-shopify-shop-domain');
+        $shop=Session::where('shop',$shop)->first();
+        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
+        $productcontroller->ShopifyDeleteProduct($product,$shop->shop);
+
+    } catch (\Exception $e) {
+
+        $error_log=new \App\Models\log();
+        $error_log->log='Product delete catch';
+        $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});

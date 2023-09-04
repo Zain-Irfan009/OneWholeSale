@@ -166,13 +166,15 @@ class DashboardController extends Controller
     public function StoreEarning(Request $request){
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
-        $store_earning=CommissionLog::where('shop_id',$shop->id)->sum('total_admin_earning');
-        $store_earning=(string)((float)$store_earning);
-        $total_commission=User::where('role','seller')->where('shop_id',$shop->id)->sum('total_commission');
+        $store_earning=CommissionLog::where('shop_id',$shop->id)->sum('total_product_commission');
+        $store_earning = number_format((float)$store_earning, 2);
+//        $total_commission=User::where('role','seller')->where('shop_id',$shop->id)->sum('total_commission');
+        $total_commission=CommissionLog::where('shop_id',$shop->id)->sum('total_payout');
+
         $data=[
           'store_earning'=>$store_earning,
           'currency'=>$shop->money_format,
-          'total_commission'=>$total_commission,
+          'total_commission'=>number_format($total_commission,2),
         ];
         return response()->json($data);
     }
@@ -182,13 +184,14 @@ class DashboardController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         if($request->date==null){
-            $store_earning=CommissionLog::where('shop_id',$shop->id)->sum('total_admin_earning');
-            $total_commission=User::where('role','seller')->where('shop_id',$shop->id)->sum('total_commission');
-            $store_earning=(string)((float)$store_earning);
+            $store_earning=CommissionLog::where('shop_id',$shop->id)->sum('total_product_commission');
+//            $total_commission=User::where('role','seller')->where('shop_id',$shop->id)->sum('total_commission');
+            $total_commission=CommissionLog::where('shop_id',$shop->id)->sum('total_payout');
+            $store_earning = number_format((float)$store_earning, 2);
             $data=[
                 'store_earning'=>$store_earning,
                 'currency'=>$shop->money_format,
-                'total_commission'=>$total_commission,
+                'total_commission'=>number_format($total_commission,2),
             ];
             return response()->json($data);
         }
@@ -202,9 +205,9 @@ class DashboardController extends Controller
         $total_commission=User::where('role','seller')->whereBetween('created_at', [$start_date, $end_date])->where('shop_id',$shop->id)->sum('total_commission');
 
         $data=[
-            'store_earning'=>$store_earning,
+            'store_earning'=>number_format($store_earning,2),
             'currency'=>$shop->money_format,
-            'total_commission'=>$total_commission,
+            'total_commission'=>number_format($total_commission,2),
         ];
         return response()->json($data);
 

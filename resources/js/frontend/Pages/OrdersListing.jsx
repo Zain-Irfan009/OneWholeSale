@@ -561,10 +561,27 @@ export function OrdersListing() {
 
           <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
+          {financial_status === 'paid' ? (
         <IndexTable.Cell>
-          <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
+            <Badge progress='complete'>{financial_status === 'paid' ? 'Paid' : ''}</Badge>
         </IndexTable.Cell>
+          ) : financial_status === 'refunded' ? (
+              <IndexTable.Cell >
+                  <Badge progress='complete'>{financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+              </IndexTable.Cell>
+          ) :financial_status === 'partially_paid' ? (
+                  <IndexTable.Cell className="partially_paid" >
+                      <Badge progress='complete'>{financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
+                  </IndexTable.Cell>
+              ) :
 
+              (
+
+              <IndexTable.Cell >
+                  <Badge progress='complete'>{financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
+
+              </IndexTable.Cell>
+          )}
           {fulfillment_status === 'fulfilled' ? (
           <IndexTable.Cell className="fulfilled">
               {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}

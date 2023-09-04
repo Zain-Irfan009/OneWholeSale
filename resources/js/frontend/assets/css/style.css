@@ -254,3 +254,19 @@
 .Polaris-Stack__Item .Polaris-Tag{
     margin-top:3px ;
 }
+
+.drag-custom div{
+    display:flex;
+    flex-wrap: wrap;
+}
+.Polaris-Product-Gallery{
+    margin:5px;
+}
+
+.partially_paid .Polaris-Badge{
+    background:#FFD6A4;
+}
+
+.hidden_fields div div{
+    display:none;
+}

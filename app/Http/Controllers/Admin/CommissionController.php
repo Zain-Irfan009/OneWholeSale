@@ -156,7 +156,7 @@ class CommissionController extends Controller
             $user=auth()->user();
             $shop=Session::where('shop',$user->name)->first();
             $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
-            $commission_logs=CommissionLog::where('shop_id',$shop->id)->orderBy('id','desc')->with('has_order','has_user')->paginate(20);
+            $commission_logs=CommissionLog::where('shop_id',$shop->id)->orderBy('id','desc')->with('has_order','has_user','has_variant')->paginate(20);
 
             $data = [
                 'data' => $commission_logs,
@@ -175,7 +175,7 @@ class CommissionController extends Controller
             $commissions=$commissions->where('seller_email',$request->value);
         }
         $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
-        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user')->paginate(20);
+        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->paginate(20);
         $data = [
             'data' => $commissions,
               'currency'=>$session->money_format,
@@ -230,7 +230,7 @@ class CommissionController extends Controller
         if($request->query_value!=null){
             $commission_logs=$commission_logs->where('product_name','like', '%' . $request->query_value . '%');
         }
-        $commission_logs=$commission_logs->where('shop_id',$shop->id)->with('has_order','has_user')->paginate(20);
+        $commission_logs=$commission_logs->where('shop_id',$shop->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->paginate(20);
 
         $data = [
             'data' => $commission_logs,

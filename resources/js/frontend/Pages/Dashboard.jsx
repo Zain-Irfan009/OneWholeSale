@@ -402,7 +402,7 @@ export function Dashboard() {
 
           <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
           <IndexTable.Cell>
-              <CustomBadge value={status==1 ?"ACTIVE" : "Disabled"} type="products" />
+              <CustomBadge value={status === 1 ? "ACTIVE" : status === 0 ? "Disabled" : "Approval Pending"} type="products" />
 
           </IndexTable.Cell>
 

@@ -65,6 +65,7 @@ import FillCheckBox from "../assets/icons/FillCheckBox.png";
 import Empty from "../assets/empty.jpg";
 import {Loader} from "../components/Loader";
 import { getAccessToken } from "../assets/cookies";
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 export function EditProduct() {
     const { apiUrl } = useContext(AppContext);
@@ -89,6 +90,8 @@ export function EditProduct() {
     const [showExciseField, setShowExciseField] = useState(true);
     const [variantImageData, setVariantImageData] = useState(true);
 
+    const [commonState, setCommonState] = useState(false);
+
     const [exciseTax, setExciseTax] = useState(0);
     const [imageSrc, setImageSrc] = useState("");
     const [clickVariant, setClickVariant] = useState("");
@@ -96,6 +99,13 @@ export function EditProduct() {
     const [sellerEmailList, setSellerEmailList] = useState(
         []
     );
+
+    const [items, setItems] = useState([
+        { id: '661', content: 'https://cdn.shopify.com/s/files/1/0778/5506/4375/products/202308310738WqAmpPkDAw.png?v=1693467516' },
+        { id: '663', content: 'https://cdn.shopify.com/s/files/1/0778/5506/4375/products/202308310738WqAmpPkDAw.png?v=1693467533232' },
+        { id: '665', content: 'https://cdn.shopify.com/s/files/1/0778/5506/4375/products/202308310738WqAmpPkDAw.png?v=32' },
+    ]);
+
 
     const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
         []
@@ -106,6 +116,14 @@ export function EditProduct() {
 
     const [collectionOptions, setCollectionOptions] = useState([]);
 
+
+
+    const [productTypeList, setProductTypeList] = useState(
+        []
+    );
+
+    const [productTypeListSelected, setProductTypeListSelected] =
+        useState("");
 
 
     const [collectionOptionsSelected, setCollectionOptionsSelected] =
@@ -184,13 +202,99 @@ export function EditProduct() {
             verticalContent={sellerContentMarkup}
         />
     );
+    const [productTypeInputValue, setProductTypeInputValue] = useState("");
+
+    const productTypeUpdateText = useCallback(
+        (value) => {
+
+
+            setProductTypeInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    console.log(sellerEmailList)
+                    setProductTypeList(orignalProductTypeEmailList);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = productTypeList.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+
+                console.log('resultOptions',resultOptions)
+                setProductTypeList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [productTypeList, optionsLoading, productTypeListSelected]
+    );
+
+    const removeProductType = useCallback(
+        (collection) => () => {
+
+            const collectionOptions = [...productTypeListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setProductTypeListSelected(collectionOptions);
+        },
+
+        [collectionOptionsSelected]
+    );
+
+    const handleProductTypeOptionSelect = async (selectedOption) => {
+        // Handle option selection here
+        setProductTypeListSelected(selectedOption)
+
+    };
+
+    const productTypeContentMarkup =
+        productTypeListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {productTypeListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeProductType(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+
+    const productTypeTextField = (
+        <Autocomplete.TextField
+            onChange={productTypeUpdateText}
+
+
+            label="Product Type"
+            value={productTypeInputValue}
+            // placeholder="Select Product Type"
+            verticalContent={productTypeContentMarkup}
+        />
+    );
 
 
 
 
-
-
-
+    const [orignalProductTypeEmailList, setOrignalProductTypeList] = useState(
+        []
+    );
 
     const [tagInputValue, setTagInputValue] = useState("");
     const [collectionInputValue, setCollectionInputValue] = useState("");
@@ -303,6 +407,9 @@ export function EditProduct() {
     const AddVariantImage = async () => {
         // let markup = calculateMarkup();
         // setVariantsMarkup(markup);
+        setCommonState(true)
+        SetVarinatImageModal(false)
+
     }
 
 
@@ -344,11 +451,13 @@ export function EditProduct() {
             setChargeTaxChecked(response?.data?.variants?.[0].taxable);
             setSku(response?.data?.variants?.[0].sku);
             setBarcode(response?.data?.variants?.[0].barcode);
-            if (response?.data?.product?.product_type !== null) {
-                setProductHandle(response?.data?.product?.product_type);
-            }else{
-                setProductHandle('');
-            }
+
+            setProductTypeListSelected(response?.data?.product?.product_type ? [response.data.product.product_type] : [])
+            // if (response?.data?.product?.product_type !== null) {
+            //     setProductHandle(response?.data?.product?.product_type);
+            // }else{
+            //     setProductHandle('');
+            // }
             setTitleMetafield(response?.data?.product?.search_engine_title);
             setDescriptionMetafield(
                 response?.data?.product?.search_engine_meta_description
@@ -469,7 +578,7 @@ export function EditProduct() {
         newInputFields[index].value = val;
         setInputFields(newInputFields);
 
-        if (totalLength - 1 == index && val.length == 1) {
+        if (totalLength - 1 == index && val.length > 0) {
             handleAddField();
         }
     };
@@ -527,6 +636,9 @@ export function EditProduct() {
                 case "compare_at_price":
                     updatedObject.compare_at_price = value;
                     break;
+                case "barcode":
+                    updatedObject.barcode = value;
+                    break;
                 default:
 
                     break;
@@ -556,7 +668,7 @@ export function EditProduct() {
         const newInputFields = [...inputFields2];
         newInputFields[index].value = val;
         setInputFields2(newInputFields);
-        if (totalLength - 1 == index && val.length == 1) {
+        if (totalLength - 1 == index && val.length > 0) {
             handleAddField2();
         }
     };
@@ -576,7 +688,7 @@ export function EditProduct() {
         const newInputFields = [...inputFields3];
         newInputFields[index].value = val;
         setInputFields3(newInputFields);
-        if (totalLength - 1 == index && val.length == 1) {
+        if (totalLength - 1 == index && val.length > 0) {
             handleAddField3();
         }
     };
@@ -610,6 +722,12 @@ export function EditProduct() {
             setSellerEmailList(arr_seller)
             setOrignalSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
+            let arr_product_type = response?.data?.product_types.map((productType) => ({
+                value: productType,
+                label: productType
+            }));
+            setProductTypeList(arr_product_type)
+            setOrignalProductTypeList(arr_product_type)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -687,7 +805,16 @@ export function EditProduct() {
         }
     };
 
+    const onDragEnd = result => {
+        console.log('result',result)
+        if (!result.destination) return;
 
+        const updatedItems = Array.from(mediaFilesUrl);
+        const [reorderedItem] = updatedItems.splice(result.source.index, 1);
+        updatedItems.splice(result.destination.index, 0, reorderedItem);
+
+        setMediaFilesUrl(updatedItems);
+    };
 
     const handleOptionSelect = async (selectedOption) => {
         // Handle option selection here
@@ -784,6 +911,7 @@ export function EditProduct() {
                 price: "",
                 quantity: "",
                 compare_at_price: "",
+                barcode:""
             });
         }
 
@@ -826,16 +954,27 @@ export function EditProduct() {
 
                     <IndexTable.Cell>
                         <div onClick={() => handleVariantImageModal(priceIndex)}>
-                            <img
-                                style={{ width: '30px' }}
-                                size="small"
-                                src={data?.src}
-                                shape="square"
-                                name="title"
-                                alt="Image Title"
-                            />
+                            {data?.src ? (
+                                <img
+                                    style={{ width: '50px' }}
+                                    size="small"
+                                    src={data.src}
+                                    shape="square"
+                                    name="title"
+                                    alt="Image Title"
+                                />
+                            ) : (
+                                <img
+                                    style={{ width: '50px' }}
+                                    size="small"
+                                    src={Empty}
+                                    shape="square"
+                                    name="title"
+                                    alt="Alternate Image Title"
+                                />
+                            )}
                         </div>
-                        </IndexTable.Cell>
+                    </IndexTable.Cell>
 
                     <IndexTable.Cell>
                         <Text variant="bodyMd" fontWeight="bold" as="span">
@@ -906,6 +1045,24 @@ export function EditProduct() {
                                     text
                                 )
                             }
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.barcode}
+                            // value={variantsInputFileds[skuIndex]?.sku}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "barcode",
+                                    text
+                                )
+                            }
+                            // prefix="$"
                             autoComplete="off"
                         />
                     </IndexTable.Cell>
@@ -997,6 +1154,7 @@ export function EditProduct() {
                                 price: "",
                                 quantity: "",
                                 compare_at_price: "",
+                                barcode:""
                             };
                         }
 
@@ -1072,6 +1230,7 @@ export function EditProduct() {
                                     price: "",
                                     quantity: "",
                                     compare_at_price: "",
+                                    barcode:""
                                 };
                             }
 
@@ -1096,7 +1255,21 @@ export function EditProduct() {
     useEffect(() => {
         let markup = calculateMarkup();
         setVariantsMarkup(markup);
-    }, [inputFields, inputFields2, inputFields3]);
+        console.log('varinatImageModal', varinatImageModal);
+
+        // Using setTimeout to set commonState to false after 1000 milliseconds (1 seconds)
+        const timeoutId = setTimeout(() => {
+            setCommonState(false);
+        }, 1000);
+
+        // Cleanup function to clear the timeout if the component unmounts or the dependency array changes
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [inputFields, inputFields2, inputFields3, commonState]);
+
+
+
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(
@@ -1137,6 +1310,7 @@ export function EditProduct() {
 
 
     const handleVariantImageModal = (variant) => {
+        console.log('index',variant)
         setClickVariant(variant)
         SetVarinatImageModal(!varinatImageModal);
     };
@@ -1392,7 +1566,47 @@ export function EditProduct() {
         "image/jpg",
         "image/svg",
     ];
-console.log("variantsInputFiledsvariantsInputFileds")
+
+    const handleDragEnd = async (result) => {
+
+        console.log('result',result)
+        if (!result.destination) {
+            return;
+        }
+
+        const sessionToken = getAccessToken();
+
+        const items = Array.from(mediaFilesUrl);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        // Update the state with the new mediaFiles order
+        setMediaFilesUrl(items);
+
+        try {
+            const response = await axios.get(`${apiUrl}/drag-image?data=${JSON.stringify(items)}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            // console.log('res',response?.data?.message)
+            // setBtnLoading(false)
+            // setLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+            // navigate('/productslisting', { state: { customText: response?.data?.message } })
+            // setSkeleton(false)
+
+        } catch (error) {
+            console.log(error);
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+    };
+
     const [selectedImageIndex, setSelectedImageIndex] = useState(null);
     const handleCheckboxChange = (index, src) => {
         console.log('src', src);
@@ -1407,165 +1621,44 @@ console.log("variantsInputFiledsvariantsInputFileds")
 
     const uploadedFiles = (
         <LegacyStack id="jjj">
-            {mediaFiles.map((file, index) => (
-                <LegacyStack alignment="center" key={index}>
-                    <div className="Polaris-Product-Gallery">
-                        <Thumbnail
-                            size="large"
-                            alt={file.name}
-                            source={
-                                validImageTypes.indexOf(file.type) > -1
-                                    ? window.URL.createObjectURL(file)
-                                    : NoteMinor
-                            }
-                        />
-                        <span
-                            className="media_hover"
-                            onClick={() => handleRemoveMedia(index)}
-                        >
-                            <Icon source={DeleteMinor} />
-                        </span>
-                    </div>
-                </LegacyStack>
-            ))}
-            {mediaFilesUrl.map(({ id, src }, index) => (
-                <LegacyStack alignment="center" key={id}>
-                    <div className="Polaris-Product-Gallery">
-                        <Thumbnail
-                            size="large"
-                            alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
-                            source={src} // Use 'src' directly as the image source
-                        />
-
-                        <span
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <div className="drag-custom">
+                <Droppable  droppableId="mediaFiles" direction="horizontal"   className="custom-class">
+                    {(provided) => (
+                        <div ref={provided.innerRef} {...provided.droppableProps}>
+                            {mediaFilesUrl.map(({ id, src }, index) => (
+                                <Draggable key={String(id)} draggableId={String(id)} index={index}>
+                                    {(provided) => (
+                                        <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            className="Polaris-Product-Gallery"
+                                        >
+                                            <Thumbnail
+                                                size="large"
+                                                alt={String(id)}
+                                                source={src}
+                                            />
+                                            <span
                                                 className="media_hover"
                                                 onClick={() =>
-                                                    handleRemoveMediaApi(
-                                                        index,src
-                                                    )
+                                                    handleRemoveMediaApi(index, src)
                                                 }
                                             >
-                                                <Icon
-                                                    source={
-                                                        DeleteMinor
-                                                    }
-                                                >
-                                                    {" "}
-                                                </Icon>
-                                            </span>
-                    </div>
-                </LegacyStack>
-            ))}
-
-
-
-
-
-            {/*{product?.images && JSON.parse(product?.images).map((imageUrl, index) => {*/}
-            {/*    const file = imageUrl.startsWith('www')*/}
-            {/*        ? `https://${imageUrl}`*/}
-            {/*        : imageUrl;*/}
-
-
-            {/*    if (file) {*/}
-            {/*        return (*/}
-            {/*            <LegacyStack alignment="center" key={index}>*/}
-            {/*                <div className="Polaris-Product-Gallery">*/}
-            {/*                    <Thumbnail*/}
-            {/*                        size="large"*/}
-            {/*                        alt={product?.title}*/}
-            {/*                        source={file}*/}
-            {/*                    />*/}
-            {/*                </div>*/}
-            {/*            </LegacyStack>*/}
-            {/*        );*/}
-            {/*    }*/}
-
-            {/*    return null;*/}
-            {/*})}*/}
-
-
-
-            {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
-                <div className="Polaris-Product-DropZone">
-                    <LegacyStack alignment="center">
-                        <DropZone
-                            accept="image/*, video/*"
-                            type="image,video"
-                            openFileDialog={openFileDialog}
-                            onDrop={handleDropZoneDrop}
-                            onFileDialogClose={toggleOpenFileDialog}
-                        >
-                            <DropZone.FileUpload actionTitle={"Add files"} />
-                        </DropZone>
-                    </LegacyStack>
+                                            <Icon source={DeleteMinor} />
+                                        </span>
+                                        </div>
+                                    )}
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
                 </div>
-            {/*)}*/}
+            </DragDropContext>
 
-
-        </LegacyStack>
-    );
-
-
-    const variantUploadedFiles = (
-        <div>
-            {skeleton ? (
-                <Loader />
-            ) : (
-        <LegacyStack id="jjj">
-            {/*{mediaVariantFiles.map((file, index) => (*/}
-            {/*    <LegacyStack alignment="center" key={index}>*/}
-            {/*        <div className="Polaris-Product-Gallery">*/}
-            {/*            <Thumbnail*/}
-            {/*                size="large"*/}
-            {/*                alt={file.name}*/}
-            {/*                source={*/}
-            {/*                    validImageTypes.indexOf(file.type) > -1*/}
-            {/*                        ? window.URL.createObjectURL(file)*/}
-            {/*                        : NoteMinor*/}
-            {/*                }*/}
-            {/*            />*/}
-            {/*            /!*<span*!/*/}
-            {/*            /!*    className="media_hover"*!/*/}
-            {/*            /!*    onClick={() => handleVariantRemoveMedia(index)}*!/*/}
-            {/*            /!*>*!/*/}
-            {/*            /!*    <Icon source={DeleteMinor} />*!/*/}
-            {/*            /!*</span>*!/*/}
-            {/*        </div>*/}
-            {/*    </LegacyStack>*/}
-            {/*))}*/}
-
-
-
-            {mediaFilesUrl.map(({ id, src }, index) => (
-                <LegacyStack alignment="center" key={id}>
-                    <div className="Polaris-Product-Gallery">
-                        <label className="checkbox-container">
-                            <input
-                                type="radio" // Change to radio type
-                                className="checkbox"
-                                onChange={() => handleCheckboxChange(index,src)}
-                                checked={selectedImageIndex === index}
-                            />
-                            <Thumbnail
-                                size="large"
-                                alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
-                                source={src} // Use 'src' directly as the image source
-                            />
-                            {/* Additional code for delete functionality */}
-                        </label>
-                    </div>
-                </LegacyStack>
-            ))}
-
-
-
-
-
-
-
-
-            {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
             <div className="Polaris-Product-DropZone">
                 <LegacyStack alignment="center">
                     <DropZone
@@ -1579,10 +1672,85 @@ console.log("variantsInputFiledsvariantsInputFileds")
                     </DropZone>
                 </LegacyStack>
             </div>
-            {/*)}*/}
-
-
         </LegacyStack>
+    );
+
+    const variantUploadedFiles = (
+        <div>
+            {skeleton ? (
+                <Loader />
+            ) : (
+                <LegacyStack id="jjj">
+                    {/*{mediaVariantFiles.map((file, index) => (*/}
+                    {/*    <LegacyStack alignment="center" key={index}>*/}
+                    {/*        <div className="Polaris-Product-Gallery">*/}
+                    {/*            <Thumbnail*/}
+                    {/*                size="large"*/}
+                    {/*                alt={file.name}*/}
+                    {/*                source={*/}
+                    {/*                    validImageTypes.indexOf(file.type) > -1*/}
+                    {/*                        ? window.URL.createObjectURL(file)*/}
+                    {/*                        : NoteMinor*/}
+                    {/*                }*/}
+                    {/*            />*/}
+                    {/*            /!*<span*!/*/}
+                    {/*            /!*    className="media_hover"*!/*/}
+                    {/*            /!*    onClick={() => handleVariantRemoveMedia(index)}*!/*/}
+                    {/*            /!*>*!/*/}
+                    {/*            /!*    <Icon source={DeleteMinor} />*!/*/}
+                    {/*            /!*</span>*!/*/}
+                    {/*        </div>*/}
+                    {/*    </LegacyStack>*/}
+                    {/*))}*/}
+
+
+
+                    {mediaFilesUrl.map(({ id, src }, index) => (
+                        <LegacyStack alignment="center" key={id}>
+                            <div className="Polaris-Product-Gallery">
+                                <label className="checkbox-container">
+                                    <input
+                                        type="radio" // Change to radio type
+                                        className="checkbox"
+                                        onChange={() => handleCheckboxChange(index,src)}
+                                        checked={selectedImageIndex === index}
+                                    />
+                                    <Thumbnail
+                                        size="large"
+                                        alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
+                                        source={src} // Use 'src' directly as the image source
+                                    />
+                                    {/* Additional code for delete functionality */}
+                                </label>
+                            </div>
+                        </LegacyStack>
+                    ))}
+
+
+
+
+
+
+
+
+                    {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
+                    <div className="Polaris-Product-DropZone">
+                        <LegacyStack alignment="center">
+                            <DropZone
+                                accept="image/*, video/*"
+                                type="image,video"
+                                openFileDialog={openFileDialog}
+                                onDrop={handleVariantDropZoneDrop}
+                                onFileDialogClose={toggleOpenFileDialog}
+                            >
+                                <DropZone.FileUpload actionTitle={"Add files"} />
+                            </DropZone>
+                        </LegacyStack>
+                    </div>
+                    {/*)}*/}
+
+
+                </LegacyStack>
             )}
         </div>
     );
@@ -1841,7 +2009,7 @@ console.log("variantsInputFiledsvariantsInputFileds")
         console.log('dssd',quantity)
         setBtnLoading(true);
         const sessionToken = getAccessToken();
-            setLoading(true)
+        setLoading(true)
         let formData = new FormData();
         formData.append("product_id", params.edit_product_id);
 
@@ -1869,7 +2037,12 @@ console.log("variantsInputFiledsvariantsInputFileds")
         formData.append("variants", JSON.stringify(variantsInputFileds));
         formData.append("seller_email", sellerEmailListSelected);
         formData.append("tags", newTags);
-        formData.append("product_type", productHandle);
+        // formData.append("product_type", productHandle);
+        if (productTypeInputValue) {
+            formData.append('product_type', productTypeInputValue);
+        } else {
+            formData.append('product_type', productTypeListSelected);
+        }
         formData.append("vendor", vendor);
         formData.append("collections", collectionOptionsSelected);
 
@@ -2190,6 +2363,35 @@ console.log("variantsInputFiledsvariantsInputFileds")
                     </div>
                   </Card> */}
 
+
+                                    {/*<DragDropContext onDragEnd={onDragEnd}>*/}
+                                    {/*    <Droppable droppableId="list">*/}
+                                    {/*        {(provided) => (*/}
+                                    {/*            <ul {...provided.droppableProps} ref={provided.innerRef}>*/}
+                                    {/*                {mediaFilesUrl.map((item, index) => (*/}
+                                    {/*                    <Draggable key={String(item.id)}  draggableId={String(item.id)}  index={index}>*/}
+                                    {/*                        {(provided) => (*/}
+                                    {/*                            <li*/}
+                                    {/*                                {...provided.draggableProps}*/}
+                                    {/*                                {...provided.dragHandleProps}*/}
+                                    {/*                                ref={provided.innerRef}*/}
+                                    {/*                            >*/}
+                                    {/*                                <Thumbnail*/}
+                                    {/*                                     size="large"*/}
+                                    {/*                                           alt={String(item.id)}*/}
+                                    {/*                                     source={item.src}*/}
+                                    {/*                                           />*/}
+                                    {/*                            </li>*/}
+                                    {/*                        )}*/}
+                                    {/*                    </Draggable>*/}
+                                    {/*                ))}*/}
+                                    {/*                {provided.placeholder}*/}
+                                    {/*            </ul>*/}
+                                    {/*        )}*/}
+                                    {/*    </Droppable>*/}
+                                    {/*</DragDropContext>*/}
+                                    {/*);*/}
+
                                     <Card sectioned title="Pricing Details">
                                         <p>
                                             View a summary of your online
@@ -2405,228 +2607,228 @@ console.log("variantsInputFiledsvariantsInputFileds")
                                         />
                                     </Card>
                                     {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
-                                    <Card sectioned title="Variant Details">
-                                        {variants > 0 && (
-                                            <Card.Section>
-                                                <div>
-                                                    <TextField
-                                                        label="Option Name"
-                                                        type="text"
-                                                        value={variantOptions}
-                                                        onChange={(value) =>
-                                                            setVariantOptions(
-                                                                value
-                                                            )
-                                                        }
-                                                    />
-                                                    <p
-                                                        style={{
-                                                            marginTop: "10px",
-                                                        }}
-                                                    >
-                                                        Product Value
-                                                    </p>
-                                                    {inputFields.map(
-                                                        (inputField, index) => (
-                                                            <div key={index}>
-                                                                <TextField
-                                                                    value={
-                                                                        inputField.value
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        inputHandleChange(
-                                                                            index,
+                                        <Card sectioned title="Variant Details">
+                                            {variants > 0 && (
+                                                <Card.Section>
+                                                    <div>
+                                                        <TextField
+                                                            label="Option Name"
+                                                            type="text"
+                                                            value={variantOptions}
+                                                            onChange={(value) =>
+                                                                setVariantOptions(
+                                                                    value
+                                                                )
+                                                            }
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Product Value
+                                                        </p>
+                                                        {inputFields.map(
+                                                            (inputField, index) => (
+                                                                <div key={index}>
+                                                                    <TextField
+                                                                        value={
+                                                                            inputField.value
+                                                                        }
+                                                                        onChange={(
                                                                             value
-                                                                        )
-                                                                    }
-                                                                    connectedRight={[
-                                                                        // <Button primary onClick={handleAddField}>
-                                                                        //   Add Field
-                                                                        // </Button>,
-                                                                        (inputField
-                                                                                .value
-                                                                                .length >
-                                                                            0 ||
-                                                                            inputFields.length -
-                                                                            1 !=
-                                                                            index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </Card.Section>
-                                        )}
-                                        {variants > 1 && (
-                                            <Card.Section>
-                                                <div>
-                                                    <TextField
-                                                        label="Option Name"
-                                                        type="text"
-                                                        value={variantOptions2}
-                                                        onChange={(value) =>
-                                                            setVariantOptions2(
-                                                                value
+                                                                        ) =>
+                                                                            inputHandleChange(
+                                                                                index,
+                                                                                value
+                                                                            )
+                                                                        }
+                                                                        connectedRight={[
+                                                                            // <Button primary onClick={handleAddField}>
+                                                                            //   Add Field
+                                                                            // </Button>,
+                                                                            (inputField
+                                                                                    .value
+                                                                                    .length >
+                                                                                0 ||
+                                                                                inputFields.length -
+                                                                                1 !=
+                                                                                index) && (
+                                                                                <Button
+                                                                                    plain
+                                                                                    icon={
+                                                                                        DeleteMinor
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleRemoveField(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        ]}
+                                                                    />
+                                                                </div>
                                                             )
-                                                        }
-                                                    />
-                                                    <p
-                                                        style={{
-                                                            marginTop: "10px",
-                                                        }}
-                                                    >
-                                                        Product Value
-                                                    </p>
-                                                    {inputFields2.map(
-                                                        (inputField, index) => (
-                                                            <div key={index}>
-                                                                <TextField
-                                                                    value={
-                                                                        inputField.value
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        inputHandleChange2(
-                                                                            index,
+                                                        )}
+                                                    </div>
+                                                </Card.Section>
+                                            )}
+                                            {variants > 1 && (
+                                                <Card.Section>
+                                                    <div>
+                                                        <TextField
+                                                            label="Option Name"
+                                                            type="text"
+                                                            value={variantOptions2}
+                                                            onChange={(value) =>
+                                                                setVariantOptions2(
+                                                                    value
+                                                                )
+                                                            }
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Product Value
+                                                        </p>
+                                                        {inputFields2.map(
+                                                            (inputField, index) => (
+                                                                <div key={index}>
+                                                                    <TextField
+                                                                        value={
+                                                                            inputField.value
+                                                                        }
+                                                                        onChange={(
                                                                             value
-                                                                        )
-                                                                    }
-                                                                    connectedRight={[
-                                                                        (inputField
-                                                                                .value
-                                                                                .length >
-                                                                            0 ||
-                                                                            inputFields2.length -
-                                                                            1 !=
-                                                                            index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField2(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </Card.Section>
-                                        )}
-                                        {variants == 3 && (
-                                            <Card.Section>
-                                                <div>
-                                                    <TextField
-                                                        label="Option Name"
-                                                        type="text"
-                                                        value={variantOptions3}
-                                                        onChange={(value) =>
-                                                            setVariantOptions3(
-                                                                value
+                                                                        ) =>
+                                                                            inputHandleChange2(
+                                                                                index,
+                                                                                value
+                                                                            )
+                                                                        }
+                                                                        connectedRight={[
+                                                                            (inputField
+                                                                                    .value
+                                                                                    .length >
+                                                                                0 ||
+                                                                                inputFields2.length -
+                                                                                1 !=
+                                                                                index) && (
+                                                                                <Button
+                                                                                    plain
+                                                                                    icon={
+                                                                                        DeleteMinor
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleRemoveField2(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        ]}
+                                                                    />
+                                                                </div>
                                                             )
-                                                        }
-                                                    />
-                                                    <p
-                                                        style={{
-                                                            marginTop: "10px",
-                                                        }}
-                                                    >
-                                                        Product Value
-                                                    </p>
-                                                    {inputFields3.map(
-                                                        (inputField, index) => (
-                                                            <div key={index}>
-                                                                <TextField
-                                                                    value={
-                                                                        inputField.value
-                                                                    }
-                                                                    onChange={(
-                                                                        value
-                                                                    ) =>
-                                                                        inputHandleChange3(
-                                                                            index,
+                                                        )}
+                                                    </div>
+                                                </Card.Section>
+                                            )}
+                                            {variants == 3 && (
+                                                <Card.Section>
+                                                    <div>
+                                                        <TextField
+                                                            label="Option Name"
+                                                            type="text"
+                                                            value={variantOptions3}
+                                                            onChange={(value) =>
+                                                                setVariantOptions3(
+                                                                    value
+                                                                )
+                                                            }
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Product Value
+                                                        </p>
+                                                        {inputFields3.map(
+                                                            (inputField, index) => (
+                                                                <div key={index}>
+                                                                    <TextField
+                                                                        value={
+                                                                            inputField.value
+                                                                        }
+                                                                        onChange={(
                                                                             value
-                                                                        )
-                                                                    }
-                                                                    connectedRight={[
-                                                                        (inputField
-                                                                                .value
-                                                                                .length >
-                                                                            0 ||
-                                                                            inputFields3.length -
-                                                                            1 !=
-                                                                            index) && (
-                                                                            <Button
-                                                                                plain
-                                                                                icon={
-                                                                                    DeleteMinor
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleRemoveField3(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ),
-                                                                    ]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </Card.Section>
-                                        )}
+                                                                        ) =>
+                                                                            inputHandleChange3(
+                                                                                index,
+                                                                                value
+                                                                            )
+                                                                        }
+                                                                        connectedRight={[
+                                                                            (inputField
+                                                                                    .value
+                                                                                    .length >
+                                                                                0 ||
+                                                                                inputFields3.length -
+                                                                                1 !=
+                                                                                index) && (
+                                                                                <Button
+                                                                                    plain
+                                                                                    icon={
+                                                                                        DeleteMinor
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleRemoveField3(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        ]}
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </Card.Section>
+                                            )}
 
-                                        {!(variants > 2) && (
-                                            <Card.Section>
-                                                <div
-                                                    className="variants-secton"
-                                                    style={{
-                                                        display: "flex",
-                                                    }}
-                                                >
-                                                    <Icon
-                                                        source={MobilePlusMajor}
-                                                        color="base"
-                                                    />
-                                                    <Link
-                                                        onClick={
-                                                            addVariantHandler
-                                                        }
+                                            {!(variants > 2) && (
+                                                <Card.Section>
+                                                    <div
+                                                        className="variants-secton"
+                                                        style={{
+                                                            display: "flex",
+                                                        }}
                                                     >
-                                                        Add another option
-                                                    </Link>
-                                                </div>
-                                            </Card.Section>
-                                        )}
-                                        {/* <div className="Type-Section">
+                                                        <Icon
+                                                            source={MobilePlusMajor}
+                                                            color="base"
+                                                        />
+                                                        <Link
+                                                            onClick={
+                                                                addVariantHandler
+                                                            }
+                                                        >
+                                                            Add another option
+                                                        </Link>
+                                                    </div>
+                                                </Card.Section>
+                                            )}
+                                            {/* <div className="Type-Section">
                       <Text variant="bodyMd" as="p" fontWeight="regular">
                         {`Add variant details here, if this product comes in multiple versions, like different sizes or colors.`}
                       </Text>
                     </div> */}
-                                    </Card>
+                                        </Card>
                                     )}
                                     {variantOptions!='Title' && inputFields.value !== 'Default Title' && (
                                         <Card title="Variants">
@@ -2647,6 +2849,12 @@ console.log("variantsInputFiledsvariantsInputFileds")
                                                             {
                                                                 title: "Compare At",
                                                             },
+
+                                                            {
+                                                                title: "Barcode",
+                                                            },
+
+
                                                         ]}
                                                         selectable={false}
                                                     >
@@ -2757,15 +2965,30 @@ console.log("variantsInputFiledsvariantsInputFileds")
                                         </div>
                                         <div>{tagsToAddMarkup}</div>
                                         <div className="label_editor">
-                                            <InputField
-                                                label="Product Type"
-                                                placeholder="Enter Product Type"
-                                                type="text"
-                                                marginTop
-                                                name="handle"
-                                                value={productHandle}
-                                                onChange={handleProductHandle}
+                                            {/*<InputField*/}
+                                            {/*    label="Product Type"*/}
+                                            {/*    placeholder="Enter Product Type"*/}
+                                            {/*    type="text"*/}
+                                            {/*    marginTop*/}
+                                            {/*    name="handle"*/}
+                                            {/*    value={productHandle}*/}
+                                            {/*    onChange={handleProductHandle}*/}
+                                            {/*/>*/}
+                                            <Autocomplete
+
+                                                options={productTypeList}
+                                                selected={productTypeListSelected}
+                                                textField={productTypeTextField}
+                                                loading={optionsLoading}
+                                                // onSelect={
+                                                //     setSellerListSelected
+                                                // }
+                                                onSelect={
+                                                    handleProductTypeOptionSelect
+                                                }
+                                                listTitle="Product Type"
                                             />
+
                                         </div>
                                         {/* <div className="label_editor">
                       <h2 class="Polaris-Text--root Polaris-Text--headingMd">

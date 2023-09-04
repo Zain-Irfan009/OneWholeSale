@@ -30,7 +30,11 @@ class ProductController extends Controller
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
         if($session){
-            $products=Product::where('shop_id',$session->id)->orderBy('id','Desc')->paginate(20);
+            $products = Product::where('shop_id', $session->id)
+                ->with('hasVariantsCount')
+                ->orderBy('id', 'desc')
+                ->paginate(20);
+
             $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
 
             $data = [
@@ -50,9 +54,10 @@ class ProductController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $product=Product::where('id',$id)->first();
         $variants = Variant::where('shopify_product_id', $product->shopify_id)->get();
-        $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price','src')->where('shopify_product_id', $product->shopify_id)->get();
+        $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price','barcode','src')->where('shopify_product_id', $product->shopify_id)->get();
         $options=Option::where('shopify_product_id',$product->shopify_id)->get();
-        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
+        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->orderBy('position','asc')->get();
+
 
         $data = [
             'product'=>$product,
@@ -94,14 +99,17 @@ class ProductController extends Controller
 
 
                     if (isset($option->name) && $option->name != null) {
-                        $option_values = array_filter($option->value);
-                        array_push($options_array, [
-                            'name' => $option->name,
-                            'position' => $index + 1,
-                            'values' => $option_values
-                        ]);
+                            $option_values = array_filter($option->value);
+
+                                array_push($options_array, [
+                                    'name' => $option->name,
+                                    'position' => $index + 1,
+                                    'values' => $option_values
+                                ]);
+
                     }
                 }
+
             }
         }
 
@@ -111,7 +119,6 @@ if(isset($request->variants) ) {
     $variants=json_decode($request->variants);
 
     if( count($variants) > 0){
-
 
     foreach ($variants as $index => $variant) {
 
@@ -141,6 +148,9 @@ if(isset($request->variants) ) {
                 'compare_at_price' => ($variant->compare_at_price=="") ? 0 : number_format($variant->compare_at_price, 2),
                 'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
                 'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
+                'barcode'=>(isset($variant->barcode)) ? $variant->barcode : ''
+
+
 
             ]);
         }
@@ -176,6 +186,7 @@ if(isset($request->variants) ) {
             'weight_unit' => $request->weight_unit,
             'inventory_management'=>(($request->inventory_management=="true")) ? 'shopify' : null,
             'inventory_policy'=>(($request->inventory_policy=="true")) ? 'continue' : 'deny',
+
         ]);
     }
 }
@@ -203,34 +214,45 @@ if(isset($request->images)) {
     }
 }
 
-        if(isset($request->product_id)){
-            $product_id_get=Product::find($request->product_id);
-            $product_get_images=ProductImage::where('shopify_product_id',$product_id_get->shopify_id)->get();
+//        if(isset($request->product_id)){
+//            $product_id_get=Product::find($request->product_id);
+//            $product_get_images=ProductImage::where('shopify_product_id',$product_id_get->shopify_id)->get();
+//
+//            foreach ($product_get_images as $index=> $product_get_image){
+//                array_push($images_array, [
+//                    'alt' => $request->product_name . '_' . $index,
+//                    'position' => $index  + 1,
+//                'src' => $product_get_image->src,
+//            ]);
+//
+//
+//
+//                $product_get_image->delete();
+//            }
+//
+//
+//        }
 
-            foreach ($product_get_images as $index=> $product_get_image){
-                array_push($images_array, [
-                    'alt' => $request->product_name . '_' . $index,
-                    'position' => $index  + 1,
-                'src' => $product_get_image->src,
-            ]);
-
-                $product_get_image->delete();
-            }
-
-
-        }
 
 
             if($request->tags) {
+                $tagsArray = explode(',', $request->tags);
+                $filteredTagsArray = array_filter($tagsArray, function($tag) {
+                    return strpos($tag, 'Excise_') === false;
+                });
+                $tags = implode(',', $filteredTagsArray);
                 if($request->vape_seller=='Yes'){
                     $excise_tax=number_format($request->excise_tax, 2, '.', '');
-                    $tags=$request->tags.','.'Excise_'.$excise_tax;
-                }else {
-                    $tags = $request->tags;
+                        $tags =  $tags . ',' . 'Excise_' . $excise_tax;
+
                 }
             }else{
-                $excise_tax=number_format($request->excise_tax, 2, '.', '');
-                $tags='Excise_'.$excise_tax;
+                $tags='';
+                if($request->vape_seller=='Yes') {
+                    $excise_tax = number_format($request->excise_tax, 2, '.', '');
+                    $tags = 'Excise_' . $excise_tax;
+                }
+
             }
 
 
@@ -248,27 +270,46 @@ if(isset($request->images)) {
             $status='draft';
         }
 
-        $productdata = [
-            "product" => [
-                "title" => $request->product_name,
-                "body_html" => $request->description,
-//                "metafields_global_description_tag" => $product->metafields_global_description_tag,
-                "vendor" => $request->vendor,
-                "tags" => $tags,
-                "product_type" => $request->product_type,
-                "variants" => $variants_array,
-                "options" => $options_array,
-                "images" => $images_array,
-//                "published"=>  $published,
-                "status"=>  $status
-            ]
-        ];
-
         if(isset($request->product_id)){
-            $product_get=Product::find($request->product_id);
-            $response = $client->put('/products/' . $product_get->shopify_id .'.json', $productdata);
+            $productdata = [
+                "product" => [
+                    "title" => $request->product_name,
+                    "body_html" => $request->description,
+                    "vendor" => $request->vendor,
+                    "tags" => $tags,
+                    "product_type" => $request->product_type,
+                    "variants" => $variants_array,
+                    "options" => $options_array,
+                    "status" => $status
+                ]
+            ];
 
         }else {
+            $productdata = [
+                "product" => [
+                    "title" => $request->product_name,
+                    "body_html" => $request->description,
+//                "metafields_global_description_tag" => $product->metafields_global_description_tag,
+                    "vendor" => $request->vendor,
+                    "tags" => $tags,
+                    "product_type" => $request->product_type,
+                    "variants" => $variants_array,
+                    "options" => $options_array,
+                    "images" => $images_array,
+//                "published"=>  $published,
+                    "status" => $status
+                ]
+            ];
+
+        }
+
+
+        if(isset($request->product_id)){
+
+            $product_get=Product::find($request->product_id);
+            $response = $client->put('/products/' . $product_get->shopify_id .'.json', $productdata);
+        }else {
+
             $response = $client->post('/products.json', $productdata);
         }
 
@@ -305,6 +346,7 @@ if(isset($request->images)) {
         $product->status=$response->status;
         $product->price=$response->variants[0]->price;
         $product->quantity=$response->variants[0]->inventory_quantity;
+
         if($request->status=='draft') {
             $product->product_status = 'Approval Pending';
         }else{
@@ -337,6 +379,13 @@ if(isset($request->images)) {
         }
 
         foreach ($response->variants as $product_variant) {
+            $v_image_check = ProductImage::where('shopify_image_id',$product_variant->image_id)->where('shopify_product_id',$response->id)
+                ->first();
+
+            $v_image_src=null;
+            if($v_image_check){
+                $v_image_src=$v_image_check->src;
+            }
 
             $variant = new Variant();
             $variant->shop_id = $session->id;
@@ -359,8 +408,40 @@ if(isset($request->images)) {
             $variant->weight_unit = $product_variant->weight_unit;
             $variant->inventory_item_id = $product_variant->inventory_item_id;
             $variant->quantity = $product_variant->inventory_quantity;
+            $variant->product_image_id=$product_variant->image_id;
             $variant->old_inventory_quantity = $product_variant->old_inventory_quantity;
+            $variant->src=$v_image_src;
             $variant->save();
+
+            if(isset($request->product_id)) {
+                $product=Product::find($request->product_id);
+                if(isset($request->variants) ) {
+                    $variants_gets = json_decode($request->variants);
+
+                    if (count($variants_gets) > 0) {
+                        foreach ($variants_gets as $index => $variants_get) {
+                            if ($variants_get->title != 'Default Title') {
+                                $variant_check = Variant::where('shopify_product_id', $product->shopify_id)->where('title', $variants_get->title)->first();
+                                if ($variant_check) {
+                                    $location = $client->get('/locations.json');
+                                    $location = $location->getDecodedBody();
+                                    $location = json_decode(json_encode($location));
+                                    $location_id = $location->locations[0]->id;
+                                    $data = [
+                                        "location_id" => $location_id,
+                                        "inventory_item_id" => $product_variant->inventory_item_id,
+                                        'available' => $variants_get->quantity,
+                                    ];
+
+                                    $res = $client->post('/inventory_levels/set.json', $data);
+                                    $variant->quantity = $variants_get->quantity;
+                                    $variant->save();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         if(isset($request->product_id)){
             Option::where('shopify_product_id',$product->shopify_id)->delete();
@@ -376,9 +457,14 @@ if(isset($request->images)) {
             $option->save();
         }
 
+
         foreach ($response->images as $image){
-            $product_image=new ProductImage();
+            $product_image=ProductImage::where('shop_id',$session->id)->where('shopify_image_id',$image->id)->first();
+          if($product_image==null) {
+              $product_image=new ProductImage();
+          }
             $product_image->shop_id=$session->id;
+            $product_image->shopify_image_id=$image->id;
             $product_image->shopify_product_id=$image->product_id;
             $product_image->position=$image->position;
             $product_image->src=$image->src;
@@ -386,6 +472,45 @@ if(isset($request->images)) {
         }
 
 
+
+
+        if(isset($request->product_id)){
+            $product=Product::find($request->product_id);
+            if(isset($request->variants) ) {
+                $variants = json_decode($request->variants);
+
+                if (count($variants) > 0) {
+                    foreach ($variants as $index => $variant) {
+                        if ($variant->src != null) {
+                            $variant_check = Variant::where('shopify_product_id', $product->shopify_id)->where('title', $variant->title)->first();
+
+                            if ($variant_check) {
+
+                                $product_image_check = ProductImage::where('shopify_product_id', $product->shopify_id)
+                                    ->where('src', $variant->src)
+                                    ->first();
+
+
+                                if ($product_image_check) {
+                                    $variant_check->product_image_id = $product_image_check->shopify_image_id;
+                                    $variant_check->src = $variant->src;
+                                    $variant_check->save();
+
+                                    $i = [
+                                        'image' => [
+                                            'id' => $product_image_check->shopify_image_id,
+                                            'variant_ids' => [$variant_check->shopify_id]
+                                        ]
+                                    ];
+                                    $imagesResponse = $client->put('/admin/products/' . $product->shopify_id . '/images/' . $product_image_check->shopify_image_id . '.json', $i);
+                                    $imagesResponse = $imagesResponse->getDecodedBody();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
 
 
@@ -569,6 +694,7 @@ if(isset($request->images)) {
                 $user=User::where('seller_shopname',$request->email)->first();
                 if($user){
 
+
                     $delete_collect_product = $client->delete('/collects/'.$product->collect_id.'.json');
                     $delete_collect_product = $delete_collect_product->getDecodedBody();
                     if(!isset($delete_collect_product['errors'])) {
@@ -584,13 +710,23 @@ if(isset($request->images)) {
 
                     $collect_product = $collect_product->getDecodedBody();
 
+
                     if(!isset($collect_product['errors'])) {
+
+                     $collection=Collection::where('shopify_id',$user->collection_id)->first();
+                        if($collection){
+                            $product->collections=$collection->title;
+                            $product->save();
+                        }
+
 
                         $product->user_id = $user->id;
                         $product->seller_email = $user->email;
                         $product->seller_name = $user->name;
                         $product->collect_id = $collect_product['collect']['id'];
+                        $product->vendor=$user->seller_shopname;
                         $product->save();
+
 
                         $data = [
                             'message' => 'Product Assigned Successfully',
@@ -633,6 +769,135 @@ if(isset($request->images)) {
             }
         }
         return response()->json($data);
+    }
+
+
+    public function SyncProduct(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        if($session) {
+            $product_get = Product::find($request->id);
+            $product = $client->get( '/products/' . $product_get->shopify_id . '.json');
+            $product=$product->getDecodedBody();
+            if(!isset($product['errors'])) {
+                $product = json_decode(json_encode($product));
+                $product = $product->product;
+
+                $p = Product::where('shopify_id', $product->id)->where('shop_id', $session->id)->first();
+
+                if ($p === null) {
+                    $p = new Product();
+
+                }
+
+                $p->shop_id = $session->id;
+                $p->shopify_id = $product->id;
+                $p->product_name = $product->title;
+                $p->description = $product->body_html;
+                $p->tags = $product->tags;
+                $p->product_type = $product->product_type;
+                $p->vendor = $product->vendor;
+                $p->status = $product->status;
+                $p->price = $product->variants[0]->price;
+                $p->quantity = $product->variants[0]->inventory_quantity;
+                $p->type = 'Normal';
+                $p->product_status = 'Approval Pending';
+
+                if ($product->images) {
+                    $image = $product->images[0]->src;
+                } else {
+                    $image = '';
+                }
+                $p->featured_image = $image;
+                $p->save();
+
+
+                if (count($product->variants) >= 1) {
+                    foreach ($product->variants as $product_variant) {
+                        $v_image_check = ProductImage::where('shopify_image_id', $product_variant->image_id)->where('shopify_product_id', $product->id)
+                            ->first();
+
+                        $v_image_src = null;
+                        if ($v_image_check) {
+                            $v_image_src = $v_image_check->src;
+                        }
+                        $v = Variant::where('shopify_id', $product_variant->id)->where('shop_id', $session->id)->first();
+                        if ($v === null) {
+                            $v = new Variant();
+                        }
+
+                        $v->shop_id = $session->id;
+                        $v->shopify_product_id = $product->id;
+                        $v->shopify_id = $product_variant->id;
+                        $v->title = $product_variant->title;
+                        $v->price = $product_variant->price;
+                        $v->sku = $product_variant->sku;
+                        $v->position = $product_variant->position;
+                        $v->inventory_policy = $product_variant->inventory_policy;
+                        $v->compare_at_price = $product_variant->compare_at_price;
+                        $v->inventory_management = $product_variant->inventory_management;
+                        $v->option1 = $product_variant->option1;
+                        $v->option2 = $product_variant->option2;
+                        $v->option3 = $product_variant->option3;
+                        $v->taxable = $product_variant->taxable;
+                        $v->barcode = $product_variant->barcode;
+                        $v->grams = $product_variant->grams;
+                        $v->weight = $product_variant->weight;
+                        $v->weight_unit = $product_variant->weight_unit;
+                        $v->inventory_item_id = $product_variant->inventory_item_id;
+                        $v->quantity = $product_variant->inventory_quantity;
+                        $v->product_image_id = $product_variant->image_id;
+                        $v->old_inventory_quantity = $product_variant->old_inventory_quantity;
+                        $v->src = $v_image_src;
+                        $v->save();
+
+                    }
+                }
+                if (count($product->options) >= 1) {
+                    foreach ($product->options as $product_option) {
+                        $option = Option::where('shopify_product_id', $product->id)->where('shopify_id', $product_option->id)->first();
+                        if ($option == null) {
+                            $option = new Option();
+                        }
+                        $option->shop_id = $session->id;
+                        $option->shopify_product_id = $product_option->product_id;
+                        $option->shopify_id = $product_option->id;
+                        $option->name = $product_option->name;
+                        $option->position = $product_option->position;
+                        $option->values = implode(',', $product_option->values);
+                        $option->save();
+                    }
+                }
+                if (count($product->images) >= 1) {
+                    foreach ($product->images as $image) {
+                        $product_image = ProductImage::where('shop_id', $session->id)->where('shopify_image_id', $image->id)->first();
+                        if ($product_image == null) {
+                            $product_image = new ProductImage();
+                        }
+                        $product_image->shop_id = $session->id;
+                        $product_image->shopify_image_id = $image->id;
+                        $product_image->shopify_product_id = $image->product_id;
+                        $product_image->position = $image->position;
+                        $product_image->src = $image->src;
+                        $product_image->save();
+                    }
+                }
+                $data = [
+                    'message' => 'Product Sync from Store Successfully',
+                ];
+                return response()->json($data);
+            }else{
+                return response()->json([
+                    'message' => 'Server Error',
+                ],422);
+            }
+        }else{
+            return response()->json([
+                'message' => 'Server Error',
+            ],422);
+        }
+
     }
 
     public function ProductFilter(Request $request){
@@ -1087,12 +1352,21 @@ if(isset($request->images)) {
 
     public function RemoveImage(Request $request){
         $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
        $product=Product::find($request->id);
        $product_image=ProductImage::where('shopify_product_id',$product->shopify_id)->where('src',$request->src)->first();
        if($product_image){
-           $product_image->delete();
+           $delete_product_image = $client->delete('/products/' . $product->shopify_id . '/images/'.$product_image->shopify_image_id.'.json');
+           $delete_product_image=$delete_product_image->getDecodedBody();
+
+           if(!isset($delete_product_image['errors'])) {
+               $product_image->delete();
+           }
        }
-        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
+        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->orderBy('position','asc')->get();
+       $product->featured_image=$product_images[0]->src;
+       $product->save();
         $data = [
             'product_images'=>$product_images,
         ];
@@ -1135,10 +1409,17 @@ if(isset($request->images)) {
 
                         if (!isset($collect_product['errors'])) {
 
+                            $collection=Collection::where('shopify_id',$user->collection_id)->first();
+                            if($collection){
+                                $product->collections=$collection->title;
+                                $product->save();
+                            }
+
                             $product->user_id = $user->id;
                             $product->seller_email = $user->email;
                             $product->seller_name = $user->name;
                             $product->collect_id = $collect_product['collect']['id'];
+                            $product->vendor=$user->seller_shopname;
                             $product->save();
 
                             $data = [
@@ -1169,7 +1450,7 @@ if(isset($request->images)) {
         $session=Session::where('shop',$user->name)->first();
         $client = new Rest($session->shop, $session->access_token);
         $product=Product::find($request->product_id);
-        $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
+
         $images_array = array();
 
             $image=$request->images;
@@ -1192,13 +1473,14 @@ if(isset($request->images)) {
             $product_image = new ProductImage();
             $product_image->shop_id = $session->id;
             $product_image->shopify_product_id = $product->shopify_id;
+            $product_image->shopify_image_id = $assignImagetoProducts['image']['id'];
             $product_image->position = $assignImagetoProducts['image']['position'];
             $product_image->src = $assignImagetoProducts['image']['src'];
             $product_image->save();
 
             $product->featured_image= $assignImagetoProducts['image']['src'];
             $product->save();
-
+            $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->get();
             $data = [
 
                 'product_images'=>$product_images,
@@ -1210,4 +1492,180 @@ if(isset($request->images)) {
         }
     }
 
+
+    public function DragImage(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        $image_data=json_decode($request['data']);
+        foreach ($image_data as $index=> $data){
+        $index=$index+1;
+            $productImagesJson = [
+                'alt' => Str::random(10).'_'.Str::random(2) ,
+                'position' =>$index,
+                'src' => $data->src,
+            ];
+
+            $assignImagetoProducts = $client->put('/products/' . $data->shopify_product_id . '/images/'.$data->shopify_image_id.'.json', [
+                'image' => $productImagesJson
+            ]);
+
+            $product_image=ProductImage::where('shopify_product_id',$data->shopify_product_id)->where('shopify_image_id',$data->shopify_image_id)->first();
+            if($product_image){
+                $product_image->position=$index;
+                $product_image->save();
+            }
+
+            if($index==1){
+                $product=Product::where('shopify_id',$data->shopify_product_id)->first();
+                if($product){
+                    $product->featured_image=$data->src;
+                    $product->save();
+                }
+            }
+        }
+
+    }
+
+
+    public function createShopifyProducts($product, $shop)
+    {
+
+        $shop = Session::where('shop', $shop)->first();
+
+
+        $p = Product::where('shopify_id', $product->id)->where('shop_id',$shop->id)->first();
+$flag=0;
+        if ($p === null) {
+            $flag=1;
+            $p = new Product();
+            $product_history=new ProductHistory();
+            $product_history->product_shopify_id=$product->id;
+            $product_history->shop_id=$shop->id;
+            $product_history->product_name=$product->title;
+            $product_history->status=$product->status;
+            $product_history->date=Carbon::now();
+            $product_history->save();
+
+        }
+
+        $p->shop_id=$shop->id;
+        $p->shopify_id=$product->id;
+        $p->product_name=$product->title;
+        $p->description=$product->body_html;
+        $p->tags=$product->tags;
+        $p->product_type=$product->product_type;
+        $p->vendor=$product->vendor;
+        $p->status=$product->status;
+        $p->price=$product->variants[0]->price;
+        $p->quantity=$product->variants[0]->inventory_quantity;
+        $p->type='Normal';
+        if($flag==1) {
+            $p->product_status = 'Approval Pending';
+        }
+        if ($product->images) {
+            $image = $product->images[0]->src;
+        } else {
+            $image = '';
+        }
+        $p->featured_image=$image;
+        $p->save();
+
+
+
+
+
+
+        if(count($product->variants) >= 1) {
+            foreach ($product->variants as $product_variant) {
+                $v_image_check = ProductImage::where('shopify_image_id', $product_variant->image_id)->where('shopify_product_id',$product->id)
+                    ->first();
+
+                $v_image_src = null;
+                if ($v_image_check) {
+                    $v_image_src = $v_image_check->src;
+                }
+                $v = Variant::where('shopify_id', $product_variant->id)->where('shop_id',$shop->id)->first();
+                if ($v === null) {
+                    $v = new Variant();
+                }
+
+                $v->shop_id = $shop->id;
+                $v->shopify_product_id = $product->id;
+                $v->shopify_id = $product_variant->id;
+                $v->title = $product_variant->title;
+                $v->price = $product_variant->price;
+                $v->sku = $product_variant->sku;
+                $v->position = $product_variant->position;
+                $v->inventory_policy = $product_variant->inventory_policy;
+                $v->compare_at_price = $product_variant->compare_at_price;
+                $v->inventory_management = $product_variant->inventory_management;
+                $v->option1 = $product_variant->option1;
+                $v->option2 = $product_variant->option2;
+                $v->option3 = $product_variant->option3;
+                $v->taxable = $product_variant->taxable;
+                $v->barcode = $product_variant->barcode;
+                $v->grams = $product_variant->grams;
+                $v->weight = $product_variant->weight;
+                $v->weight_unit = $product_variant->weight_unit;
+                $v->inventory_item_id = $product_variant->inventory_item_id;
+                $v->quantity = $product_variant->inventory_quantity;
+                $v->product_image_id = $product_variant->image_id;
+                $v->old_inventory_quantity = $product_variant->old_inventory_quantity;
+                $v->src = $v_image_src;
+                $v->save();
+
+            }
+        }
+        if(count($product->options) >= 1) {
+            foreach ($product->options as $product_option) {
+                $option=Option::where('shopify_product_id',$product->id)->where('shopify_id',$product_option->id)->first();
+                if($option==null) {
+                    $option = new Option();
+                }
+                $option->shop_id = $shop->id;
+                $option->shopify_product_id = $product_option->product_id;
+                $option->shopify_id = $product_option->id;
+                $option->name = $product_option->name;
+                $option->position = $product_option->position;
+                $option->values = implode(',', $product_option->values);
+                $option->save();
+            }
+        }
+        if(count($product->images) >= 1) {
+            foreach ($product->images as $image) {
+                $product_image = ProductImage::where('shop_id', $shop->id)->where('shopify_image_id', $image->id)->first();
+                if ($product_image == null) {
+                    $product_image = new ProductImage();
+                }
+                $product_image->shop_id = $shop->id;
+                $product_image->shopify_image_id = $image->id;
+                $product_image->shopify_product_id = $image->product_id;
+                $product_image->position = $image->position;
+                $product_image->src = $image->src;
+                $product_image->save();
+            }
+        }
+
+    }
+
+
+    public function ShopifyDeleteProduct($product,$shop){
+        $shop = Session::where('shop', $shop)->first();
+        $dellproduct = Product::where('shopify_id',$product->id)->first();
+        $product_id = $product->id;
+        $productvarients = Variant::where('shopify_product_id',$product_id)->get();
+        foreach ($productvarients as $varient){
+            $varient->delete();
+        }
+        $productoptions = Option::where('shopify_product_id',$product_id)->get();
+        foreach ($productoptions as $option){
+            $option->delete();
+        }
+        $productimages = ProductImage::where('shopify_product_id',$product_id)->get();
+        foreach ($productimages as $image){
+            $image->delete();
+        }
+        $dellproduct->delete();
+    }
     }

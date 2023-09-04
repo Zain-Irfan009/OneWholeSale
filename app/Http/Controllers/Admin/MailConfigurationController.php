@@ -26,6 +26,7 @@ class MailConfigurationController extends Controller
     }
 
     public function MailConfigurationSave(Request $request){
+
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         if($shop){
@@ -35,9 +36,17 @@ class MailConfigurationController extends Controller
             }
 
             $mail_configuration->shop_id=$shop->id;
-            $mail_configuration->product_approval_status=$request->product_approval_status;
+            if(isset($request->product_approval_status)) {
+                $mail_configuration->product_approval_status = $request->product_approval_status;
+            }
             $mail_configuration->mail_subject=$request->mail_subject;
-            $mail_configuration->mail_content=$request->mail_content;
+            if(isset($request->mail_content)) {
+                $mail_configuration->mail_content = $request->mail_content;
+            }
+
+            if(isset($request->order_mail_content)) {
+                $mail_configuration->order_mail_content = $request->order_mail_content;
+            }
             $mail_configuration->header_background_color=$request->header_background_color;
             $mail_configuration->footer_background_color=$request->footer_background_color;
             $mail_configuration->mail_header_status=$request->mail_header_status;

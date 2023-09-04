@@ -201,21 +201,27 @@ export function MainLayout(props) {
                         ],
                     },
                     {
-                        label: "Mail Configuration",
+                        label: "Mail SMTP",
                         icon: OrdersMinor,
-                        url: "/mail-configuration",
-                        onClick: () => setLocationChange("/mail-configuration"),
+                        url: "/mail-smtp",
+                        onClick: () => setLocationChange("/mail-smtp"),
                         subNavigationItems: [
-                            {
-                                url: "/mail-configuration",
-                                label: "Mail Configuration",
-                                onClick: () =>
-                                    setLocationChange("/mail-configuration"),
-                            },
+                            // {
+                            //     url: "/mail-configuration",
+                            //     label: "Mail Configuration",
+                            //     onClick: () =>
+                            //         setLocationChange("/mail-configuration"),
+                            // },
                             {
                                 url: "/mail-smtp",
                                 label: "Mail SMTP",
                                 onClick: () => setLocationChange("/mail-smtp"),
+                            },
+
+                            {
+                                url: "/mail",
+                                label: "Mail Configuration ",
+                                onClick: () => setLocationChange("/mail"),
                             },
                         ],
                     },

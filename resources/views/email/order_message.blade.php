@@ -8,17 +8,26 @@
 </head>
 <body>
 
+<?php
 
-<p>Hello {!! $details['name'] !!} </p>
-<br>
-<h4>Order Details</h4>
-<br>
+$mail_configuration=\App\Models\MailConfiguration::where('shop_id',$details['shop_id'])->first();
 
-<p>{!! $details['message'] !!} Has been sold</p>
 
-<h5>Regards</h5>
-<br>
-<h5>{!! $details['shop_name'] !!}</h5>
+$message='Product details
+
+{$product_details}
+Regards
+
+{$shop}';
+$body_msg = str_replace($message, "" , $mail_configuration->order_mail_content);
+
+$body = str_replace('{$seller_name}', $details['name'] ,$body_msg);
+$body = str_replace('{$items}', $details['message'] ,$body);
+$body = str_replace('{$shop}', $details['shop_name'] ,$body);
+
+?>
+
+<p> {!! $body !!} </p>
 
 
 
