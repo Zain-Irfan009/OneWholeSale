@@ -5,7 +5,7 @@ import {
     SettingsMinor,
     ProductsMinor,
     CustomersMinor,
-    OrdersMinor, FinancesMinor,
+    OrdersMinor, FinancesMinor, NoteMinor, ExtendMinor, ImportMinor,MagicMinor
 } from "@shopify/polaris-icons";
 import { AppContext } from "../providers/ContextProvider";
 // import { useAuthDispatch, useAuthState } from '../providers/AuthProvider'
@@ -225,6 +225,13 @@ export function MainLayout(props) {
                             },
                         ],
                     },
+                    {
+                        label: "Announcement",
+                        icon: NoteMinor,
+                        url: "/announcement",
+                        onClick: () => setLocationChange("/announcement"),
+                        selected: location.pathname === "/announcement",
+                    }
                 ]}
             />
         </Navigation>

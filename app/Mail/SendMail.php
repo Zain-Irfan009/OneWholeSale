@@ -57,6 +57,12 @@ class SendMail extends Mailable
             );
         }
 
+        else if($this->type=='Announcement Message'){
+            return new Envelope(
+                subject: 'Announcement',
+            );
+        }
+
         else {
             return new Envelope(
                 subject: 'Product Approved',
@@ -87,6 +93,12 @@ class SendMail extends Mailable
 
                 return new Content(
                     view: 'email.order_message',
+                );
+            }
+            else if($this->type=='Announcement Message'){
+
+                return new Content(
+                    view: 'email.announcement_message',
                 );
             }
             else {

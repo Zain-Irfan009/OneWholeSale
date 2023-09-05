@@ -609,4 +609,25 @@ class SellerController extends Controller
 
         return response()->json($data);
     }
+
+    public function SendAnnouncementMail(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $users=User::where('shop_id',$session->id)->where('role','seller')->get();
+        $type='Announcement Message';
+        foreach ($users as $user){
+
+            $Setting = MailSmtpSetting::where('shop_id', $session->id)->first();
+            $details['to'] = $user->email;
+            $details['name'] = $user->name;
+            $details['subject'] = 'OneWholesale';
+            $details['message'] = $request->message;
+            Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
+        }
+
+        $data = [
+            'message' => 'Announcement Message Send Successfully',
+        ];
+        return response()->json($data);
+    }
 }

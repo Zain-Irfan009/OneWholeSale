@@ -23,6 +23,7 @@ import { EditVProduct } from "./Pages/vendor/EditVProduct";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {MailConfiguration1} from "./Pages/MailConfiguration1"
+import {Announcement} from "./Pages/Announcement"
 import {
     Dashboard,
     NotFound,
@@ -48,8 +49,8 @@ import { useAuthState, useAuthDispatch } from "./assets/AuthProvider";
 import { getAccessToken, setAccessToken } from "./assets/cookies";
 
 export default function App() {
-    // const apiUrl = "https://phpstack-1018470-3598964.cloudwaysapps.com/api";
-    const apiUrl = "https://workingproject.test/api";
+    const apiUrl = "https://phpstack-1018470-3598964.cloudwaysapps.com/api";
+    // const apiUrl = "https://workingproject.test/api";
     const [locationChange, setLocationChange] = useState(location.pathname);
 
     const { userRole, isLoggedIn, name } = useAuthState();
@@ -185,6 +186,7 @@ export default function App() {
                                 path="*"
                                 element={<Navigate to="/dashboard" />}
                             />
+                            <Route path="/announcement" element={<Announcement />} />
                         </Routes>
                     </MainLayout>
                 ) : (
