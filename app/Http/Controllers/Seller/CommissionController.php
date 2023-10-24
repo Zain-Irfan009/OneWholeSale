@@ -13,7 +13,7 @@ class CommissionController extends Controller
     public function CommissionListing(){
         $user=auth()->user();
         $session=Session::find($user->shop_id);
-        $commission_logs=CommissionLog::where('user_id',$user->id)->orderBy('id','desc')->paginate(20);
+        $commission_logs=CommissionLog::where('user_id',$user->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->paginate(20);
 
         $data = [
             'data' => $commission_logs,
@@ -25,7 +25,7 @@ class CommissionController extends Controller
     public function SearchCommission(Request $request){
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->value . '%')->with('has_order','has_user','has_variant')->where('user_id',$user->id)->get();
         $data = [
             'data' => $commissions
         ];

@@ -60,7 +60,7 @@ class CommissionController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
         if($shop) {
-            $seller_commissions = SellerCommission::where('shop_id', $shop->id)->paginate(20);
+            $seller_commissions = SellerCommission::where('shop_id', $shop->id)->orderBy('id','desc')->paginate(20);
 //            if (count($seller_commissions) > 0) {
                 $data = [
                     'data' => $seller_commissions,
@@ -175,7 +175,7 @@ class CommissionController extends Controller
             $commissions=$commissions->where('seller_email',$request->value);
         }
         $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
-        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->paginate(20);
+        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
         $data = [
             'data' => $commissions,
               'currency'=>$session->money_format,
@@ -230,7 +230,7 @@ class CommissionController extends Controller
         if($request->query_value!=null){
             $commission_logs=$commission_logs->where('product_name','like', '%' . $request->query_value . '%');
         }
-        $commission_logs=$commission_logs->where('shop_id',$shop->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->paginate(20);
+        $commission_logs=$commission_logs->where('shop_id',$shop->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
 
         $data = [
             'data' => $commission_logs,

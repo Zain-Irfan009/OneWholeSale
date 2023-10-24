@@ -10,6 +10,7 @@ use App\Models\OrderSeller;
 use App\Models\Product;
 use App\Models\Session;
 use App\Models\User;
+use App\Models\Variant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 
@@ -50,7 +51,7 @@ class OrderController extends Controller
         $date = Date::createFromFormat('Y-m-d H:i:s', $order->created_at);
         $date = $date->format('F j, Y \a\t g:i a');
 
-        $order_commission=CommissionLog::where('order_id',$id)->where('user_id',$user->id)->sum('total_product_commission');
+        $order_commission=CommissionLog::where('order_id',$id)->where('user_id',$user->id)->sum('sub_total_payout');
 
         $line_items=LineItem::where('shopify_order_id',$order->shopify_order_id)->where('user_id',$user->id)->get();
         $line_item_array=array();
@@ -64,13 +65,18 @@ class OrderController extends Controller
             $line_item_array['title']=$line_item->title;
             $line_item_array['quantity']=$line_item->quantity;
             $line_item_array['price']=$line_item->price;
-            if($product) {
+            $variant=Variant::where('shopify_id',$line_item->shopify_variant_id)->first();
+            if($variant && $variant->src){
+                $line_item_array['image'] = $variant->src;
+            }
+            else if($product && $product->featured_image){
                 $line_item_array['image'] = $product->featured_image;
             }else{
-                $line_item_array['image'] = '';
+                $line_item_array['image'] = public_path('empty.jpg');
             }
             array_push($line_item_data,$line_item_array);
         }
+
 
         $data=[
             'order'=>$order,
@@ -150,16 +156,36 @@ class OrderController extends Controller
 //                $order = Order::where('financial_status','pending')->where('id', $order_seller->order_id)->first();
 //            }
 
+            if ($request->seller == 'all') {
+                $order = Order::query();
+            } else if ($request->seller == 'paid') {
+                $order = Order::where('financial_status', 'paid');
+            } else if ($request->seller == 'unpaid') {
+                $order = Order::where('financial_status', 'unpaid');
+            }else{
+                $order = Order::query();
+            }
+
             if($request->status==0) {
-                $order = Order::find($order_seller->order_id);
+                $order = $order->where('id',$order_seller->order_id);
             }else if($request->status==1){
-                $order = Order::whereNull('fulfillment_status')->where('id', $order_seller->order_id)->first();
+                $order = $order->whereNull('fulfillment_status')->where('id', $order_seller->order_id);
             }else if($request->status==2){
-                $order = Order::where('fulfillment_status','partial')->where('id', $order_seller->order_id)->first();
+                $order = $order->where('fulfillment_status','partial')->where('id', $order_seller->order_id);
             }
             else if($request->status==3){
-                $order = Order::where('fulfillment_status','fulfilled')->where('id', $order_seller->order_id)->first();
+                $order = $order->where('fulfillment_status','fulfilled')->where('id', $order_seller->order_id);
             }
+
+            if($request->value){
+                $order=$order->where('order_number', 'like', '%' . $request->value . '%')->first();
+            }
+            else{
+                $order=$order->first();
+            }
+
+
+
             if($order) {
                 $data['id'] = $order->id;
                 $data['order_number'] = $order->order_number;
@@ -186,15 +212,42 @@ class OrderController extends Controller
         $order_sellers=OrderSeller::where('user_id',$user->id)->orderBy('id','Desc')->get();
 
         foreach ($order_sellers as $order_seller){
-            $order=Order::where('order_number', 'like', '%' . $request->value . '%')->where('id',$order_seller->order_id)->first();
-//            $orders=Order::where('order_number', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
-            $data['id']=$order->id;
-            $data['order_number']=$order->order_number;
-            $data['financial_status']=$order->financial_status;
-            $data['fulfillment_status']=$order->fulfillment_status;
-            $data['created_at']=$order->created_at;
-            array_push($order_array,$data);
 
+
+            if ($request->seller == 'all') {
+                $order = Order::query();
+            } else if ($request->seller == 'paid') {
+                $order = Order::where('financial_status', 'paid');
+            } else if ($request->seller == 'unpaid') {
+                $order = Order::where('financial_status', 'unpaid');
+            }else{
+                $order = Order::query();
+            }
+
+
+
+                if($request->status==0) {
+                    $order=$order->where('order_number', 'like', '%' . $request->value . '%')->where('id',$order_seller->order_id)->first();
+
+                }else if($request->status==1){
+                    $order = $order->where('order_number', 'like', '%' . $request->value . '%')->whereNull('fulfillment_status')->where('id', $order_seller->order_id)->first();
+                }else if($request->status==2){
+                    $order = $order->where('order_number', 'like', '%' . $request->value . '%')->where('fulfillment_status','partial')->where('id', $order_seller->order_id)->first();
+                }
+                else if($request->status==3){
+                    $order = $order->where('order_number', 'like', '%' . $request->value . '%')->where('fulfillment_status','fulfilled')->where('id', $order_seller->order_id)->first();
+                }
+
+
+            if($order) {
+                //            $orders=Order::where('order_number', 'like', '%' . $request->value . '%')->where('user_id',$user->id)->get();
+                $data['id'] = $order->id;
+                $data['order_number'] = $order->order_number;
+                $data['financial_status'] = $order->financial_status;
+                $data['fulfillment_status'] = $order->fulfillment_status;
+                $data['created_at'] = $order->created_at;
+                array_push($order_array, $data);
+            }
         }
 
         $data = [
@@ -230,7 +283,9 @@ class OrderController extends Controller
                 $order =$order->where('fulfillment_status', 'fulfilled');
             }
 
-
+        if($request->order_value){
+            $order = $order->where('order_number', 'like', '%' . $request->order_value . '%');
+        }
 
             $order = $order->where('id', $order_seller->order_id)->first();
 
