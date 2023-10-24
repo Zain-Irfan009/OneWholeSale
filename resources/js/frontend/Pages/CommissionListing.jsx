@@ -158,15 +158,15 @@ export function CommissionListing() {
     }
 
     const handlePagination = (value) => {
-        if (value == 'next') {
-            setPageCursorValue(nextPageCursor)
+        console.log("value", value, nextPageCursor)
+        if (value == "next") {
+            setPageCursorValue(nextPageCursor);
+        } else {
+            setPageCursorValue(previousPageCursor);
         }
-        else {
-            setPageCursorValue(previousPageCursor)
-        }
-        setPageCursor(value)
-        setToggleLoadData(true)
-    }
+        setPageCursor(value);
+        setToggleLoadData(!toggleLoadData);
+    };
 
     // ---------------------Index Table Code Start Here----------------------
 
@@ -186,9 +186,9 @@ export function CommissionListing() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
-
+            console.log(response)
             setCurrency(response?.data?.currency)
-            setCommissions(response?.data?.data?.data)
+            setCommissions(response?.data?.data)
             let arr_seller = response?.data?.sellers.map(({ id,name, email,seller_shopname }) => ({
                 value: id,
                 label: `${seller_shopname}`
@@ -196,15 +196,15 @@ export function CommissionListing() {
             setSellerList(arr_seller)
             setLoading(false)
             setCustomersLoading(false)
-            setPaginationUrl(response?.data?.data?.links);
-            if (
-                response?.data?.data?.total >
-                response?.data?.data?.per_page
-            ) {
-                setShowPagination(true);
-            } else {
-                setShowPagination(false);
-            }
+            // setPaginationUrl(response?.data?.data?.links);
+            // if (
+            //     response?.data?.data?.total >
+            //     response?.data?.data?.per_page
+            // ) {
+            //     setShowPagination(true);
+            // } else {
+            //     setShowPagination(false);
+            // }
 
 
         } catch (error) {
@@ -268,13 +268,19 @@ export function CommissionListing() {
     }
 
     const getData = async () => {
-        setCustomersLoading(true)
-        setLoading(true)
+        // setCustomersLoading(true)
+        // setLoading(true)
 
         const sessionToken = getAccessToken();
         try {
+            if (pageCursorValue != '') {
 
-            const response = await axios.get(`${apiUrl}/commission-listing?page=${pagination}`,
+                var url = pageCursorValue;
+            } else {
+                var url = `${apiUrl}/commission-listing?${pageCursor}=${pageCursorValue}`;
+            }
+
+            const response = await axios.get(url,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -292,16 +298,20 @@ export function CommissionListing() {
             }));
             setSellerList(arr_seller)
             setLoading(false)
-            setCustomersLoading(false)
-            setPaginationUrl(response?.data?.data?.links);
-            if (
-                response?.data?.data?.total >
-                response?.data?.data?.per_page
-            ) {
-                setShowPagination(true);
+            // setCustomersLoading(false)
+            setNextPageCursor(response?.data?.data?.next_page_url)
+            setPreviousPageCursor(response?.data?.data?.prev_page_url)
+            if (response?.data?.data?.next_page_url) {
+                setHasNextPage(true)
             } else {
-                setShowPagination(false);
+                setHasNextPage(false)
             }
+            if (response?.data?.data?.prev_page_url) {
+                setHasPreviousPage(true)
+            } else {
+                setHasPreviousPage(false)
+            }
+
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -329,7 +339,7 @@ export function CommissionListing() {
                     }
                 })
             setCurrency(response?.data?.currency)
-            setCommissions(response?.data?.data?.data)
+            setCommissions(response?.data?.data)
             let arr_seller = response?.data?.sellers.map(({ id,name, email,seller_shopname }) => ({
                 value: id,
                 label: `${seller_shopname}`
@@ -337,15 +347,15 @@ export function CommissionListing() {
             setSellerList(arr_seller)
             setLoading(false)
             setCustomersLoading(false)
-            setPaginationUrl(response?.data?.data?.links);
-            if (
-                response?.data?.data?.total >
-                response?.data?.data?.per_page
-            ) {
-                setShowPagination(true);
-            } else {
-                setShowPagination(false);
-            }
+            // setPaginationUrl(response?.data?.data?.links);
+            // if (
+            //     response?.data?.data?.total >
+            //     response?.data?.data?.per_page
+            // ) {
+            //     setShowPagination(true);
+            // } else {
+            //     setShowPagination(false);
+            // }
 
         } catch (error) {
             console.log(error)
@@ -361,7 +371,7 @@ export function CommissionListing() {
 
     useEffect(() => {
         getData();
-    }, [toggleLoadData1]);
+    }, [toggleLoadData]);
 
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(commissions);
@@ -404,7 +414,7 @@ export function CommissionListing() {
 
                 <IndexTable.Cell className='Capitalize-Cell'>
                     {product_name != null && has_variant
-                        ? `${product_name} (${has_variant.sku})`
+                        ? `${product_name.substring(0, 40)} (${has_variant.sku})`
                         : product_name != null
                             ? product_name
                             : '---'}
@@ -533,13 +543,13 @@ export function CommissionListing() {
         }
     }
 
-    useEffect(() => {
-        if (toggleLoadData) {
-            // getCustomers()
-        }
-        // setLoading(false)
-        setCustomersLoading(false)
-    }, [toggleLoadData])
+    // useEffect(() => {
+    //     if (toggleLoadData) {
+    //         // getCustomers()
+    //     }
+    //     // setLoading(false)
+    //     setCustomersLoading(false)
+    // }, [toggleLoadData])
 
 
 
@@ -601,7 +611,7 @@ export function CommissionListing() {
 
                                 <IndexTable
                                     resourceName={resourceName}
-                                    itemCount={commissions.length}
+                                    itemCount={commissions?.length}
                                     hasMoreItems
                                     selectable={false}
                                     selectedItemsCount={
@@ -632,7 +642,7 @@ export function CommissionListing() {
 
                             </Card.Section>
 
-                            {showPagination && (
+
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -644,14 +654,14 @@ export function CommissionListing() {
                                 >
 
                                     <Pagination
-                                        hasPrevious={pagination > 1}
-                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
-                                        hasNext={pagination < paginationUrl.length}
-                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                                        hasPrevious={hasPreviousPage ? true : false}
+                                        onPrevious={() => handlePagination("prev")}
+                                        hasNext={hasNextPage ? true : false}
+                                        onNext={() => handlePagination("next")}
                                     />
                                 </div>
                             </Card.Section>
-                            )}
+
                         </div>
 
                     </Card>

@@ -56,10 +56,15 @@ class SendMail extends Mailable
                 subject: 'OneWholesale',
             );
         }
+        else if($this->type=='Order Cancel'){
+            return new Envelope(
+                subject: 'OneWholesale',
+            );
+        }
 
         else if($this->type=='Announcement Message'){
             return new Envelope(
-                subject: 'Announcement',
+                subject: $this->details['title'],
             );
         }
 
@@ -93,6 +98,12 @@ class SendMail extends Mailable
 
                 return new Content(
                     view: 'email.order_message',
+                );
+            }
+            else if($this->type=='Order Cancel'){
+
+                return new Content(
+                    view: 'email.order_cancel_message',
                 );
             }
             else if($this->type=='Announcement Message'){

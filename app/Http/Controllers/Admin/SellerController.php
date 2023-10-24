@@ -20,10 +20,27 @@ use Carbon;
 class SellerController extends Controller
 {
     public function Sellers(Request $request){
+
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
 
-        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->paginate(20);
+        $sellers=User::query();
+        if($request->value!=null){
+            $sellers=$sellers->where('email','like', '%' . $request->value . '%');
+
+        }
+        if($request->status==1){
+            $status=1;
+            $sellers=$sellers->where('status',$status);
+        }
+        else if($request->status==2) {
+            $status = 0;
+            $sellers = $sellers->where('status', $status);
+        }
+
+            $sellers=$sellers->where('role','seller')->where('shop_id',$shop->id)->orderBy('id','desc')->paginate(20);
+
+
 
         return response()->json($sellers);
     }
@@ -33,7 +50,7 @@ class SellerController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         $client = new Rest($shop->shop, $shop->access_token);
-        $verify_email=User::where('email',$request->seller_email)->where('role','seller')->first();
+        $verify_email=User::where('email',$request->seller_email)->where('shop_id',$shop->id)->where('role','seller')->first();
         if($verify_email){
             $data = [
                 'message' => 'Email already exists',
@@ -41,7 +58,7 @@ class SellerController extends Controller
             return response()->json($data,422);
         }
 
-        $verify_shop=User::where('seller_shopname',$request->seller_shopname)->where('role','seller')->first();
+        $verify_shop=User::where('seller_shopname',$request->seller_shopname)->where('shop_id',$shop->id)->where('role','seller')->first();
 
         if($verify_shop){
             $data = [
@@ -70,7 +87,7 @@ class SellerController extends Controller
 
         $custom_collection = $client->post( '/custom_collections.json', [
             'custom_collection' => [
-                'title' => $request->seller_name,
+                'title' => $request->seller_shopname,
             ]
         ]);
 
@@ -126,7 +143,6 @@ class SellerController extends Controller
         $shop=Session::where('shop',$user->name)->first();
         $client = new Rest($shop->shop, $shop->access_token);
         if($shop) {
-
             $verify_shop=User::where('id','!=',$request->id)->where('seller_shopname',$request->seller_shopname)->where('role','seller')->first();
 
             if($verify_shop){
@@ -139,7 +155,7 @@ class SellerController extends Controller
             $seller = User::where('id', $request->id)->where('role', 'seller')->first();
             $custom_collection = $client->put( '/custom_collections/'.$seller->collection_id.'.json', [
                 'custom_collection' => [
-                    'title' => $request->seller_name,
+                    'title' => $request->seller_shopname,
                 ]
             ]);
             $custom_collection=$custom_collection->getDecodedBody();
@@ -387,6 +403,7 @@ class SellerController extends Controller
 
 
     public function SendMessage(Request $request){
+
         $user=auth()->user();
         $type='Seller Message';
         $shop=Session::where('shop',$user->name)->first();
@@ -399,6 +416,29 @@ class SellerController extends Controller
                 $details['subject'] = 'OneWholesale';
                 $details['message'] = $request->message;
                 Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
+            }
+
+        }
+    }
+
+
+    public function SendMessageMultiple(Request $request){
+
+        $user=auth()->user();
+        $type='Seller Message';
+        $shop=Session::where('shop',$user->name)->first();
+        if($shop){
+            $ids=$request->id;
+            foreach ($ids as $id) {
+                $user = User::where('id',$id)->where('shop_id', $shop->id)->where('role', 'seller')->first();
+                if ($user) {
+                    $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
+                    $details['to'] = $user->email;
+                    $details['name'] = $user->name;
+                    $details['subject'] = 'OneWholesale';
+                    $details['message'] = $request->message;
+                    Mail::to($user->email)->send(new SendMail($details, $Setting, $type));
+                }
             }
 
         }
@@ -547,7 +587,7 @@ class SellerController extends Controller
             array_push($active_users_array, $active_users);
 
         }
-        if($shop->active_seller_metafield_id==null) {
+        if($shop->active_users_metafield_id==null) {
 
             $shop_metafield = $client->post('/metafields.json', [
                 "metafield" => array(
@@ -561,7 +601,7 @@ class SellerController extends Controller
         }
         else{
 
-            $shop_metafield = $client->put('/metafields/' . $shop->active_seller_metafield_id . '.json', [
+            $shop_metafield = $client->put('/metafields/' . $shop->active_users_metafield_id . '.json', [
                 "metafield" => [
                     "value" => json_encode($active_users_array),
                        "type" => "json_string",
@@ -611,9 +651,10 @@ class SellerController extends Controller
     }
 
     public function SendAnnouncementMail(Request $request){
+
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $users=User::where('shop_id',$session->id)->where('role','seller')->get();
+        $users=User::where('shop_id',$session->id)->where('role','seller')->where('status',1)->get();
         $type='Announcement Message';
         foreach ($users as $user){
 
@@ -622,6 +663,7 @@ class SellerController extends Controller
             $details['name'] = $user->name;
             $details['subject'] = 'OneWholesale';
             $details['message'] = $request->message;
+            $details['title'] = $request->title;
             Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
         }
 

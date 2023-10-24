@@ -161,15 +161,15 @@ export function SellerCommissionSetting() {
     },[])
 
     const handlePagination = (value) => {
-        if (value == 'next') {
-            setPageCursorValue(nextPageCursor)
+        console.log("value", value, nextPageCursor)
+        if (value == "next") {
+            setPageCursorValue(nextPageCursor);
+        } else {
+            setPageCursorValue(previousPageCursor);
         }
-        else {
-            setPageCursorValue(previousPageCursor)
-        }
-        setPageCursor(value)
-        setToggleLoadData(true)
-    }
+        setPageCursor(value);
+        setToggleLoadData(!toggleLoadData);
+    };
 
     // ---------------------Index Table Code Start Here----------------------
 
@@ -233,10 +233,17 @@ export function SellerCommissionSetting() {
     const getData = async () => {
 
         const sessionToken = getAccessToken();
-        setLoading(true)
+        // setLoading(true)
         try {
 
-            const response = await axios.get(`${apiUrl}/seller-commission?page=${pagination}`,
+            if (pageCursorValue != '') {
+
+                var url = pageCursorValue;
+            } else {
+                var url = `${apiUrl}/seller-commission?${pageCursor}=${pageCursorValue}`;
+            }
+
+            const response = await axios.get(url,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -251,14 +258,17 @@ export function SellerCommissionSetting() {
             }));
             setSellerList(arr_seller)
 
-            setPaginationUrl(response?.data?.data?.links);
-            if (
-                response?.data?.data?.total >
-                response?.data?.data?.per_page
-            ) {
-                setShowPagination(true);
+            setNextPageCursor(response?.data?.data?.next_page_url)
+            setPreviousPageCursor(response?.data?.data?.prev_page_url)
+            if (response?.data?.data?.next_page_url) {
+                setHasNextPage(true)
             } else {
-                setShowPagination(false);
+                setHasNextPage(false)
+            }
+            if (response?.data?.data?.prev_page_url) {
+                setHasPreviousPage(true)
+            } else {
+                setHasPreviousPage(false)
             }
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -274,7 +284,7 @@ console.log(error)
 
     useEffect(() => {
         getData();
-    }, [toggleLoadData1]);
+    }, [toggleLoadData]);
 
     function handleRowClick(id) {
         const target = event.target;
@@ -636,7 +646,7 @@ console.log(error)
 
                             </Card.Section>
 
-                            {showPagination && (
+
                             <Card.Section>
                                 <div className='data-table-pagination'
                                      style={{
@@ -648,14 +658,14 @@ console.log(error)
                                 >
 
                                     <Pagination
-                                        hasPrevious={pagination > 1}
-                                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
-                                        hasNext={pagination < paginationUrl.length}
-                                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                                        hasPrevious={hasPreviousPage ? true : false}
+                                        onPrevious={() => handlePagination("prev")}
+                                        hasNext={hasNextPage ? true : false}
+                                        onNext={() => handlePagination("next")}
                                     />
                                 </div>
                             </Card.Section>
-                            )}
+
 
                         </div>
 

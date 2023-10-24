@@ -308,6 +308,8 @@ setLoading(false)
 
 
 
+
+
     useEffect(() => {
         getData();
     }, [toggleLoadData1]);
@@ -659,7 +661,8 @@ setLoading(false)
 
 
                                             <div>
-                                                <label>Image</label>
+                                                <label>My profile image</label>
+
                                                 <div className="margin-top">
 
                                                     {!file3 && !fileUrl3 && (
@@ -671,7 +674,7 @@ setLoading(false)
                                                         >
 
                                                             {!file3 && !fileUrl3 && (
-                                                                <DropZone.FileUpload actionTitle={"Add Image"} />
+                                                                <DropZone.FileUpload actionTitle={"Add Image"} actionHint="Accepts .gif, .jpg, and .png" />
                                                             )}
 
                                                         </DropZone>
@@ -788,7 +791,7 @@ setLoading(false)
                                                         >
 
                                                             {!file5 && !fileUrl5 && (
-                                                                <DropZone.FileUpload actionTitle={"Add Image"} />
+                                                                <DropZone.FileUpload actionTitle={"Add Image"} actionHint="Accepts .gif, .jpg, and .png" />
                                                             )}
                                                         </DropZone>
                                                     )}
@@ -859,7 +862,7 @@ setLoading(false)
                                                                 type="image"
                                                             >
                                                                 {!file4 && !fileUrl4 && (
-                                                                    <DropZone.FileUpload actionTitle={"Add Image"} />
+                                                                    <DropZone.FileUpload actionTitle={"Add Image"} actionHint="Accepts .gif, .jpg, and .png" />
                                                                 )}
 
 

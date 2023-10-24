@@ -57,7 +57,7 @@ export function SellersListing() {
   const [resetBtnLoading, setResetBtnLoading] = useState(false);
   const [disableBtnLoading, setDisableBtnLoading] = useState(false);
   const [enableBtnLoading, setEnableBtnLoading] = useState(false);
-    const location = useLocation();
+
 
     const [sendBtnLoading, setSendBtnLoading] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -74,13 +74,19 @@ export function SellersListing() {
   const [customers, setCustomers] = useState([]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
-  const [pageCursor, setPageCursor] = useState("next");
+  const [pageCursor, setPageCursor] = useState("page");
   const [pageCursorValue, setPageCursorValue] = useState("");
   const [nextPageCursor, setNextPageCursor] = useState("");
   const [previousPageCursor, setPreviousPageCursor] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
 
     const [sellerId, setSellerId] = useState("");
+
+
+    const location = useLocation();
+
+    const queryParams = new URLSearchParams(location.search);
+    const currentPage = parseInt(queryParams.get('page')) || 1;
 
 
     //pagination
@@ -122,34 +128,37 @@ export function SellersListing() {
     { label: "Old", value: "old" },
   ];
 
-  const handleSellerFilter =async (value) =>  {
+
+
+
+    const handleSellerFilter =async (value) =>  {
       setSelected(value)
-      setLoading(true)
+      // setLoading(true)
       const sessionToken = getAccessToken();
-      try {
-
-          const response = await axios.get(`${apiUrl}/sellers-filter?status=${value}`,
-              {
-                  headers: {
-                      Authorization: "Bearer " + sessionToken
-                  }
-              })
-
-          console.log('443',response?.data)
-          setCustomers(response?.data?.seller)
-
-          setLoading(false)
-
-          // setBtnLoading(false)
-          // setToastMsg(response?.data?.message)
-          // setSucessToast(true)
-
-
-      } catch (error) {
-
-          setToastMsg(error?.response?.data?.message)
-          setErrorToast(true)
-      }
+      // try {
+      //
+      //     const response = await axios.get(`${apiUrl}/sellers-filter?status=${value}`,
+      //         {
+      //             headers: {
+      //                 Authorization: "Bearer " + sessionToken
+      //             }
+      //         })
+      //
+      //     console.log('443',response?.data)
+      //     setCustomers(response?.data?.seller)
+      //
+      //     setLoading(false)
+      //
+      //     // setBtnLoading(false)
+      //     // setToastMsg(response?.data?.message)
+      //     // setSucessToast(true)
+      //
+      //
+      // } catch (error) {
+      //
+      //     setToastMsg(error?.response?.data?.message)
+      //     setErrorToast(true)
+      // }
   }
 
 
@@ -160,9 +169,10 @@ export function SellersListing() {
 
             if (pageCursorValue != '') {
 
-                var url = pageCursorValue;
+                var url = `${apiUrl}/sellers?page=${currentPage}&value=${queryValue}&status=${selected}`;
             } else {
-                var url = `${apiUrl}/sellers?${pageCursor}=${pageCursorValue}`;
+                var url = `${apiUrl}/sellers?page=${currentPage}&value=${queryValue}&status=${selected}`;
+
             }
 
             const response = await axios.get(url,
@@ -171,6 +181,7 @@ export function SellersListing() {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+            console.log('location',location)
             if(location.state) {
                 setToastMsg(location.state?.customText)
                 setSucessToast(true)
@@ -215,7 +226,7 @@ console.log(response?.data)
 
     useEffect(() => {
         getData();
-    }, [toggleLoadData]);
+    }, [toggleLoadData,queryValue,selected]);
 
   const handleTabChange = useCallback(
     (selectedTabIndex) => setSelected(selectedTabIndex),
@@ -292,41 +303,48 @@ console.log(response?.data)
   let timeoutId = null;
     const handleFiltersQueryChange = async (value)  => {
         setPageCursorValue('')
-        setCustomersLoading(true)
+        // setCustomersLoading(true)
         // setLoading(true)
         setQueryValue(value)
 
         const sessionToken = getAccessToken();
 
 
-        try {
-            const response = await axios.get(`${apiUrl}/search-seller?value=${value}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            // setLoading(false)
-            setCustomers(response?.data?.data)
-            setCustomersLoading(false)
-
-
-        } catch (error) {
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
-
-        setTimeout(() => {
-            setToggleLoadData(true)
-        }, 1000);
+        // try {
+        //     const response = await axios.get(`${apiUrl}/search-seller?value=${value}`,
+        //         {
+        //             headers: {
+        //                 Authorization: "Bearer " + sessionToken
+        //             }
+        //         })
+        //     // setLoading(false)
+        //     setCustomers(response?.data?.data)
+        //     setCustomersLoading(false)
+        //
+        //
+        // } catch (error) {
+        //     setBtnLoading(false)
+        //     setToastMsg(error?.response?.data?.message)
+        //     setErrorToast(true)
+        // }
+        //
+        // setTimeout(() => {
+        //     setToggleLoadData(true)
+        // }, 1000);
     }
 
     const handlePagination = (value) => {
         console.log("value", value, nextPageCursor)
+
         if (value == "next") {
+            const nextPage = currentPage + 1;
+            queryParams.set('page', nextPage.toString());
+            navigate(`/sellerslisting?${queryParams.toString()}`);
             setPageCursorValue(nextPageCursor);
         } else {
+            const prevPage = currentPage - 1;
+            queryParams.set('page', prevPage.toString());
+            navigate(`/sellerslisting?${queryParams.toString()}`);
             setPageCursorValue(previousPageCursor);
         }
         setPageCursor(value);
@@ -496,7 +514,7 @@ console.log(response?.data)
     const handleViewinStoreAction = (id,collection_handle) => {
         // The link will open in a new tab
         // window.open(`https://tlx-new-brand.myshopify.com/collections/${collection_handle}`, '_blank');
-        window.open(`https://onewholesalelive.myshopify.com/collections/${collection_handle}`, '_blank');
+        window.open(`https://onewholesale.ca/collections/${collection_handle}?view=seller`, '_blank');
     };
 
   const handleSendMessageAction = (id) => {
@@ -505,6 +523,12 @@ console.log(response?.data)
       setSellerId(id)
 
   };
+
+    const handleMultipleSendMessageAction = async () => {
+
+        setModalReassign(true);
+    }
+
 
   const handleChangePasswordAction = (id) => {
       setModalChangePassword(true);
@@ -566,6 +590,11 @@ console.log(response?.data)
       // },
         onAction: () => handleMultipleStatusDisableAll(),
     },
+
+      {
+          content:  "Send Message",
+          onAction: () => handleMultipleSendMessageAction(),
+      },
 
 
   ];
@@ -631,7 +660,7 @@ console.log(response?.data)
   }
 
   const rowMarkup =customers ?  customers?.map(
-      ({ id, seller_id, name, seller_shopname, email, created_at, status,collection_handle }, index) => (
+      ({ id, seller_id, name, seller_shopname, email, created_at, status,collection_handle,tax }, index) => (
 
           <IndexTable.Row
               id={id}
@@ -653,6 +682,7 @@ console.log(response?.data)
               </IndexTable.Cell>
 
               <IndexTable.Cell>{email != null ? email : "---"}</IndexTable.Cell>
+              <IndexTable.Cell>{tax !== null ? `${tax}%` : '0%'}</IndexTable.Cell>
 
               <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
               <IndexTable.Cell>
@@ -952,13 +982,26 @@ console.log(response?.data)
             return;
         }
 
-        let data = {
-            message: sellerMessage,
-            id:sellerId
-        }
+
 
         try {
-            const response = await axios.post(`${apiUrl}/send-message`,data,
+            let data;
+            if (selectedResources.length === 0) {
+                 data = {
+                    message: sellerMessage,
+                    id:sellerId
+                }
+                var url = `${apiUrl}/send-message`
+
+            }else{
+                 data = {
+                    message: sellerMessage,
+                    id:selectedResources
+                }
+                var url = `${apiUrl}/send-message-multiple`
+            }
+
+            const response = await axios.post(url,data,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -974,6 +1017,7 @@ console.log(response?.data)
             // setSkeleton(false)
 
         } catch (error) {
+            console.log(error)
             setBtnLoading(false)
             setToastMsg('Message Failed')
             setErrorToast(true)
@@ -1321,6 +1365,7 @@ console.log(response?.data)
                     { title: "Seller Name" },
                     { title: "Store Name" },
                     { title: "Email" },
+                    { title: "Tax" },
                     { title: "Date" },
                     { title: "Status" },
                     { title: "Action" },
