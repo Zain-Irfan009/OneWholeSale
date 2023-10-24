@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ForgotPasswordMail;
+use App\Models\Collection;
 use App\Models\CommissionLog;
 use App\Models\Order;
 use App\Models\OrderSeller;
 use App\Models\Product;
 use App\Models\Session;
 use App\Models\User;
+use App\Models\Variant;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +28,7 @@ class DashboardController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
 
-        $order_sellers=OrderSeller::where('user_id',$user->id)->get();
+        $order_sellers=OrderSeller::where('user_id',$user->id)->latest()->take(3)->get();
         $orders=array();
         foreach ($order_sellers as $order_seller){
 
@@ -84,11 +86,21 @@ class DashboardController extends Controller
 
             $product=Product::where('shopify_id',$shopify_product->shopify_product_id)->first();
             if($product){
+
+                $variant=Variant::where('shopify_product_id',$product->shopify_id)->where('title','!=','Default Title')->pluck('title')->toArray();
+                $variant_sku=Variant::where('shopify_product_id',$product->shopify_id)->pluck('sku')->toArray();
+                $variant=implode(',',$variant);
+                $variant_sku = array_filter($variant_sku, function ($value) {
+                    return !is_null($value) && $value !== '';
+                });
+                $variant_sku = implode(',', $variant_sku);
                 $data['image']=$product->featured_image;
                 $data['name']=$product->product_name;
                 $data['seller_name']=$product->seller_name;
                 $data['quantity']=$product->quantity;
                 $data['number_of_sales']= $shopify_product->count;
+                $data['variant']=$variant;
+                $data['variant_sku']=$variant_sku;
 
                 array_push($top_sold_products,$data);
             }
@@ -106,12 +118,21 @@ class DashboardController extends Controller
             ->latest()->get();
         $outof_stock_products=array();
         foreach ($products as $product){
+            $variant=Variant::where('shopify_product_id',$product->shopify_id)->where('title','!=','Default Title')->pluck('title')->toArray();
+            $variant_sku=Variant::where('shopify_product_id',$product->shopify_id)->pluck('sku')->toArray();
+            $variant=implode(',',$variant);
+            $variant_sku = array_filter($variant_sku, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
+            $variant_sku = implode(',', $variant_sku);
 
             $total_sale=CommissionLog::where('shopify_product_id',$product->shopify_id)->where('user_id',$user->id)->sum('quantity');
 
             $data['product_id']=$product->id;
             $data['name']=$product->product_name;
             $data['total_sale']=$total_sale;
+            $data['variant']=$variant;
+            $data['variant_sku']=$variant_sku;
             array_push($outof_stock_products,$data);
         }
 
@@ -421,5 +442,22 @@ class DashboardController extends Controller
             'message' => "Password Changed Successfully",
         ]);
 
+    }
+
+    public function GetSellerData(Request $request){
+
+        $user=auth()->user();
+        $session=Session::where('shop',$user->shop_id)->first();
+        $get_user=User::where('email',$request->email)->first();
+        if($get_user){
+            $collections=Collection::where('shopify_id',$get_user->collection_id)->first();
+
+        }
+        $data = [
+            'collections'=>$collections,
+            'shop_name'=>$get_user->seller_shopname
+        ];
+
+        return response()->json($data);
     }
 }

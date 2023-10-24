@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('sync-all-product',[\App\Http\Controllers\Admin\ProductController::class,'SyncAllProducts']);
+
 Route::middleware('auth:sanctum')->group( function () {
     Route::get('profile', [App\Http\Controllers\AuthController::class, 'profile']);
 
@@ -46,10 +48,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::delete('delete-seller',[\App\Http\Controllers\Admin\SellerController::class,'DeleteSeller']);
     Route::get('sellers-filter',[\App\Http\Controllers\Admin\SellerController::class,'SellersFilter']);
     Route::post('send-message',[\App\Http\Controllers\Admin\SellerController::class,'SendMessage'])->middleware('smtp_seller');
+    Route::post('send-message-multiple',[\App\Http\Controllers\Admin\SellerController::class,'SendMessageMultiple'])->middleware('smtp_seller');
     Route::get('update-seller-status-multiple',[\App\Http\Controllers\Admin\SellerController::class,'UpdateSellerStatusMultiple']);
     Route::get('export-seller',[\App\Http\Controllers\Admin\SellerController::class,'ExportSeller']);
     Route::get('search-seller',[\App\Http\Controllers\Admin\SellerController::class,'SearchSeller']);
-    Route::post('send-announcement-mail',[\App\Http\Controllers\Admin\SellerController::class,'SendAnnouncementMail']);
+    Route::post('send-announcement-mail',[\App\Http\Controllers\Admin\SellerController::class,'SendAnnouncementMail'])->middleware('smtp_seller');
 
 
 
@@ -67,6 +70,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('reassign-multiple-seller',[\App\Http\Controllers\Admin\ProductController::class,'ReassignMultipleSeller']);
     Route::delete('delete-product',[\App\Http\Controllers\Admin\ProductController::class,'DeleteProduct']);
     Route::get('sync-product',[\App\Http\Controllers\Admin\ProductController::class,'SyncProduct']);
+
+
+
     Route::get('product-filter',[\App\Http\Controllers\Admin\ProductController::class,'ProductFilter']);
     Route::get('edit-product/{id}',[\App\Http\Controllers\Admin\ProductController::class,'EditProduct'])->middleware('smtp');
     Route::get('update-product-status-multiple',[\App\Http\Controllers\Admin\ProductController::class,'UpdateProductStatusMultiple'])->middleware('smtp');
@@ -83,6 +89,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('search-import-product',[\App\Http\Controllers\Admin\ProductController::class,'SearchImportProducts']);
     Route::post('import-csv',[\App\Http\Controllers\Admin\ProductController::class,'importCSV']);
     Route::post('assign-import-products',[\App\Http\Controllers\Admin\ProductController::class,'AssignImportProducts']);
+    Route::post('assign-multiple-import-products',[\App\Http\Controllers\Admin\ProductController::class,'AssignMultipleImportProducts']);
 
 
     //collection
@@ -157,8 +164,9 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::delete('product-delete',[\App\Http\Controllers\Seller\ProductController::class,'Productdelete']);
         Route::get('export-product',[\App\Http\Controllers\Seller\ProductController::class,'ExportProduct']);
         Route::get('search-product',[\App\Http\Controllers\Seller\ProductController::class,'SearchProducts']);
-
-
+        Route::post('add-product-image',[\App\Http\Controllers\Seller\ProductController::class,'AddProductImage']);
+        Route::get('drag-image',[\App\Http\Controllers\Seller\ProductController::class,'DragImage']);
+        Route::get('remove-img',[\App\Http\Controllers\Seller\ProductController::class,'RemoveImage']);
         //orders
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
         Route::get('view-order/{id}',[\App\Http\Controllers\Seller\OrderController::class,'ViewOrder']);
@@ -176,6 +184,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
         //collection
         Route::get('collections',[\App\Http\Controllers\Seller\CollectionController::class,'Collections']);
+        Route::get('get-data',[\App\Http\Controllers\Seller\DashboardController::class,'GetSellerData']);
 
     });
 
@@ -417,7 +426,8 @@ Route::post('/webhooks/product-update', function (Request $request) {
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
         $productcontroller = new \App\Http\Controllers\Admin\ProductController();
-        $productcontroller->createShopifyProducts($product,$shop->shop);
+        \App\Jobs\ProductUpdateJob::dispatch($product,$shop->shop);
+//        $productcontroller->createShopifyProducts($product,$shop->shop);
 
     } catch (\Exception $e) {
 

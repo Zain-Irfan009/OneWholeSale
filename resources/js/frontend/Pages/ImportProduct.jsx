@@ -233,6 +233,8 @@ console.log('seller_email',seller_email)
         setBtnLoading(true)
         const sessionToken = getAccessToken();
         const errors = {};
+        console.log('selectedResources',selectedResources)
+        console.log('sellerEmailListSelected',sellerEmailListSelected)
 
         // if (sellerEmail.trim() === '') {
         //     errors.sellerEmail = 'Email is required';
@@ -242,24 +244,50 @@ console.log('seller_email',seller_email)
         //     return;
         // }
         setBtnLoading(true)
-        let data = {
-            id: uniqueId,
-            email:sellerEmailListSelected
-        }
-        try {
-            const response = await axios.post(`${apiUrl}/assign-import-products`,data,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            getData()
-            setBtnLoading(false)
 
-            setModalAssignProduct(false)
-            setSellerEmail('')
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
+
+        try {
+            if (selectedResources.length === 0) {
+
+                let data = {
+                    id: uniqueId,
+                    email:sellerEmailListSelected,
+                }
+                var url = `${apiUrl}/assign-import-products`
+                const response = await axios.post(url,data,
+                    {
+                        headers: {
+                            Authorization: "Bearer " + sessionToken
+                        }
+                    })
+                getData()
+                setBtnLoading(false)
+
+                setModalAssignProduct(false)
+                setSellerEmail('')
+                setToastMsg(response?.data?.message)
+                setSucessToast(true)
+            }else{
+                let data1 = {
+                    email:sellerEmailListSelected,
+                    selected:selectedResources
+                }
+                var url=`${apiUrl}/assign-multiple-import-products`
+                const response = await axios.post(url,data1,
+                    {
+                        headers: {
+                            Authorization: "Bearer " + sessionToken
+                        }
+                    })
+                getData()
+                setBtnLoading(false)
+
+                setModalAssignProduct(false)
+                setSellerEmail('')
+                setToastMsg(response?.data?.message)
+                setSucessToast(true)
+            }
+
 
 
         } catch (error) {
@@ -461,6 +489,29 @@ console.log('seller_email',seller_email)
 
     }, []);
 
+    const handleMultipleReassign = async () => {
+
+        setModalAssignProduct(true);
+    }
+    const promotedBulkActions = [
+        {
+            content: 'Select',
+        },
+    ];
+
+    const bulkActions = [
+
+
+        {
+
+            content:  "Reassign" ,
+            onAction: () => handleMultipleReassign(),
+        },
+
+
+    ];
+
+
 
 
     const rowMarkup = importData?.map(
@@ -657,6 +708,7 @@ console.log('seller_email',seller_email)
                 const response = await axios.post('/api/import-csv', formData, { headers });
                 if (response) {
                     setBtnLoading(false);
+                    setModalReassign(false);
                     setToastMsg(response?.data?.message);
                     setSucessToast(true)
                     setSelectedFile(null)
@@ -803,7 +855,7 @@ console.log('seller_email',seller_email)
                                     resourceName={resourceName}
                                     itemCount={importData.length}
                                     hasMoreItems
-                                    selectable={false}
+                                    selectable={true}
                                     selectedItemsCount={
                                         allResourcesSelected ? 'All' : selectedResources.length
                                     }
@@ -816,6 +868,8 @@ console.log('seller_email',seller_email)
                                         { title: 'Seller' },
                                         { title: 'Action' },
                                     ]}
+                                    bulkActions={bulkActions}
+                                    promotedBulkActions={promotedBulkActions}
                                 >
                                     {rowMarkup}
                                 </IndexTable>

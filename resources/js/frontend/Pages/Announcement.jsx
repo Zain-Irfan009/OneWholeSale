@@ -33,6 +33,7 @@ export function Announcement() {
     const [toastMsg, setToastMsg] = useState('')
     const [discardModal, setDiscardModal] = useState(false)
     const [announcementContent,setAnnouncementContent] = useState('');
+    const [title, setTitle] = useState('')
 
     const [skeleton, setSkeleton] = useState(false)
 
@@ -87,6 +88,7 @@ export function Announcement() {
 
             let data = {
                 message: announcementContent,
+                title: title,
             }
 
             const response = await axios.post(`${apiUrl}/send-announcement-mail`,data,
@@ -109,6 +111,10 @@ export function Announcement() {
         }
 
     };
+
+    const handleTitle = (e) => {
+        setTitle(e.target.value)
+    }
 
 
 
@@ -136,7 +142,27 @@ export function Announcement() {
                                 <FormLayout>
                                     <Card sectioned title=''>
 
-                                            <div className='label_editor'>
+
+                                        <Text variant="bodyMd" as="p" fontWeight="regular">
+                                            {`Here you can set up mail smtp settings. `}
+                                        </Text>
+
+                                        <div >
+                                            <InputField
+
+                                                label='Title'
+                                                type='text'
+                                                marginTop
+                                                required
+                                                name='code'
+                                                value={title}
+                                                onChange={handleTitle}
+
+                                            />
+                                        </div>
+
+
+                                        <div className='label_editor'>
                                                 <label >Mail Content *</label>
                                                 <CKEditor
                                                     editor={ClassicEditor}

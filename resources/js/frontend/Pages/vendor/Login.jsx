@@ -16,7 +16,7 @@ import {
     LegacyCard,
 } from "@shopify/polaris";
 import axios from "axios";
-import checkifyLogo from "../../assets/onewholesale.webp";
+import checkifyLogo from "../../assets/logo.webp";
 import { AppContext } from "../../components/providers/ContextProvider";
 // import { useAuthDispatch } from '../../components/providers/AuthProvider'
 // import { InputField, ShowPassword, HidePassword, setAccessToken } from '../../components'
@@ -169,13 +169,13 @@ export function Login(props) {
             <Page fullWidth>
                 <div style={{ display: "flex" }}>
                     <div className="login-div">
-                        <p>
-                            Lorem, ipsum dolor sit amet consectetur adipisicing
-                            elit. Error earum optio dignissimos distinctio
-                            consequatur sint adipisci corrupti exercitationem,
-                            dolor fuga odit debitis ratione eaque dolores
-                            asperiores magni culpa alias. Suscipit?
-                        </p>
+                        {/*<p>*/}
+                        {/*    Lorem, ipsum dolor sit amet consectetur adipisicing*/}
+                        {/*    elit. Error earum optio dignissimos distinctio*/}
+                        {/*    consequatur sint adipisci corrupti exercitationem,*/}
+                        {/*    dolor fuga odit debitis ratione eaque dolores*/}
+                        {/*    asperiores magni culpa alias. Suscipit?*/}
+                        {/*</p>*/}
                     </div>
                     <div
                         style={{

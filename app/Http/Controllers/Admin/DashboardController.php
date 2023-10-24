@@ -59,7 +59,7 @@ class DashboardController extends Controller
 
 
             $sellers = User::where('role','seller')->where('shop_id', $shop->id)->count();
-            $approval_pending_sellers = User::whereNull('status')->where('shop_id', $shop->id)->count();
+            $approval_pending_sellers = User::whereNull('status')->where('role','seller')->where('shop_id', $shop->id)->count();
             $approved_sellers = User::where('role','seller')->where('status',1)->where('shop_id', $shop->id)->count();
             $disabled_sellers = User::where('role','seller')->where('status',0)->where('shop_id', $shop->id)->count();
 
@@ -86,7 +86,7 @@ class DashboardController extends Controller
                 ->count();
 
             $sellers = User::where('role','seller')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
-            $approval_pending_sellers = User::whereNull('status')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
+            $approval_pending_sellers = User::whereNull('status')->where('role','seller')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
             $approved_sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('status',1)->where('shop_id', $shop->id)->count();
             $disabled_sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('status',0)->where('shop_id', $shop->id)->count();
 
@@ -114,7 +114,7 @@ class DashboardController extends Controller
                 ->count();
 
             $sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
-            $approval_pending_sellers = User::whereNull('status')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
+            $approval_pending_sellers = User::whereNull('status')->where('role','seller')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
             $approved_sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('status',1)->where('shop_id', $shop->id)->count();
             $disabled_sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('status',0)->where('shop_id', $shop->id)->count();
 
@@ -140,13 +140,14 @@ class DashboardController extends Controller
                 ->whereBetween('updated_at', [$startDate, $endDate])
                 ->count();
             $sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
-            $approval_pending_sellers = User::whereNull('status')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
+            $approval_pending_sellers = User::whereNull('status')->where('role','seller')->whereBetween('updated_at', [$startDate, $endDate])->where('shop_id', $shop->id)->count();
             $approved_sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('status',1)->where('shop_id', $shop->id)->count();
             $disabled_sellers = User::where('role','seller') ->whereBetween('updated_at', [$startDate, $endDate])->where('status',0)->where('shop_id', $shop->id)->count();
 
 
 
         }
+
         $data=[
           'products'=>$products,
           'approval_pending_products'=>$approval_pending_products,

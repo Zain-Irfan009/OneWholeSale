@@ -481,11 +481,18 @@ export function EditProduct() {
             // );
             setStatus(response?.data?.product?.status);
             if (response?.data?.product?.tags !== '') {
-                setNewTags(response?.data?.product?.tags.split(","));
+                setNewTags(response?.data?.product?.tags?.split(","));
             }
-            setCollectionOptionsSelected(
-                response?.data?.product?.collections.split(",")
-            );
+            if (
+                response &&
+                response.data &&
+                response.data.product &&
+                response.data.product.collections
+            ) {
+                setCollectionOptionsSelected(response.data.product.collections.split(","));
+            } else {
+                console.error("One or more properties are undefined.");
+            }
             if (response?.data?.product?.vendor !== null) {
                 setVendor(response?.data?.product?.vendor);
             }else{
@@ -524,36 +531,36 @@ export function EditProduct() {
                 setVariants(3);
             }
 
-            let option1_data = response?.data?.options?.[0]?.values.split(",");
-            if (option1_data && option1_data.length > 0) {
+            let option1_data = response?.data?.options?.[0]?.values?.split(",");
+            if (option1_data && option1_data?.length > 0) {
                 let savedArr = option1_data.map((item, index) => {
                     let obj = {};
                     obj.value = item;
                     return obj;
                 }, []);
-                savedArr[savedArr.length] = { value: "" };
+                savedArr[savedArr?.length] = { value: "" };
 
                 setInputFields(savedArr);
             }
-            let option2_data = response?.data?.options?.[1]?.values.split(",");
-            if (option2_data && option2_data.length > 0) {
-                let savedArr2 = option2_data.map((item, index) => {
+            let option2_data = response?.data?.options?.[1]?.values?.split(",");
+            if (option2_data && option2_data?.length > 0) {
+                let savedArr2 = option2_data?.map((item, index) => {
                     let obj = {};
                     obj.value = item;
                     return obj;
                 }, []);
-                savedArr2[savedArr2.length] = { value: "" };
+                savedArr2[savedArr2?.length] = { value: "" };
 
                 setInputFields2(savedArr2);
             }
-            let option3_data = response?.data?.options?.[2]?.values.split(",");
-            if (option3_data && option3_data.length > 0) {
+            let option3_data = response?.data?.options?.[2]?.values?.split(",");
+            if (option3_data && option3_data?.length > 0) {
                 let savedArr3 = option3_data.map((item, index) => {
                     let obj = {};
                     obj.value = item;
                     return obj;
                 }, []);
-                savedArr3[savedArr3.length] = { value: "" };
+                savedArr3[savedArr3?.length] = { value: "" };
 
                 setInputFields3(savedArr3);
             }
@@ -688,7 +695,7 @@ export function EditProduct() {
         const newInputFields = [...inputFields3];
         newInputFields[index].value = val;
         setInputFields3(newInputFields);
-        if (totalLength - 1 == index && val.length > 0) {
+        if (totalLength - 1 == index && val?.length > 0) {
             handleAddField3();
         }
     };
@@ -829,7 +836,7 @@ export function EditProduct() {
             });
 
             setCollectionOptionsSelected(
-                response?.data?.collections.title.split(",")
+                response?.data?.collections?.title?.split(",")
             );
             setVendor(response?.data?.shop_name)
 
@@ -1142,7 +1149,7 @@ export function EditProduct() {
                         let updatedObject = { ...updatedState[globalIndex] };
                         updatedObject.title = `${input.value} / ${input2.value}`;
 
-                        if (titles.includes(updatedObject.title)) {
+                        if (titles?.includes(updatedObject.title)) {
                             let i = titles.indexOf(updatedObject.title);
 
                             let copy = copyData[i];
@@ -1217,7 +1224,7 @@ export function EditProduct() {
                             };
                             updatedObject.title = `${input.value} / ${input2.value} / ${input3.value}`;
 
-                            if (titles.includes(updatedObject.title)) {
+                            if (titles?.includes(updatedObject.title)) {
                                 let i = titles.indexOf(updatedObject.title);
 
                                 let copy = copyData[i];
@@ -1382,7 +1389,7 @@ export function EditProduct() {
     );
 
     const collectionsContentMarkup =
-        collectionOptionsSelected.length > 0 ? (
+        collectionOptionsSelected?.length > 0 ? (
             <div className="Product-Tags-Stack">
                 <Stack spacing="extraTight" alignment="center">
                     {collectionOptionsSelected.map((option) => {
@@ -1777,7 +1784,7 @@ export function EditProduct() {
         (activeOption) => {
             const activeOptionIsAction = activeOption === value;
 
-            if (!activeOptionIsAction && !selectedTags.includes(activeOption)) {
+            if (!activeOptionIsAction && !selectedTags?.includes(activeOption)) {
                 setSuggestion(activeOption);
             } else {
                 setSuggestion("");
@@ -1882,11 +1889,11 @@ export function EditProduct() {
                     <Listbox.Option
                         key={option}
                         value={option}
-                        selected={selectedTags.includes(option)}
+                        selected={selectedTags?.includes(option)}
                         accessibilityLabel={option}
                     >
                         <Listbox.TextOption
-                            selected={selectedTags.includes(option)}
+                            selected={selectedTags?.includes(option)}
                         >
                             {formatOptionText(option)}
                         </Listbox.TextOption>
@@ -2006,7 +2013,7 @@ export function EditProduct() {
 
     //SUbmit Data
     const addProduct = async () => {
-        console.log('dssd',quantity)
+        console.log('dssd',variantsInputFileds)
         setBtnLoading(true);
         const sessionToken = getAccessToken();
         setLoading(true)

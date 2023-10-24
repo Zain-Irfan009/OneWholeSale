@@ -63,6 +63,9 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import EmptyCheckBox from "../../assets/icons/EmptyCheckBox.png";
 import FillCheckBox from "../../assets/icons/FillCheckBox.png";
 import { getAccessToken } from "../../assets/cookies";
+import Empty from "../../assets/empty.jpg";
+import {Loader} from "../../components/Loader";
+import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
 
 export function EditVProduct() {
     const { apiUrl } = useContext(AppContext);
@@ -83,10 +86,14 @@ export function EditVProduct() {
     const [vendor, setVendor] = useState("");
     const [sellerEmail, setSellerEmail] = useState("");
     const [optionsLoading, setOptionsLoading] = useState(false);
-
+    const [imageSrc, setImageSrc] = useState("");
+    const [commonState, setCommonState] = useState(false);
     const [sellerEmailList, setSellerEmailList] = useState(
         []
     );
+
+    const [mediaVariantFiles, setVariantImageFiles] = useState([]);
+    const [rejectedVariantFiles, setVariantRejectedFiles] = useState([]);
     const [sellerEmailListSelected, setSellerListSelected] =
         useState("");
 
@@ -94,6 +101,13 @@ export function EditVProduct() {
     const [collectionOptions, setCollectionOptions] = useState([]);
 
 
+
+    const [productTypeList, setProductTypeList] = useState(
+        []
+    );
+
+    const [productTypeListSelected, setProductTypeListSelected] =
+        useState("");
 
     const [collectionOptionsSelected, setCollectionOptionsSelected] =
         useState("");
@@ -271,8 +285,16 @@ export function EditVProduct() {
     const [optionsArray, setOptionsArray] = useState([]);
 
     const [mediaFilesUrl, setMediaFilesUrl] = useState([]);
+    const [clickVariant, setClickVariant] = useState("");
+    const [varinatImageModal, SetVarinatImageModal] = useState(false);
 
     const [fileUrl, setFileUrl] = useState();
+
+    const [showExciseField, setShowExciseField] = useState(true);
+    const [exciseTax, setExciseTax] = useState(0);
+    const [vapeSeller, setVapeSeller] = useState('Yes');
+
+
 
     const getProductData = async (id) => {
 
@@ -298,20 +320,35 @@ export function EditVProduct() {
             setProductName(response?.data?.product?.product_name);
             setDescriptionContent(response?.data?.product?.description);
             setValue(response?.data?.product?.tags);
+            setVapeSeller(response?.data?.product?.vape_seller);
+            if(response?.data?.product?.vape_seller=="Yes"){
+                setShowExciseField(true)
+            }else{
+                setShowExciseField(false)
+            }
+            setExciseTax(response?.data?.product?.excise_tax);
             setPrice(response?.data?.variants?.[0].price);
             setCompareatPrice(response?.data?.variants?.[0].compare_at_price);
             setChargeTaxChecked(response?.data?.variants?.[0].taxable);
             setSku(response?.data?.variants?.[0].sku);
             setBarcode(response?.data?.variants?.[0].barcode);
-            if (response?.data?.product?.product_type !== null) {
-                setProductHandle(response?.data?.product?.product_type);
-            }else{
-                setProductHandle('');
+            setProductTypeListSelected(response?.data?.product?.product_type ? [response.data.product.product_type] : [])
+            // if (response?.data?.product?.product_type !== null) {
+            //     setProductHandle(response?.data?.product?.product_type);
+            // }else{
+            //     setProductHandle('');
+            // }
+            if (response?.data?.product?.search_engine_title !== null) {
+                setPageTitle(response?.data?.product?.search_engine_title);
+            }else {
+                setPageTitle('')
             }
-            setTitleMetafield(response?.data?.product?.search_engine_title);
-            setDescriptionMetafield(
-                response?.data?.product?.search_engine_meta_description
-            );
+
+            if (response?.data?.product?.search_engine_meta_description !== null) {
+                setPageDescription(response.data.product.search_engine_meta_description);
+            } else {
+                setPageDescription('');
+            }
             setWeight(response?.data?.variants?.[0].weight);
             setUnit(response?.data?.variants?.[0].weight_unit);
 
@@ -333,9 +370,16 @@ export function EditVProduct() {
             if (response?.data?.product?.tags !== '') {
                 setNewTags(response?.data?.product?.tags.split(","));
             }
-            setCollectionOptionsSelected(
-                response?.data?.product?.collections.split(",")
-            );
+            if (
+                response &&
+                response.data &&
+                response.data.product &&
+                response.data.product.collections
+            ) {
+                setCollectionOptionsSelected(response.data.product.collections.split(","));
+            } else {
+                console.error("One or more properties are undefined.");
+            }
             if (response?.data?.product?.vendor !== null) {
                 setVendor(response?.data?.product?.vendor);
             }else{
@@ -433,7 +477,95 @@ export function EditVProduct() {
         }
     };
 
+    const [productTypeInputValue, setProductTypeInputValue] = useState("");
+    const [orignalProductTypeEmailList, setOrignalProductTypeList] = useState(
+        []
+    );
+    const productTypeUpdateText = useCallback(
+        (value) => {
 
+
+            setProductTypeInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    console.log(sellerEmailList)
+                    setProductTypeList(orignalProductTypeEmailList);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = productTypeList.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+
+                console.log('resultOptions',resultOptions)
+                setProductTypeList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [productTypeList, optionsLoading, productTypeListSelected]
+    );
+
+    const removeProductType = useCallback(
+        (collection) => () => {
+
+            const collectionOptions = [...productTypeListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setProductTypeListSelected(collectionOptions);
+        },
+
+        [collectionOptionsSelected]
+    );
+
+    const productTypeContentMarkup =
+        productTypeListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {productTypeListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeProductType(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+
+    const productTypeTextField = (
+        <Autocomplete.TextField
+            onChange={productTypeUpdateText}
+
+
+            label="Product Type"
+            value={productTypeInputValue}
+            // placeholder="Select Product Type"
+            verticalContent={productTypeContentMarkup}
+        />
+    );
+
+
+    const handleProductTypeOptionSelect = async (selectedOption) => {
+        // Handle option selection here
+        setProductTypeListSelected(selectedOption)
+
+    };
 
     const data_option = [
         {
@@ -456,6 +588,14 @@ export function EditVProduct() {
             value: item.value.map((valueObj) => valueObj.value),
         };
     });
+
+    const AddVariantImage = async () => {
+        // let markup = calculateMarkup();
+        // setVariantsMarkup(markup);
+        setCommonState(true)
+        SetVarinatImageModal(false)
+
+    }
 
     const variantsInputFiledsHandler = (value, index, type, name) => {
         console.log("variantsInputFiledsHandler called", index, value,type,name);
@@ -481,6 +621,9 @@ export function EditVProduct() {
                 case "compare_at_price":
                     updatedObject.compare_at_price = value;
                     break;
+                case "barcode":
+                    updatedObject.barcode = value;
+                    break;
                 default:
 
                     break;
@@ -497,6 +640,15 @@ export function EditVProduct() {
 
     const handleAddField = () => {
         setInputFields([...inputFields, { value: "" }]);
+    };
+
+    const handleVapeStatusChange = (selectedOption) => {
+        if(selectedOption=="Yes"){
+            setShowExciseField(true)
+        }else{
+            setShowExciseField(false)
+        }
+        setVapeSeller(selectedOption);
     };
 
     const handleRemoveField = (index) => {
@@ -564,6 +716,13 @@ export function EditVProduct() {
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
 
+            let arr_product_type = response?.data?.product_types.map((productType) => ({
+                value: productType,
+                label: productType
+            }));
+            setProductTypeList(arr_product_type)
+            setOrignalProductTypeList(arr_product_type)
+
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -573,6 +732,14 @@ export function EditVProduct() {
             setErrorToast(true);
         }
     };
+
+
+    const handleVariantImageModal = (variant) => {
+        console.log('index',variant)
+        setClickVariant(variant)
+        SetVarinatImageModal(!varinatImageModal);
+    };
+
 
     useEffect(() => {
         getCollectionData();
@@ -708,6 +875,7 @@ export function EditVProduct() {
                 price: "",
                 quantity: "",
                 compare_at_price: "",
+                barcode:""
             });
         }
 
@@ -746,6 +914,32 @@ export function EditVProduct() {
         return (
             <>
                 <IndexTable.Row key={priceIndex} position={priceIndex}>
+
+
+                    <IndexTable.Cell>
+                        <div onClick={() => handleVariantImageModal(priceIndex)}>
+                            {data?.src ? (
+                                <img
+                                    style={{ width: '50px' }}
+                                    size="small"
+                                    src={data.src}
+                                    shape="square"
+                                    name="title"
+                                    alt="Image Title"
+                                />
+                            ) : (
+                                <img
+                                    style={{ width: '50px' }}
+                                    size="small"
+                                    src={Empty}
+                                    shape="square"
+                                    name="title"
+                                    alt="Alternate Image Title"
+                                />
+                            )}
+                        </div>
+                    </IndexTable.Cell>
+
                     <IndexTable.Cell>
                         <Text variant="bodyMd" fontWeight="bold" as="span">
                             {data?.title}
@@ -773,14 +967,14 @@ export function EditVProduct() {
                             type="text"
                             value={data?.quantity}
                             // value={variantsInputFileds[skuIndex]?.sku}
-                            onChange={(e) =>
-                                variantsInputFiledsHandler(
-                                    e.target.value,
-                                    skuIndex,
-                                    "quantity",
-                                    text
-                                )
-                            }
+                            // onChange={(e) =>
+                            //     variantsInputFiledsHandler(
+                            //         e.target.value,
+                            //         skuIndex,
+                            //         "quantity",
+                            //         text
+                            //     )
+                            // }
                             // prefix="$"
                             autoComplete="off"
                         />
@@ -815,6 +1009,24 @@ export function EditVProduct() {
                                     text
                                 )
                             }
+                            autoComplete="off"
+                        />
+                    </IndexTable.Cell>
+
+                    <IndexTable.Cell>
+                        <InputField
+                            type="text"
+                            value={data?.barcode}
+                            // value={variantsInputFileds[skuIndex]?.sku}
+                            onChange={(e) =>
+                                variantsInputFiledsHandler(
+                                    e.target.value,
+                                    skuIndex,
+                                    "barcode",
+                                    text
+                                )
+                            }
+                            // prefix="$"
                             autoComplete="off"
                         />
                     </IndexTable.Cell>
@@ -906,6 +1118,7 @@ export function EditVProduct() {
                                 price: "",
                                 quantity: "",
                                 compare_at_price: "",
+                                barcode:""
                             };
                         }
 
@@ -980,6 +1193,7 @@ export function EditVProduct() {
                                     price: "",
                                     quantity: "",
                                     compare_at_price: "",
+                                    barcode:""
                                 };
                             }
 
@@ -1004,7 +1218,18 @@ export function EditVProduct() {
     useEffect(() => {
         let markup = calculateMarkup();
         setVariantsMarkup(markup);
-    }, [inputFields, inputFields2, inputFields3]);
+        console.log('varinatImageModal', varinatImageModal);
+
+        // Using setTimeout to set commonState to false after 1000 milliseconds (1 seconds)
+        const timeoutId = setTimeout(() => {
+            setCommonState(false);
+        }, 1000);
+
+        // Cleanup function to clear the timeout if the component unmounts or the dependency array changes
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [inputFields, inputFields2, inputFields3, commonState]);
 
     // ------------------------Toasts Code start here------------------
     const toggleErrorMsgActive = useCallback(
@@ -1224,7 +1449,7 @@ export function EditVProduct() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/remove-img?id=${params.edit_product_id}&src=${src}`,
+            const response = await axios.get(`${apiUrl}/seller/remove-img?id=${params.edit_product_id}&src=${src}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -1249,104 +1474,137 @@ export function EditVProduct() {
         "image/svg",
     ];
 
+    const handleVariantDropZoneDrop = useCallback(
+        async (_droppedFiles, acceptedFiles, rejectedFiles) => {
+            console.log('mediaFiles',acceptedFiles)
+            setVariantImageFiles((mediaFiles) => [...mediaFiles, ...acceptedFiles]);
+            setVariantRejectedFiles(rejectedFiles);
+            const sessionToken = getAccessToken();
+            let formData = new FormData();
+            formData.append('product_id',params.edit_product_id);
+            formData.append('images',...acceptedFiles);
+            setSkeleton(true)
+
+            try {
+                const response = await axios.post(`${apiUrl}/seller/add-product-image`, formData, {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                });
+
+                setMediaFilesUrl(response?.data?.product_images);
+                setSkeleton(false)
+                // console.log('res', response?.data?.message);
+                // setBtnLoading(false);
+                // setLoading(false);
+                // setToastMsg(response?.data?.message);
+                // setSucessToast(true);
+                // navigate('/productslisting', { state: { customText: response?.data?.message } });
+                // setSkeleton(false)
+
+            } catch (error) {
+                setSkeleton(false)
+                console.log(error);
+                setBtnLoading(false);
+                setToastMsg(error?.response?.data?.message);
+                setErrorToast(true);
+            }
+        },
+        []
+    );
+    const handleDragEnd = async (result) => {
+
+        console.log('result',result)
+        if (!result.destination) {
+            return;
+        }
+
+        const sessionToken = getAccessToken();
+
+        const items = Array.from(mediaFilesUrl);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        // Update the state with the new mediaFiles order
+        setMediaFilesUrl(items);
+
+        try {
+            const response = await axios.get(`${apiUrl}/seller/drag-image?data=${JSON.stringify(items)}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            // console.log('res',response?.data?.message)
+            // setBtnLoading(false)
+            // setLoading(false)
+            // setToastMsg(response?.data?.message)
+            // setSucessToast(true)
+            // navigate('/productslisting', { state: { customText: response?.data?.message } })
+            // setSkeleton(false)
+
+        } catch (error) {
+            console.log(error);
+            setBtnLoading(false)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+        }
+
+    };
+
     const uploadedFiles = (
         <LegacyStack id="jjj">
-            {mediaFiles.map((file, index) => (
-                <LegacyStack alignment="center" key={index}>
-                    <div className="Polaris-Product-Gallery">
-                        <Thumbnail
-                            size="large"
-                            alt={file.name}
-                            source={
-                                validImageTypes.indexOf(file.type) > -1
-                                    ? window.URL.createObjectURL(file)
-                                    : NoteMinor
-                            }
-                        />
-                        <span
-                            className="media_hover"
-                            onClick={() => handleRemoveMedia(index)}
-                        >
-                            <Icon source={DeleteMinor} />
-                        </span>
-                    </div>
-                </LegacyStack>
-            ))}
-            {mediaFilesUrl.map(({ id, src }, index) => (
-                <LegacyStack alignment="center" key={id}>
-                    <div className="Polaris-Product-Gallery">
-                        <Thumbnail
-                            size="large"
-                            alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
-                            source={src} // Use 'src' directly as the image source
-                        />
-
-                        <span
-                            className="media_hover"
-                            onClick={() =>
-                                handleRemoveMediaApi(
-                                    index,src
-                                )
-                            }
-                        >
-                                                <Icon
-                                                    source={
-                                                        DeleteMinor
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <div className="drag-custom">
+                    <Droppable  droppableId="mediaFiles" direction="horizontal"   className="custom-class">
+                        {(provided) => (
+                            <div ref={provided.innerRef} {...provided.droppableProps}>
+                                {mediaFilesUrl.map(({ id, src }, index) => (
+                                    <Draggable key={String(id)} draggableId={String(id)} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className="Polaris-Product-Gallery"
+                                            >
+                                                <Thumbnail
+                                                    size="large"
+                                                    alt={String(id)}
+                                                    source={src}
+                                                />
+                                                <span
+                                                    className="media_hover"
+                                                    onClick={() =>
+                                                        handleRemoveMediaApi(index, src)
                                                     }
                                                 >
-                                                    {" "}
-                                                </Icon>
-                                            </span>
-                    </div>
-                </LegacyStack>
-            ))}
+                                            <Icon source={DeleteMinor} />
+                                        </span>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </div>
+            </DragDropContext>
 
-
-
-
-
-            {/*{product?.images && JSON.parse(product?.images).map((imageUrl, index) => {*/}
-            {/*    const file = imageUrl.startsWith('www')*/}
-            {/*        ? `https://${imageUrl}`*/}
-            {/*        : imageUrl;*/}
-
-
-            {/*    if (file) {*/}
-            {/*        return (*/}
-            {/*            <LegacyStack alignment="center" key={index}>*/}
-            {/*                <div className="Polaris-Product-Gallery">*/}
-            {/*                    <Thumbnail*/}
-            {/*                        size="large"*/}
-            {/*                        alt={product?.title}*/}
-            {/*                        source={file}*/}
-            {/*                    />*/}
-            {/*                </div>*/}
-            {/*            </LegacyStack>*/}
-            {/*        );*/}
-            {/*    }*/}
-
-            {/*    return null;*/}
-            {/*})}*/}
-
-
-
-            {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
             <div className="Polaris-Product-DropZone">
                 <LegacyStack alignment="center">
                     <DropZone
                         accept="image/*, video/*"
                         type="image,video"
                         openFileDialog={openFileDialog}
-                        onDrop={handleDropZoneDrop}
+                        onDrop={handleVariantDropZoneDrop}
                         onFileDialogClose={toggleOpenFileDialog}
                     >
                         <DropZone.FileUpload actionTitle={"Add files"} />
                     </DropZone>
                 </LegacyStack>
             </div>
-            {/*)}*/}
-
-
         </LegacyStack>
     );
 
@@ -1599,6 +1857,104 @@ export function EditVProduct() {
             .join("");
     }
 
+    const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+    const handleCheckboxChange = (index, src) => {
+        console.log('src', src);
+        console.log('variantsInputFileds', variantsInputFileds[clickVariant]);
+        const updatedVariant = { ...variantsInputFileds[clickVariant] };
+        updatedVariant.src = src;
+        setImageSrc(src);
+        setSelectedImageIndex(index);
+
+        variantsInputFileds[clickVariant] = updatedVariant;
+    };
+
+
+
+
+
+
+    const variantUploadedFiles = (
+        <div>
+            {skeleton ? (
+                <Loader />
+            ) : (
+                <LegacyStack id="jjj">
+                    {/*{mediaVariantFiles.map((file, index) => (*/}
+                    {/*    <LegacyStack alignment="center" key={index}>*/}
+                    {/*        <div className="Polaris-Product-Gallery">*/}
+                    {/*            <Thumbnail*/}
+                    {/*                size="large"*/}
+                    {/*                alt={file.name}*/}
+                    {/*                source={*/}
+                    {/*                    validImageTypes.indexOf(file.type) > -1*/}
+                    {/*                        ? window.URL.createObjectURL(file)*/}
+                    {/*                        : NoteMinor*/}
+                    {/*                }*/}
+                    {/*            />*/}
+                    {/*            /!*<span*!/*/}
+                    {/*            /!*    className="media_hover"*!/*/}
+                    {/*            /!*    onClick={() => handleVariantRemoveMedia(index)}*!/*/}
+                    {/*            /!*>*!/*/}
+                    {/*            /!*    <Icon source={DeleteMinor} />*!/*/}
+                    {/*            /!*</span>*!/*/}
+                    {/*        </div>*/}
+                    {/*    </LegacyStack>*/}
+                    {/*))}*/}
+
+
+
+                    {mediaFilesUrl.map(({ id, src }, index) => (
+                        <LegacyStack alignment="center" key={id}>
+                            <div className="Polaris-Product-Gallery">
+                                <label className="checkbox-container">
+                                    <input
+                                        type="radio" // Change to radio type
+                                        className="checkbox"
+                                        onChange={() => handleCheckboxChange(index,src)}
+                                        checked={selectedImageIndex === index}
+                                    />
+                                    <Thumbnail
+                                        size="large"
+                                        alt={id} // Use 'id' or 'src' depending on what you want to display as alt text
+                                        source={src} // Use 'src' directly as the image source
+                                    />
+                                    {/* Additional code for delete functionality */}
+                                </label>
+                            </div>
+                        </LegacyStack>
+                    ))}
+
+
+
+
+
+
+
+
+                    {/*{((!mediaFiles || mediaFiles.length === 0)) &&(*/}
+                    <div className="Polaris-Product-DropZone">
+                        <LegacyStack alignment="center">
+                            <DropZone
+                                accept="image/*, video/*"
+                                type="image,video"
+                                openFileDialog={openFileDialog}
+                                onDrop={handleVariantDropZoneDrop}
+                                onFileDialogClose={toggleOpenFileDialog}
+                            >
+                                <DropZone.FileUpload actionTitle={"Add files"} />
+                            </DropZone>
+                        </LegacyStack>
+                    </div>
+                    {/*)}*/}
+
+
+                </LegacyStack>
+            )}
+        </div>
+    );
+
+
     //SUbmit Data
     const addProduct = async () => {
         console.log('dssd',quantity)
@@ -1616,6 +1972,8 @@ export function EditVProduct() {
         formData.append("inventory_management", trackQuantityIsChecked);
         formData.append("product_quantity", quantity);
         formData.append("inventory_policy", allowCustomer);
+        formData.append('vape_seller',vapeSeller);
+        formData.append('excise_tax',exciseTax);
         mediaFiles.forEach((item, index) => {
             formData.append(`images[${index}]`, item);
         });
@@ -1630,7 +1988,12 @@ export function EditVProduct() {
         formData.append("variants", JSON.stringify(variantsInputFileds));
         formData.append("seller_email", sellerEmailListSelected);
         formData.append("tags", newTags);
-        formData.append("product_type", productHandle);
+        // formData.append("product_type", productHandle);
+        if (productTypeInputValue) {
+            formData.append('product_type', productTypeInputValue);
+        } else {
+            formData.append('product_type', productTypeListSelected);
+        }
         formData.append("vendor", vendor);
         formData.append("collections", collectionOptionsSelected);
 
@@ -1683,6 +2046,28 @@ export function EditVProduct() {
                             Leaving this page will delete all unsaved changes.
                         </p>
                     </TextContainer>
+                </Modal.Section>
+            </Modal>
+
+            <Modal
+                open={varinatImageModal}
+                onClose={handleVariantImageModal}
+                title="Update Variant Image"
+                primaryAction={{
+                    content: "Done",
+                    // destructive: true,
+                    onAction: AddVariantImage,
+                }}
+            >
+                <Modal.Section>
+                    <TextContainer>
+                        <p>
+                            You can only choose images as variant media
+                        </p>
+                    </TextContainer>
+
+                    <div>  {variantUploadedFiles}</div>
+
                 </Modal.Section>
             </Modal>
 
@@ -1994,6 +2379,7 @@ export function EditVProduct() {
                                             </Text>
 
                                             <div className="label_editor">
+                                                <div className="">
                                                 <Checkbox
                                                     label="Track Quantity"
                                                     checked={
@@ -2005,6 +2391,7 @@ export function EditVProduct() {
                                                         )
                                                     }
                                                 />
+                                                </div>
                                                 {/* <Select
                           label="Track Inventory"
                           options={trackInventoryOptions}
@@ -2023,9 +2410,9 @@ export function EditVProduct() {
                                                         required
                                                         marginTop
                                                         value={quantity}
-                                                        onChange={
-                                                            handleQuantity
-                                                        }
+                                                        // onChange={
+                                                        //     handleQuantity
+                                                        // }
                                                     />
 
                                                     <div className="label_editor">
@@ -2374,6 +2761,7 @@ export function EditVProduct() {
                                                             variantsMarkup?.length
                                                         }
                                                         headings={[
+                                                            { title: "" },
                                                             { title: "Name" },
                                                             { title: "Price" },
                                                             {
@@ -2382,6 +2770,9 @@ export function EditVProduct() {
                                                             { title: "Sku" },
                                                             {
                                                                 title: "Compare At",
+                                                            },
+                                                            {
+                                                                title: "Barcode",
                                                             },
                                                         ]}
                                                         selectable={false}
@@ -2462,6 +2853,7 @@ export function EditVProduct() {
                       {`You can add product handle and product's metafields from here.`}
                     </Text> */}
                                         <div className="margin-top" />
+                                        <div className="hidden_fields">
                                         <Autocomplete
                                             allowMultiple
                                             options={collectionOptions}
@@ -2473,6 +2865,7 @@ export function EditVProduct() {
                                             }
                                             listTitle="Collections"
                                         />
+                                        </div>
                                         {/* <Select
                       label="Categories"
                       options={categories}
@@ -2490,15 +2883,31 @@ export function EditVProduct() {
                                         </div>
                                         <div>{tagsToAddMarkup}</div>
                                         <div className="label_editor">
-                                            <InputField
-                                                label="Product Type"
-                                                placeholder="Enter Product Type"
-                                                type="text"
-                                                marginTop
-                                                name="handle"
-                                                value={productHandle}
-                                                onChange={handleProductHandle}
+                                            {/*<InputField*/}
+                                            {/*    label="Product Type"*/}
+                                            {/*    placeholder="Enter Product Type"*/}
+                                            {/*    type="text"*/}
+                                            {/*    marginTop*/}
+                                            {/*    name="handle"*/}
+                                            {/*    value={productHandle}*/}
+                                            {/*    onChange={handleProductHandle}*/}
+                                            {/*/>*/}
+
+                                            <Autocomplete
+
+                                                options={productTypeList}
+                                                selected={productTypeListSelected}
+                                                textField={productTypeTextField}
+                                                loading={optionsLoading}
+                                                // onSelect={
+                                                //     setSellerListSelected
+                                                // }
+                                                onSelect={
+                                                    handleProductTypeOptionSelect
+                                                }
+                                                listTitle="Product Type"
                                             />
+
                                         </div>
                                         {/* <div className="label_editor">
                       <h2 class="Polaris-Text--root Polaris-Text--headingMd">
@@ -2515,6 +2924,7 @@ export function EditVProduct() {
                       onChange={handleTitleMetafield}
                     /> */}
                                         <div className="margin-top" />
+                                        <div className="hidden_fields">
                                         <InputField
                                             label="Vendor"
                                             placeholder="Enter Vendor Name"
@@ -2526,6 +2936,7 @@ export function EditVProduct() {
                                                 setVendor(e.target.value)
                                             }
                                         />
+                                        </div>
                                         {/* <Select
                       label="Vendor"
                       options={categories}
@@ -2553,6 +2964,38 @@ export function EditVProduct() {
                     /> */}
                                     </div>
                                 </Card>
+                                <Card sectioned>
+                                    <div className="Type-Section">
+                                        <Select
+                                            label="Vape Product"
+                                            options={[
+                                                {
+                                                    label: "Yes",
+                                                    value: 'Yes',
+                                                },
+                                                { label: "No", value: 'No' },
+                                            ]}
+                                            onChange={handleVapeStatusChange}
+                                            value={vapeSeller}
+                                        />
+
+                                        {showExciseField && (
+                                            <div>
+                                                <div className="margin-top" />
+                                                <InputField
+                                                    label="Excise tax"
+                                                    placeholder="Enter Excise Tax"
+                                                    type="text"
+                                                    marginTop
+                                                    name="excisetax"
+                                                    value={exciseTax}
+                                                    onChange={(e) => setExciseTax(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </Card>
+
                             </div>
                         </Layout.Section>
                     </Layout>

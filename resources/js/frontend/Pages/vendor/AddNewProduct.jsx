@@ -61,6 +61,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import EmptyCheckBox from "../../assets/icons/EmptyCheckBox.png";
 import FillCheckBox from "../../assets/icons/FillCheckBox.png";
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import {getAccessToken} from "../../assets/cookies";
 
 export function AddNewProduct() {
@@ -81,6 +82,10 @@ export function AddNewProduct() {
     const [vendor, setVendor] = useState("");
     const [sellerEmail, setSellerEmail] = useState("");
     const [collectionSelect, setCollectionSelect] = useState("");
+    const [exciseTax, setExciseTax] = useState(0);
+
+    const [vapeSeller, setVapeSeller] = useState('No');
+    const [showExciseField, setShowExciseField] = useState(false);
 
     const CollectionsOptionsData = useMemo(
         () => [
@@ -89,6 +94,15 @@ export function AddNewProduct() {
         ],
         []
     );
+
+    const handleVapeStatusChange = (selectedOption) => {
+        if(selectedOption=="Yes"){
+            setShowExciseField(true)
+        }else{
+            setShowExciseField(false)
+        }
+        setVapeSeller(selectedOption);
+    };
 
     const [collectionOptions, setCollectionOptions] = useState(
         []
@@ -100,6 +114,24 @@ export function AddNewProduct() {
 
     const [sellerEmailListSelected, setSellerListSelected] =
         useState("");
+
+    const [productTypeList, setProductTypeList] = useState(
+        []
+    );
+
+
+    const [productTypeListSelected, setProductTypeListSelected] =
+        useState("");
+    const [orignalProductTypeEmailList, setOrignalProductTypeList] = useState(
+        []
+    );
+
+
+    const handleProductTypeOptionSelect = async (selectedOption) => {
+        // Handle option selection here
+        setProductTypeListSelected(selectedOption)
+
+    };
 
 
     const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
@@ -193,6 +225,7 @@ export function AddNewProduct() {
     const [variantOptions3, setVariantOptions3] = useState("");
     const [variantsInputFileds, setVariantsInputFileds] = useState([]);
     const [refresh, setRefresh] = useState(false);
+    const [productTypeInputValue, setProductTypeInputValue] = useState("");
 
     const [variants, setVariants] = useState(0);
     const [optionsArray, setOptionsArray] = useState([]);
@@ -243,6 +276,26 @@ export function AddNewProduct() {
 
 
 
+    const handleDragEnd = async (result) => {
+
+        console.log('result',result)
+        if (!result.destination) {
+            return;
+        }
+
+        const sessionToken = getAccessToken();
+
+        const items = Array.from(mediaFiles);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        // Update the state with the new mediaFiles order
+        setImageFiles(items);
+
+
+
+    };
+
     const variantsInputFiledsHandler = (e, index, type, title) => {
         const { value } = e.target;
         console.log("value, index, type", value, index, type);
@@ -266,6 +319,10 @@ export function AddNewProduct() {
 
                 case "compare_at_price":
                     updatedObject.compare_at_price = value;
+                    break;
+
+                case "barcode":
+                    updatedObject.barcode = value;
                     break;
             }
             updatedState[index] = updatedObject;
@@ -350,8 +407,19 @@ export function AddNewProduct() {
                 value: email,
                 label: `${name} (${email})`
             }));
+
+            setSellerListSelected(response?.data?.email)
+            handleOptionSelect(response?.data?.email)
+
             setSellerEmailList(arr_seller)
             setCurrency(response?.data?.currency)
+
+            let arr_product_type = response?.data?.product_types.map((productType) => ({
+                value: productType,
+                label: productType
+            }));
+            setProductTypeList(arr_product_type)
+            setOrignalProductTypeList(arr_product_type)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
@@ -482,6 +550,88 @@ export function AddNewProduct() {
         }, 500);
     };
 
+    const productTypeUpdateText = useCallback(
+        (value) => {
+
+
+            setProductTypeInputValue(value);
+
+            if (!optionsLoading) {
+                setOptionsLoading(true);
+            }
+
+            setTimeout(() => {
+                if (value === "") {
+                    console.log(sellerEmailList)
+                    setProductTypeList(orignalProductTypeEmailList);
+                    setOptionsLoading(false);
+                    return;
+                }
+
+                const filterRegex = new RegExp(value, "i");
+                const resultOptions = productTypeList.filter((option) =>
+                    option.label.match(filterRegex)
+                );
+                let endIndex = resultOptions.length - 1;
+                if (resultOptions.length === 0) {
+                    endIndex = 0;
+                }
+
+                console.log('resultOptions',resultOptions)
+                setProductTypeList(resultOptions);
+                setOptionsLoading(false);
+            }, 300);
+        },
+        [productTypeList, optionsLoading, productTypeListSelected]
+    );
+
+    const removeProductType = useCallback(
+        (collection) => () => {
+
+            const collectionOptions = [...productTypeListSelected];
+            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
+            setProductTypeListSelected(collectionOptions);
+        },
+
+        [collectionOptionsSelected]
+    );
+
+
+    const productTypeContentMarkup =
+        productTypeListSelected.length > 0 ? (
+            <div className="Product-Tags-Stack">
+                <Stack spacing="extraTight" alignment="center">
+                    {productTypeListSelected.map((option) => {
+                        let tagLabel = "";
+                        tagLabel = option.replace("_", " ");
+                        tagLabel = tagTitleCase(tagLabel);
+                        return (
+                            <Tag
+                                key={`option${option}`}
+                                onRemove={removeProductType(option)}
+                            >
+                                {tagLabel}
+                            </Tag>
+                        );
+                    })}
+                </Stack>
+            </div>
+        ) : null;
+
+
+    const productTypeTextField = (
+        <Autocomplete.TextField
+            onChange={productTypeUpdateText}
+
+
+            label="Product Type"
+            value={productTypeInputValue}
+            // placeholder="Select Product Type"
+            verticalContent={productTypeContentMarkup}
+        />
+    );
+
+
     const handleQueryClear = () => {
         handleQueryChange("");
     };
@@ -562,22 +712,22 @@ export function AddNewProduct() {
                                     autoComplete="off"
                                 />
                             </IndexTable.Cell>
-                            <IndexTable.Cell>
-                                <InputField
-                                    type="text"
-                                    // value={variantsInputFileds[skuIndex]?.sku}
-                                    onChange={(value) =>
-                                        variantsInputFiledsHandler(
-                                            value,
-                                            skuIndex,
-                                            "quantity",
-                                            text
-                                        )
-                                    }
-                                    // prefix="$"
-                                    autoComplete="off"
-                                />
-                            </IndexTable.Cell>
+                            {/*<IndexTable.Cell>*/}
+                            {/*    <InputField*/}
+                            {/*        type="text"*/}
+                            {/*        // value={variantsInputFileds[skuIndex]?.sku}*/}
+                            {/*        onChange={(value) =>*/}
+                            {/*            variantsInputFiledsHandler(*/}
+                            {/*                value,*/}
+                            {/*                skuIndex,*/}
+                            {/*                "quantity",*/}
+                            {/*                text*/}
+                            {/*            )*/}
+                            {/*        }*/}
+                            {/*        // prefix="$"*/}
+                            {/*        autoComplete="off"*/}
+                            {/*    />*/}
+                            {/*</IndexTable.Cell>*/}
                             <IndexTable.Cell>
                                 <InputField
                                     type="text"
@@ -604,6 +754,23 @@ export function AddNewProduct() {
                                             value,
                                             skuIndex,
                                             "compare_at_price",
+                                            text
+                                        )
+                                    }
+                                    // prefix="$"
+                                    autoComplete="off"
+                                />
+                            </IndexTable.Cell>
+
+                            <IndexTable.Cell>
+                                <InputField
+                                    type="text"
+                                    // value={variantsInputFileds[skuIndex]?.sku}
+                                    onChange={(value) =>
+                                        variantsInputFiledsHandler(
+                                            value,
+                                            skuIndex,
+                                            "barcode",
                                             text
                                         )
                                     }
@@ -983,28 +1150,51 @@ export function AddNewProduct() {
     ];
     const uploadedFiles = mediaFiles.length > 0 && (
         <Stack id="jjj">
-            {mediaFiles.map((file, index) => (
-                <Stack alignment="center" key={index}>
-                    <div className="Polaris-Product-Gallery">
-                        <Thumbnail
-                            size="large"
-                            alt={file.name}
-                            source={
-                                validImageTypes.indexOf(file.type) > -1
-                                    ? window.URL.createObjectURL(file)
-                                    : NoteMinor
-                            }
-                        />
-                        <span
-                            className="media_hover"
-                            onClick={() => handleRemoveMedia(index)}
-                        >
+
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <div className="drag-custom">
+                    <Droppable  droppableId="mediaFiles" direction="horizontal"   className="custom-class">
+                        {(provided) => (
+                            <div ref={provided.innerRef} {...provided.droppableProps}>
+                                {mediaFiles.map((file, index) => (
+                                    <Draggable key={String(index)} draggableId={String(index)} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className="Polaris-Product-Gallery"
+                                            >
+                                                <Stack alignment="center" key={index}>
+                                                    <div className="Polaris-Product-Gallery">
+                                                        <Thumbnail
+                                                            size="large"
+                                                            alt={file.name}
+                                                            source={
+                                                                validImageTypes.indexOf(file.type) > -1
+                                                                    ? window.URL.createObjectURL(file)
+                                                                    : NoteMinor
+                                                            }
+                                                        />
+                                                        <span
+                                                            className="media_hover"
+                                                            onClick={() => handleRemoveMedia(index)}
+                                                        >
                             <Icon source={DeleteMinor}> </Icon>
                         </span>
-                    </div>
-                </Stack>
-            ))}
+                                                    </div>
+                                                </Stack>
 
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </div>
+            </DragDropContext>
             <div className="Polaris-Product-DropZone">
                 <Stack alignment="center">
                     <DropZone
@@ -1020,6 +1210,7 @@ export function AddNewProduct() {
             </div>
         </Stack>
     );
+
 
     const handleProductHandle = (e) => {
         setProductHandle(e.target.value);
@@ -1270,6 +1461,35 @@ export function AddNewProduct() {
     }
 
 
+
+    const handleOptionSelect = async (selectedOption) => {
+
+        // Handle option selection here
+        setSellerListSelected(selectedOption)
+
+        const sessionToken = getAccessToken();
+        try {
+            const response = await axios.get(`${apiUrl}/seller/get-data?email=${selectedOption}`, {
+                headers: {
+                    Authorization: "Bearer " + sessionToken,
+                },
+            });
+
+            setCollectionOptionsSelected(
+                response?.data?.collections.title.split(",")
+            );
+            setVendor(response?.data?.shop_name)
+
+
+        } catch (error) {
+            console.log(error)
+            // setToastMsg(error?.response?.data?.message);
+            setErrorToast(true);
+        }
+
+    };
+
+
     //SUbmit Data
     const addProduct = async () => {
 
@@ -1308,6 +1528,9 @@ export function AddNewProduct() {
         formData.append('inventory_management',trackQuantityIsChecked);
         formData.append('product_quantity',quantity);
         formData.append('inventory_policy',allowCustomer);
+        formData.append('vape_seller',vapeSeller);
+        formData.append('excise_tax',exciseTax);
+
         mediaFiles.forEach((item, index) => {
             formData.append(`images[${index}]`, item);
         });
@@ -1322,9 +1545,15 @@ export function AddNewProduct() {
         formData.append('variants',JSON.stringify(variantsInputFileds));
         formData.append('seller_email',sellerEmailListSelected);
         formData.append('tags',newTags);
-        formData.append('product_type',productHandle);
+        if (productTypeInputValue) {
+            formData.append('product_type', productTypeInputValue);
+        } else {
+            formData.append('product_type', productTypeListSelected);
+        }
+        // formData.append('product_type',productHandle);
         formData.append('vendor',vendor);
         formData.append('collections',collectionOptionsSelected);
+        formData.append('unique_var','new');
 
 
         try {
@@ -1577,6 +1806,7 @@ export function AddNewProduct() {
                                             </Text>
 
                                             <div className="label_editor">
+                                                <div className="hidden_fields">
                                                 <Checkbox
                                                     label="Track Quantity"
                                                     checked={
@@ -1588,6 +1818,7 @@ export function AddNewProduct() {
                                                         )
                                                     }
                                                 />
+                                                </div>
                                                 {/* <Select
                           label="Track Inventory"
                           options={trackInventoryOptions}
@@ -1955,12 +2186,15 @@ export function AddNewProduct() {
                                                         headings={[
                                                             { title: "Name" },
                                                             { title: "Price" },
-                                                            {
-                                                                title: "Quantity",
-                                                            },
+                                                            // {
+                                                            //     title: "Quantity",
+                                                            // },
                                                             { title: "Sku" },
                                                             {
                                                                 title: "Compare At",
+                                                            },
+                                                            {
+                                                                title: "Barcode",
                                                             },
                                                         ]}
                                                         selectable={false}
@@ -2007,7 +2241,7 @@ export function AddNewProduct() {
                                                 textField={sellerEmailTextField}
                                                 loading={optionsLoading}
                                                 onSelect={
-                                                    setSellerListSelected
+                                                    handleOptionSelect
                                                 }
                                                 listTitle="Sellers"
                                             />
@@ -2037,6 +2271,7 @@ export function AddNewProduct() {
                       {`You can add product handle and product's metafields from here.`}
                     </Text> */}
                                         <div className="margin-top" />
+                                        <div className="hidden_fields">
                                         <Autocomplete
                                             allowMultiple
                                             options={collectionOptions}
@@ -2048,6 +2283,7 @@ export function AddNewProduct() {
                                             }
                                             listTitle="Collections"
                                         />
+                                        </div>
                                         {/* <Select
                       label="Categories"
                       options={categories}
@@ -2065,15 +2301,31 @@ export function AddNewProduct() {
                                         </div>
                                         <div className="tags_spacing">{tagsToAddMarkup}</div>
                                         <div className="label_editor">
-                                            <InputField
-                                                label="Product Type"
-                                                placeholder="Enter Product Type"
-                                                type="text"
-                                                marginTop
-                                                name="handle"
-                                                value={productHandle}
-                                                onChange={handleProductHandle}
+                                            {/*<InputField*/}
+                                            {/*    label="Product Type"*/}
+                                            {/*    placeholder="Enter Product Type"*/}
+                                            {/*    type="text"*/}
+                                            {/*    marginTop*/}
+                                            {/*    name="handle"*/}
+                                            {/*    value={productHandle}*/}
+                                            {/*    onChange={handleProductHandle}*/}
+                                            {/*/>*/}
+
+                                            <Autocomplete
+
+                                                options={productTypeList}
+                                                selected={productTypeListSelected}
+                                                textField={productTypeTextField}
+                                                loading={optionsLoading}
+                                                // onSelect={
+                                                //     setSellerListSelected
+                                                // }
+                                                onSelect={
+                                                    handleProductTypeOptionSelect
+                                                }
+                                                listTitle="Product Type"
                                             />
+
                                         </div>
                                         {/* <div className="label_editor">
                       <h2 class="Polaris-Text--root Polaris-Text--headingMd">
@@ -2090,6 +2342,7 @@ export function AddNewProduct() {
                       onChange={handleTitleMetafield}
                     /> */}
                                         <div className="margin-top" />
+                                        <div className="hidden_fields">
                                         <InputField
                                             label="Vendor"
                                             placeholder="Enter Vendor Name"
@@ -2101,6 +2354,7 @@ export function AddNewProduct() {
                                                 setVendor(e.target.value)
                                             }
                                         />
+                                        </div>
                                         {/* <Select
                       label="Vendor"
                       options={categories}
@@ -2126,6 +2380,37 @@ export function AddNewProduct() {
                       value={descriptionMetafield}
                       onChange={handleDescriptionMetafield}
                     /> */}
+                                    </div>
+                                </Card>
+
+                                <Card sectioned>
+                                    <div className="Type-Section">
+                                        <Select
+                                            label="Vape Product"
+                                            options={[
+                                                {
+                                                    label: "Yes",
+                                                    value: 'Yes',
+                                                },
+                                                { label: "No", value: 'No' },
+                                            ]}
+                                            onChange={handleVapeStatusChange}
+                                            value={vapeSeller}
+                                        />
+                                        {showExciseField && (
+                                            <div>
+                                                <div className="margin-top" />
+                                                <InputField
+                                                    label="Excise tax"
+                                                    placeholder="Enter Excise Tax"
+                                                    type="text"
+                                                    marginTop
+                                                    name="excisetax"
+                                                    value={exciseTax}
+                                                    onChange={(e) => setExciseTax(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </Card>
                             </div>

@@ -192,7 +192,7 @@ console.log('error',error)
   };
 
   const discardAddSeller = () => {
-    navigate("/sellerslisting");
+    navigate(-1);
   };
 
 
@@ -383,7 +383,7 @@ console.log('error',error)
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
-            navigate('/sellerslisting', { state: { customText: response?.data?.message } });
+            navigate(-1, { state: { customText: response?.data?.message } });
             // setSkeleton(false)
 
         } catch (error) {
@@ -606,7 +606,7 @@ console.log('error',error)
                       )}
                       {file5 && (
                         <img
-                          style={{ maxWidth: "600px", maxHeight: "200px" }}
+                          style={{ maxWidth: "100%", height: "auto" }}
                           src={
                             validImageTypes.includes(file5.type)
                               ? window.URL.createObjectURL(file5)
@@ -626,7 +626,7 @@ console.log('error',error)
 
                         {fileUrl5 && fileUrl5 != 'null' && !file5 &&
                             <img
-                                style={{ maxWidth: "600px", maxHeight: "200px" }}
+                                style={{ maxWidth: "100%", height: "auto" }}
                                 src={`${fileUrl5}`}
                             />
 
@@ -697,7 +697,7 @@ console.log('error',error)
                         )}
                           {fileUrl3 && fileUrl3 != 'null' && !file3 &&
                               <img
-                                  style={{ maxWidth: "600px", maxHeight: "200px" }}
+                                  style={{ maxWidth: "100%", height: "auto" }}
                                   src={`${fileUrl3}`}
                               />
 
@@ -773,7 +773,7 @@ console.log('error',error)
                         )}
                         {file4 && (
                           <img
-                            style={{ maxWidth: "600px", maxHeight: "200px" }}
+                            style={{ maxWidth: "100%", height: "auto" }}
                             src={
                               validImageTypes.includes(file4.type)
                                 ? window.URL.createObjectURL(file4)
@@ -784,7 +784,7 @@ console.log('error',error)
 
                           {fileUrl4 && fileUrl4 != 'null' && !file4 &&
                               <img
-                                  style={{ maxWidth: "600px", maxHeight: "200px" }}
+                                  style={{ maxWidth: "100%", height: "auto"  }}
                                   src={`${fileUrl4}`}
                               />
 

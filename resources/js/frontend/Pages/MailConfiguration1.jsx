@@ -110,10 +110,10 @@ export function MailConfiguration1() {
             id: "1",
             content: "Product Email",
         },
-        {
-            id: "2",
-            content: "Order Email",
-        },
+        // {
+        //     id: "2",
+        //     content: "Order Email",
+        // },
         // {
         //     id: "3",
         //     content: "Inducements",
