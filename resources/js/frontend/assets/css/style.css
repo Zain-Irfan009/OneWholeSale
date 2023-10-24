@@ -9,7 +9,7 @@
   justify-content: center;
   color: rgb(245, 232, 232);
   padding: 0 20px;
-  background-image: url("https://images.unsplash.com/photo-1553095066-5014bc7b7f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8d2FsbCUyMGJhY2tncm91bmR8ZW58MHx8MHx8&w=1000&q=80");
+  background-image: url("https://cdn.shopify.com/s/files/1/0060/5582/1381/files/KakaoTalk_20230922_164031973_02.jpg?v=1695750631");
 }
 
 .variants-secton .Polaris-Icon{
@@ -216,6 +216,33 @@
     background:#FFEF9D;
 }
 
+.payment_pending .Polaris-Badge .Polaris-Badge__PipContainer .polaris-Badge-Pip--progressComplete{
+    background:#ffd6a4;
+}
+
+.payment_pending .Polaris-Badge{
+    background:#ffd6a4;
+}
+
+.partially_refunded .Polaris-Badge .Polaris-Badge__PipContainer .polaris-Badge-Pip--progressComplete{
+    background:pink;
+}
+
+.partially_refunded .Polaris-Badge{
+    background:pink;
+}
+
+
+.voided .Polaris-Badge .Polaris-Badge__PipContainer .polaris-Badge-Pip--progressComplete{
+    background:lightskyblue;
+}
+
+.voided .Polaris-Badge{
+    background:lightskyblue;
+}
+
+
+
 .seller-list .Polaris-Labelled__LabelWrapper .Polaris-Label{
     margin-top:10px
 }
@@ -244,7 +271,7 @@
 
 .ticket-alert-c {
     position: fixed;
-    right: 168px;
+    right: 423px;
     top: 9px;
     z-index: 999 !important;
 }
@@ -269,4 +296,12 @@
 
 .hidden_fields div div{
     display:none;
+}
+
+.hidden_fields .Polaris-Choice{
+    display:none;
+}
+
+.Product-Title-Section h2:first-of-type{
+    min-width:150px;
 }

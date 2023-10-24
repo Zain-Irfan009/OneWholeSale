@@ -404,16 +404,16 @@ export function VDashboard() {
                 selected={selectedResources.includes(id)}
                 position={index}
             >
-                <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
-                    <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {id != null ? id : "---"}
-                    </Text>
-                </IndexTable.Cell>
-                <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
-                    <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {shopify_order_id != null ? shopify_order_id : "---"}
-                    </Text>
-                </IndexTable.Cell>
+                {/*<IndexTable.Cell className="Polaris-IndexTable-Product-Column">*/}
+                {/*    <Text variant="bodyMd" fontWeight="semibold" as="span">*/}
+                {/*        {id != null ? id : "---"}*/}
+                {/*    </Text>*/}
+                {/*</IndexTable.Cell>*/}
+                {/*<IndexTable.Cell className="Polaris-IndexTable-Product-Column">*/}
+                {/*    <Text variant="bodyMd" fontWeight="semibold" as="span">*/}
+                {/*        {shopify_order_id != null ? shopify_order_id : "---"}*/}
+                {/*    </Text>*/}
+                {/*</IndexTable.Cell>*/}
 
                 <IndexTable.Cell>
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
@@ -429,9 +429,32 @@ export function VDashboard() {
                     {total_price !== null ? `${currency} ${total_price}` : "---"}
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
-                </IndexTable.Cell>
+                {financial_status === 'paid' ? (
+                    <IndexTable.Cell>
+                        <Badge progress='complete'>{financial_status === 'paid' ? 'Paid' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : financial_status === 'refunded' ? (
+                    <IndexTable.Cell >
+                        <Badge progress='complete'>{financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) :financial_status === 'partially_paid' ? (
+                        <IndexTable.Cell className="partially_paid" >
+                            <Badge progress='complete'>{financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
+                        </IndexTable.Cell>
+                    ) :
+                    financial_status === 'partially_refunded' ? (
+                            <IndexTable.Cell className="partially_refunded" >
+                                <Badge progress='complete'>{financial_status === 'partially_refunded' ? 'Partially refunded' : ''}</Badge>
+                            </IndexTable.Cell>
+                        ):
+
+                        (
+
+                            <IndexTable.Cell className="payment_pending" >
+                                <Badge progress='complete'>{financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
+
+                            </IndexTable.Cell>
+                        )}
 
                 <IndexTable.Cell>
                     {created_at != null ? formatDate(created_at) : "---"}
@@ -451,6 +474,8 @@ export function VDashboard() {
                 seller_name,
                 quantity,
                 number_of_sales,
+                variant,
+                variant_sku,
 
 
             },
@@ -471,15 +496,21 @@ export function VDashboard() {
                 </IndexTable.Cell>
                 <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {name != null ? name : "---"}
+                        {name != null ? name.substring(0, 40) : '---'} {variant !== '' ? `(${variant})` : ''}
                     </Text>
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
+                <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {seller_name != null ? seller_name : "---"}
+                        {variant_sku !== '' ? `(${variant_sku})` : ''}
                     </Text>
                 </IndexTable.Cell>
+
+                {/*<IndexTable.Cell>*/}
+                {/*    <Text variant="bodyMd" fontWeight="semibold" as="span">*/}
+                {/*        {seller_name != null ? seller_name : "---"}*/}
+                {/*    </Text>*/}
+                {/*</IndexTable.Cell>*/}
 
                 <IndexTable.Cell className="Capitalize-Cell">
                     {quantity !== null ? `${quantity} pcs` : '0 pcs'}
@@ -504,7 +535,9 @@ export function VDashboard() {
                 product_id,
                 name,
                 total_sale,
-                status
+                status,
+                variant,
+                variant_sku
 
 
             },
@@ -523,10 +556,15 @@ export function VDashboard() {
                 </IndexTable.Cell>
                 <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {name != null ? name : "---"}
+                        {name != null ? name.substring(0, 40) : "---"} {variant !== '' ? `(${variant})` : ''}
                     </Text>
                 </IndexTable.Cell>
 
+                <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {variant_sku !== '' ? `(${variant_sku})` : ''}
+                    </Text>
+                </IndexTable.Cell>
                 <IndexTable.Cell>
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
                         {total_sale !== null ? `${total_sale} sales` : '---'}
@@ -750,14 +788,14 @@ export function VDashboard() {
                                         <LegacyCard.Section>
                                             <div className="earning_stats">
                                                 <text>
-                                                    <CustomBadge value={"Total Commission"} type="products" />{" "}
+                                                    <CustomBadge value={"Total Earning"} type="products" />{" "}
                                                     <span className="product_stats_span">
                         {currency} {totalCommission}
                     </span>
                                                 </text>
                                             </div>
                                             <div className="margin-top"></div>
-                                            <Text>This is the overall commission amount of your Marketplace.</Text>
+                                            <Text>This is the overall earning amount of your Marketplace.</Text>
                                         </LegacyCard.Section>
                                     </>
                                 )}
@@ -775,8 +813,8 @@ export function VDashboard() {
                                         itemCount={orders.length}
                                         selectable={false}
                                         headings={[
-                                            { title: "Order Id" },
-                                            { title: "Store Order Id" },
+                                            // { title: "Order Id" },
+                                            // { title: "Store Order Id" },
                                             { title: "Order Number" },
                                             { title: "Seller Name" },
                                             { title: "Order Total" },
@@ -848,7 +886,7 @@ export function VDashboard() {
                                 headings={[
                                     { title: "" },
                                     { title: "Product Name" },
-                                    { title: "Seller Name" },
+                                    { title: "SKU" },
                                     { title: "Current Quantity" },
                                     { title: "No. of Sales" },
 
@@ -876,6 +914,7 @@ export function VDashboard() {
                                 headings={[
                                     { title: "Product Id" },
                                     { title: "Product Name" },
+                                    { title: "SKU" },
                                     { title: "Total Sales" },
                                     { title: "Status" },
 

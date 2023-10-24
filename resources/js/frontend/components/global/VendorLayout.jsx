@@ -9,7 +9,7 @@ import {
 } from "@shopify/polaris-icons";
 import { AppContext } from "../providers/ContextProvider";
 // import { useAuthDispatch, useAuthState } from '../providers/AuthProvider'
-import checkifyLogo from "../../assets/onewholesale.webp";
+import checkifyLogo from "../../assets/logo.webp";
 import { useLocation, useNavigate } from "react-router-dom";
 // import { setAccessToken, getAccessToken } from '../../components'
 import axios from "axios";
@@ -51,7 +51,7 @@ export function VendorLayout(props) {
 
     const handleViewShop = () => {
         // Open google.com in a new tab
-        window.open(`https://onewholesalelive.myshopify.com/collections/${handle}`, '_blank');
+        window.open(`https://www.onewholesale.ca/collections/${handle}?view=seller`, '_blank');
         // window.open(`https://tlx-new-brand.myshopify.com/collections/${sellerHandle}`, '_blank');
     };
 
@@ -147,7 +147,7 @@ export function VendorLayout(props) {
               selected: location.pathname === "/orders",
           },
             {
-                label: "Commission Listing",
+                label: "Earning",
                 icon: OrdersMinor,
                 url: "/commission",
                 onClick: () => setLocationChange("/vendor/commission"),

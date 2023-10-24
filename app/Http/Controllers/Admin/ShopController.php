@@ -28,6 +28,7 @@ class ShopController extends Controller
     public function ShopSettingSave(Request $request){
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
+
         $client = new Rest($session->shop, $session->access_token);
         $shop_page_setting=ShopPageSetting::where('shop_id',$session->id)->first();
         if($shop_page_setting==null){

@@ -321,7 +321,12 @@ export function VendorViewOrder() {
                                                                 <h2 className="Product-Title">{item.title}</h2>
                                                                 <h2 className="Product-Title">
                                                                     {currency}{" "}
-                                                                    {item.price && Number(item.price).toFixed(2)}
+                                                                    {item.price && Number(item.price).toFixed(2)} x   {item.quantity}
+
+                                                                </h2>
+                                                                <h2 className="Product-Title">
+                                                                    {currency}{" "}
+                                                                    {item.price && (Number(item.price) * item.quantity).toFixed(2)}
                                                                 </h2>
                                                             </div>
                                                             {/* <h2 className='Product-Extras'>Old</h2> */}
@@ -463,7 +468,7 @@ export function VendorViewOrder() {
                                             {/*Tip Charge Earning -<span className="order_status_span">   $0.00</span>*/}
                                             {/*  </p>*/}
                                             <p className="order_status_p">
-                                                Total Order Commission -<span className="order_status_span">   {currency}{" "}{totalOrderCommission}</span>
+                                                Total Order Earning -<span className="order_status_span">   {currency}{" "}{totalOrderCommission}</span>
                                             </p>
                                         </div>
 
@@ -474,64 +479,64 @@ export function VendorViewOrder() {
                         </Layout.Section>
 
 
-                        <Layout.Section oneThird>
-                            <Card>
-                                <Card.Section title="Current Order Status">
-                                    <div className="order_detail_status">
-                                        <h2 className="order_status_heading">Here is current status of order.</h2>
-                                        <p className="order_status_p">
-                                            Ordered On -<span className="order_status_span">{orderCreateDate}   </span>
-                                        </p>
-                                        {/*<p className="order_status_p">*/}
-                                        {/*    Delivery Method - <span className="order_status_span">   Standard shipping</span>*/}
-                                        {/*</p>*/}
-                                        <p className="order_status_p">
-                                            Order Status - <span className="order_status_span">    <Badge status='critical'>{!orderStatus ? 'Unfulfilled' : orderStatus}</Badge></span>
-                                        </p>
-                                        <p className="order_status_p">
-                                            Payment Status - <span className="order_status_span">    <Badge status='success'>{paymentStatus}</Badge></span>
-                                        </p>
+                        {/*<Layout.Section oneThird>*/}
+                        {/*    <Card>*/}
+                        {/*        <Card.Section title="Current Order Status">*/}
+                        {/*            <div className="order_detail_status">*/}
+                        {/*                <h2 className="order_status_heading">Here is current status of order.</h2>*/}
+                        {/*                <p className="order_status_p">*/}
+                        {/*                    Ordered On -<span className="order_status_span">{orderCreateDate}   </span>*/}
+                        {/*                </p>*/}
+                        {/*                /!*<p className="order_status_p">*!/*/}
+                        {/*                /!*    Delivery Method - <span className="order_status_span">   Standard shipping</span>*!/*/}
+                        {/*                /!*</p>*!/*/}
+                        {/*                <p className="order_status_p">*/}
+                        {/*                    Order Status - <span className="order_status_span">    <Badge status='critical'>{!orderStatus ? 'Unfulfilled' : orderStatus}</Badge></span>*/}
+                        {/*                </p>*/}
+                        {/*                <p className="order_status_p">*/}
+                        {/*                    Payment Status - <span className="order_status_span">    <Badge status='success'>{paymentStatus}</Badge></span>*/}
+                        {/*                </p>*/}
 
 
 
-                                    </div>
-                                </Card.Section>
+                        {/*            </div>*/}
+                        {/*        </Card.Section>*/}
 
-                                <Card.Section title="Customer">
-                                    <p>
-                                        {customerName}
-                                    </p>
-                                    <p>{customerEmail}</p>
-                                </Card.Section>
+                        {/*        <Card.Section title="Customer">*/}
+                        {/*            <p>*/}
+                        {/*                {customerName}*/}
+                        {/*            </p>*/}
+                        {/*            <p>{customerEmail}</p>*/}
+                        {/*        </Card.Section>*/}
 
-                                <Card.Section title="Shipping address">
-                                    <p>
-                                        {shippingName}
-                                    </p>
-                                    <p> {shippingAddress }</p>
-                                    <p>
-                                        {shippingCity}
-                                        {shippingZip}
-                                    </p>
-                                    <p>{shippingCountry}</p>
-                                </Card.Section>
+                        {/*        <Card.Section title="Shipping address">*/}
+                        {/*            <p>*/}
+                        {/*                {shippingName}*/}
+                        {/*            </p>*/}
+                        {/*            <p> {shippingAddress }</p>*/}
+                        {/*            <p>*/}
+                        {/*                {shippingCity}*/}
+                        {/*                {shippingZip}*/}
+                        {/*            </p>*/}
+                        {/*            <p>{shippingCountry}</p>*/}
+                        {/*        </Card.Section>*/}
 
-                                <Card.Section title="Billing address">
+                        {/*        <Card.Section title="Billing address">*/}
 
-                                    <p>
-                                        {billingName}
-                                    </p>
-                                    <p> {billingAddress}</p>
-                                    <p>
-                                        {billingCity}
-                                        {billingZip}
-                                    </p>
-                                    <p> {billingCountry}</p>
+                        {/*            <p>*/}
+                        {/*                {billingName}*/}
+                        {/*            </p>*/}
+                        {/*            <p> {billingAddress}</p>*/}
+                        {/*            <p>*/}
+                        {/*                {billingCity}*/}
+                        {/*                {billingZip}*/}
+                        {/*            </p>*/}
+                        {/*            <p> {billingCountry}</p>*/}
 
 
-                                </Card.Section>
-                            </Card>
-                        </Layout.Section>
+                        {/*        </Card.Section>*/}
+                        {/*    </Card>*/}
+                        {/*</Layout.Section>*/}
                     </Layout>
                 </Page>
             )}
