@@ -329,7 +329,7 @@ console.log(error)
         useIndexResourceState(products);
 
     const rowMarkup = products ? products?.map(
-        ({ id, product_id,featured_image,product_status,product_name,type,price,quantity,status  }, index) => (
+        ({ id, product_id,featured_image,product_status,product_name,type,price,quantity,status,has_variants_count  }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -350,8 +350,8 @@ console.log(error)
                     <Avatar size="small" shape="square" name='title' source={featured_image} />
                 </IndexTable.Cell>
 
-                <IndexTable.Cell className='Capitalize-Cell'>
-                    {product_name != null ? product_name : '---'}
+                <IndexTable.Cell className="Capitalize-Cell">
+                    {product_name != null ? product_name.substring(0, 40) : "---"}
                 </IndexTable.Cell>
 
 
@@ -361,7 +361,11 @@ console.log(error)
 
                 <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
                 <IndexTable.Cell>
-                    {quantity != null ? quantity : '---'}
+                    {has_variants_count &&
+                    has_variants_count.length > 0 &&
+                    has_variants_count[0].total_quantity !== 0
+                        ? has_variants_count[0].total_quantity
+                        : 0}
                 </IndexTable.Cell>
                 {product_status === 'Approved' ? (
                     <IndexTable.Cell className="approved">

@@ -282,7 +282,7 @@ export function Commissions() {
         useIndexResourceState(commissions);
 
     const rowMarkup = commissions? commissions?.map(
-        ({ id, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission }, index) => (
+        ({ id,has_order,has_variant, order_id,created_at,seller_name,product_name,quantity,price,unit_product_commission,total_product_commission ,total_admin_earning,refunded_admin_earning,vat_on_commission,unit_payout,sub_total_payout,sub_total_payout_tax,total_payout }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -294,6 +294,14 @@ export function Commissions() {
 
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
                         {order_id != null ? order_id : '---'}
+
+                    </Text>
+                </IndexTable.Cell>
+
+                <IndexTable.Cell className='Polaris-IndexTable-Product-Column'>
+
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {has_order?.order_number != null ? has_order?.order_number : '---'}
 
                     </Text>
                 </IndexTable.Cell>
@@ -309,8 +317,13 @@ export function Commissions() {
                 {/*</IndexTable.Cell>*/}
 
                 <IndexTable.Cell className='Capitalize-Cell'>
-                    {product_name != null ? product_name : '---'}
+                    {product_name != null && has_variant
+                        ? `${product_name.substring(0, 40)} (${has_variant.sku})`
+                        : product_name != null
+                            ? product_name.substring(0, 40)
+                            : '---'}
                 </IndexTable.Cell>
+
 
                 <IndexTable.Cell>
                     {quantity != null ? quantity : '---'}
@@ -321,12 +334,64 @@ export function Commissions() {
 
 
 
-                    <IndexTable.Cell>{unit_product_commission != null ? `${currency} ${unit_product_commission.toFixed(2)}` : '---'}</IndexTable.Cell>
+                <IndexTable.Cell>
+                    {unit_payout != null ? `${currency} ${unit_payout.toFixed(2)}` : '---'}
+                </IndexTable.Cell>
+                <IndexTable.Cell>
+                    {sub_total_payout != null ? `${currency} ${sub_total_payout.toFixed(2)}` : '---'}
+                </IndexTable.Cell>
+                <IndexTable.Cell>
+                    {sub_total_payout_tax != null ? `${currency} ${sub_total_payout_tax.toFixed(2)}` : '---'}
+                </IndexTable.Cell>
+
+                <IndexTable.Cell>
+                    {total_payout != null ? `${currency} ${total_payout.toFixed(2)}` : '---'}
+                </IndexTable.Cell>
+
+                {has_order?.fulfillment_status === 'fulfilled' ? (
+                    <IndexTable.Cell className="fulfilled">
+                        {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
+                        <Badge progress='complete'>{has_order?.fulfillment_status === 'fulfilled' ? 'Fulfilled' : ''}</Badge>
 
 
-                    <IndexTable.Cell>{total_product_commission != null ? `${currency} ${total_product_commission.toFixed(2)}` : '---'}</IndexTable.Cell>
+                    </IndexTable.Cell>
+                ) : has_order?.fulfillment_status === 'partial' ? (
+                    <IndexTable.Cell className="partial">
+                        <Badge progress='complete'>{has_order?.fulfillment_status === 'partial' ? 'Partially fulfilled' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : (
+                    <IndexTable.Cell className="unfulfilled">
+                        <Badge progress='complete'>{has_order?.fulfillment_status==null ? 'Unfulfilled' : has_order?.fulfillment_status}</Badge>
 
+                    </IndexTable.Cell>
+                )}
 
+                {has_order?.financial_status === 'paid' ? (
+                    <IndexTable.Cell>
+                        <Badge progress='complete'>{has_order?.financial_status === 'paid' ? 'Paid' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : has_order?.financial_status === 'refunded' ? (
+                    <IndexTable.Cell >
+                        <Badge progress='complete'>{has_order?.financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) :has_order?.financial_status === 'partially_paid' ? (
+                        <IndexTable.Cell className="partially_paid" >
+                            <Badge progress='complete'>{has_order?.financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
+                        </IndexTable.Cell>
+                    ) :
+                    has_order?.financial_status === 'partially_refunded' ? (
+                            <IndexTable.Cell className="partially_refunded" >
+                                <Badge progress='complete'>{has_order?.financial_status === 'partially_refunded' ? 'Partially refunded' : ''}</Badge>
+                            </IndexTable.Cell>
+                        ):
+
+                        (
+
+                            <IndexTable.Cell className="payment_pending" >
+                                <Badge progress='complete'>{has_order?.financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
+
+                            </IndexTable.Cell>
+                        )}
 
 
             </IndexTable.Row>
@@ -445,7 +510,7 @@ export function Commissions() {
 
                 <Page
                     fullWidth
-                    title="Commissions"
+                    title="Earning"
                 >
                     <Card>
                         <div className='Polaris-Table'>
@@ -477,13 +542,18 @@ export function Commissions() {
                                     emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
+                                        { title: 'Order Number' },
                                         { title: 'Date' },
                                         // { title: 'Seller Name' },
                                         { title: 'Product Name' },
                                         { title: 'Quantity' },
-                                        { title: 'Price' },
-                                        { title: 'Unit Product Commission' },
-                                        { title: 'Total Product Commission' },
+                                        { title: 'Unit Price' },
+                                        { title: 'Unit Payout' },
+                                        { title: 'Subtotal Payout' },
+                                        { title: 'Tax' },
+                                        { title: 'Total Payout' },
+                                        { title: 'Order Status' },
+                                        { title: 'Payment Status' },
                                     ]}
                                 >
                                     {rowMarkup}

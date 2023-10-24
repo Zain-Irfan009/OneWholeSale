@@ -454,9 +454,32 @@ export function Dashboard() {
             {total_price !== null ? `${currency} ${total_price}` : "---"}
         </IndexTable.Cell>
 
-          <IndexTable.Cell>
-              <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
-          </IndexTable.Cell>
+          {financial_status === 'paid' ? (
+              <IndexTable.Cell>
+                  <Badge progress='complete'>{financial_status === 'paid' ? 'Paid' : ''}</Badge>
+              </IndexTable.Cell>
+          ) : financial_status === 'refunded' ? (
+              <IndexTable.Cell >
+                  <Badge progress='complete'>{financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+              </IndexTable.Cell>
+          ) :financial_status === 'partially_paid' ? (
+                  <IndexTable.Cell className="partially_paid" >
+                      <Badge progress='complete'>{financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
+                  </IndexTable.Cell>
+              ) :
+              financial_status === 'partially_refunded' ? (
+                      <IndexTable.Cell className="partially_refunded" >
+                          <Badge progress='complete'>{financial_status === 'partially_refunded' ? 'Partially refunded' : ''}</Badge>
+                      </IndexTable.Cell>
+                  ):
+
+                  (
+
+                      <IndexTable.Cell className="payment_pending" >
+                          <Badge progress='complete'>{financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
+
+                      </IndexTable.Cell>
+                  )}
 
           <IndexTable.Cell>
              {created_at != null ? formatDate(created_at) : "---"}
@@ -496,7 +519,7 @@ export function Dashboard() {
                 </IndexTable.Cell>
                 <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {name != null ? name : "---"}
+                        {name != null ? name.substring(0, 40) : "---"}
                     </Text>
                 </IndexTable.Cell>
 
@@ -548,7 +571,7 @@ export function Dashboard() {
                 </IndexTable.Cell>
                 <IndexTable.Cell className="Polaris-IndexTable-Product-Column">
                     <Text variant="bodyMd" fontWeight="semibold" as="span">
-                        {name != null ? name : "---"}
+                        {name != null ? name.substring(0, 40) : "---"}
                     </Text>
                 </IndexTable.Cell>
 
