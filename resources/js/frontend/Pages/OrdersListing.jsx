@@ -297,15 +297,16 @@ export function OrdersListing() {
         }, 1000);
     }
 
-  const handlePagination = (value) => {
-    if (value == "next") {
-      setPageCursorValue(nextPageCursor);
-    } else {
-      setPageCursorValue(previousPageCursor);
-    }
-    setPageCursor(value);
-    setToggleLoadData(true);
-  };
+    const handlePagination = (value) => {
+        console.log("value", value, nextPageCursor)
+        if (value == "next") {
+            setPageCursorValue(nextPageCursor);
+        } else {
+            setPageCursorValue(previousPageCursor);
+        }
+        setPageCursor(value);
+        setToggleLoadData(!toggleLoadData);
+    };
 
   // ---------------------Index Table Code Start Here----------------------
 
@@ -565,19 +566,28 @@ export function OrdersListing() {
         <IndexTable.Cell>
             <Badge progress='complete'>{financial_status === 'paid' ? 'Paid' : ''}</Badge>
         </IndexTable.Cell>
-          ) : financial_status === 'refunded' ? (
-              <IndexTable.Cell >
-                  <Badge progress='complete'>{financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+          ) :  financial_status === 'refunded' ? (
+                  <IndexTable.Cell className="unfulfilled" >
+                      <Badge progress='complete'>{financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+                  </IndexTable.Cell>
+              ) : financial_status === 'voided' ? (
+              <IndexTable.Cell className="voided" >
+                  <Badge progress='complete'>{financial_status === 'voided' ? 'Voided' : ''}</Badge>
               </IndexTable.Cell>
           ) :financial_status === 'partially_paid' ? (
                   <IndexTable.Cell className="partially_paid" >
                       <Badge progress='complete'>{financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
                   </IndexTable.Cell>
               ) :
+              financial_status === 'partially_refunded' ? (
+                  <IndexTable.Cell className="partially_refunded" >
+                      <Badge progress='complete'>{financial_status === 'partially_refunded' ? 'Partially refunded' : ''}</Badge>
+                  </IndexTable.Cell>
+              ):
 
               (
 
-              <IndexTable.Cell >
+              <IndexTable.Cell className="payment_pending" >
                   <Badge progress='complete'>{financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
 
               </IndexTable.Cell>
@@ -867,7 +877,14 @@ export function OrdersListing() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/orders?page=${pagination}`,
+            if (pageCursorValue != '') {
+
+                var url = pageCursorValue;
+            } else {
+                var url = `${apiUrl}/orders?${pageCursor}=${pageCursorValue}`;
+            }
+
+            const response = await axios.get(url,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -875,15 +892,20 @@ export function OrdersListing() {
                 })
             console.log('dsds',response)
             setOrders(response?.data?.data)
-            setPaginationUrl(response?.data?.links);
-            if (
-                response?.data?.total >
-                response?.data?.per_page
-            ) {
-                setShowPagination(true);
+
+            setNextPageCursor(response?.data?.next_page_url)
+            setPreviousPageCursor(response?.data?.prev_page_url)
+            if (response?.data?.next_page_url) {
+                setHasNextPage(true)
             } else {
-                setShowPagination(false);
+                setHasNextPage(false)
             }
+            if (response?.data?.prev_page_url) {
+                setHasPreviousPage(true)
+            } else {
+                setHasPreviousPage(false)
+            }
+
             setLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -899,7 +921,7 @@ export function OrdersListing() {
 
     useEffect(() => {
         getData();
-    }, [toggleLoadData1]);
+    }, [toggleLoadData]);
 
   return (
     <div className="Products-Page IndexTable-Page Orders-page">
@@ -1065,7 +1087,7 @@ export function OrdersListing() {
                   {rowMarkup}
                 </IndexTable>
               </Card.Section>
-                {showPagination && (
+
               <Card.Section>
                 <div
                   className="data-table-pagination"
@@ -1077,14 +1099,14 @@ export function OrdersListing() {
                   }}
                 >
                     <Pagination
-                        hasPrevious={pagination > 1}
-                        onPrevious={() => handlePaginationTabs(false, pagination - 1)}
-                        hasNext={pagination < paginationUrl.length}
-                        onNext={() => handlePaginationTabs(false, pagination + 1)}
+                        hasPrevious={hasPreviousPage ? true : false}
+                        onPrevious={() => handlePagination("prev")}
+                        hasNext={hasNextPage ? true : false}
+                        onNext={() => handlePagination("next")}
                     />
                 </div>
               </Card.Section>
-                )}
+
             </div>
             {/* </Tabs> */}
           </Card>

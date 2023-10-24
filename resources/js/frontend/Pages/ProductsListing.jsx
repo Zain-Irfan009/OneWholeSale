@@ -257,34 +257,36 @@ export function ProductsListing() {
         setLoading(true)
 
 setSelectedStatus(selectedOption)
+
         setShowClearButton(true)
-        try {
-            const response = await axios.get(`${apiUrl}/search-seller-product?value=${selectedOption.value}&product_name=${queryValue}&status=${selected}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            console.log(response?.data)
-            setProducts(response?.data?.products?.data)
-            setPaginationUrl(response?.data?.products?.links);
-            if (
-                response?.data?.products?.total >
-                response?.data?.products?.per_page
-            ) {
-                setShowPagination(true);
-            } else {
-                setShowPagination(false);
-            }
 
-            setLoading(false)
-
-
-        } catch (error) {
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
+        // try {
+        //     const response = await axios.get(`${apiUrl}/search-seller-product?value=${selectedOption.value}&product_name=${queryValue}&status=${selected}`,
+        //         {
+        //             headers: {
+        //                 Authorization: "Bearer " + sessionToken
+        //             }
+        //         })
+        //     console.log(response?.data)
+        //     setProducts(response?.data?.products?.data)
+        //     setPaginationUrl(response?.data?.products?.links);
+        //     if (
+        //         response?.data?.products?.total >
+        //         response?.data?.products?.per_page
+        //     ) {
+        //         setShowPagination(true);
+        //     } else {
+        //         setShowPagination(false);
+        //     }
+        //
+        //     setLoading(false)
+        //
+        //
+        // } catch (error) {
+        //     setBtnLoading(false)
+        //     setToastMsg(error?.response?.data?.message)
+        //     setErrorToast(true)
+        // }
     };
 
 
@@ -373,35 +375,35 @@ setSelectedStatus(selectedOption)
     };
 
     const handleFiltersQueryChange = async (value)  => {
-        setTableLoading(true)
+        // setTableLoading(true)
         setPageCursorValue('')
 
         setQueryValue(value)
-
+    // getData()
         const sessionToken = getAccessToken();
 
 
-        try {
-            const response = await axios.get(`${apiUrl}/search-product?value=${value}&seller=${selectedStatus.value}&status=${selected}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-
-            setProducts(response?.data?.data)
-            setTableLoading(false)
-
-
-        } catch (error) {
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
-
-        setTimeout(() => {
-            setToggleLoadData(true)
-        }, 1000);
+        // try {
+        //     const response = await axios.get(`${apiUrl}/search-product?value=${value}&seller=${selectedStatus.value}&status=${selected}`,
+        //         {
+        //             headers: {
+        //                 Authorization: "Bearer " + sessionToken
+        //             }
+        //         })
+        //
+        //     setProducts(response?.data?.data)
+        //     setTableLoading(false)
+        //
+        //
+        // } catch (error) {
+        //     setBtnLoading(false)
+        //     setToastMsg(error?.response?.data?.message)
+        //     setErrorToast(true)
+        // }
+        //
+        // setTimeout(() => {
+        //     setToggleLoadData(true)
+        // }, 1000);
     }
 
 
@@ -421,13 +423,16 @@ setSelectedStatus(selectedOption)
     const getData = async () => {
 
         const sessionToken = getAccessToken();
+        setTableLoading(true)
+        console.log('selectedStatus',selectedStatus.value)
         try {
 
             if (pageCursorValue != '') {
-
-                var url = pageCursorValue;
+                var selectedShop = encodeURIComponent(selectedStatus.value);
+                var url = pageCursorValue+ '&value=' + queryValue +'&seller=' +selectedShop + '&status=' + selected ;
             } else {
-                var url = `${apiUrl}/products?${pageCursor}=${pageCursorValue}`;
+                var selectedShop = encodeURIComponent(selectedStatus.value);
+                var url = `${apiUrl}/products?${pageCursor}=${pageCursorValue}&value=${queryValue}&seller=${selectedShop}&status=${selected}`;
             }
             console.log(pageCursorValue)
 
@@ -446,7 +451,7 @@ setSelectedStatus(selectedOption)
             console.log(response?.data)
             setProducts(response?.data?.products?.data)
             let arr_seller = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
-                value: email,
+                value: seller_shopname,
                 label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
@@ -482,15 +487,18 @@ setSelectedStatus(selectedOption)
             //     setShowPagination(false);
             // }
             setLoading(false)
+            setTableLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
 
 
         } catch (error) {
-
+                console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
+            setLoading(false)
+            setTableLoading(false)
         }
     }
 
@@ -656,7 +664,7 @@ setSelectedStatus(selectedOption)
 
     useEffect(() => {
         getData()
-    }, [toggleLoadData]);
+    }, [toggleLoadData,queryValue,selectedStatus.value,selected]);
 
 
     const promotedBulkActions = [
@@ -823,6 +831,8 @@ setSelectedStatus(selectedOption)
         type,
         price,
         quantity,
+          vendor,
+          collect_id,
           has_variants_count,
         product_status,
       },
@@ -846,10 +856,10 @@ setSelectedStatus(selectedOption)
         </IndexTable.Cell>
 
         <IndexTable.Cell className="Capitalize-Cell">
-          {product_name != null ? product_name : "---"}
+            {product_name != null ? product_name.substring(0, 40) : "---"}
         </IndexTable.Cell>
 
-        <IndexTable.Cell>{seller_name != null ? seller_name : "---"}</IndexTable.Cell>
+        <IndexTable.Cell>{vendor != null ? vendor : "---"}</IndexTable.Cell>
 
         <IndexTable.Cell>
           <CustomBadge value={"NORMAL"} type="products" />
@@ -863,6 +873,16 @@ setSelectedStatus(selectedOption)
                   ? has_variants_count[0].total_quantity
                   : 0}
           </IndexTable.Cell>
+
+          {collect_id == null ? (
+              <IndexTable.Cell className="disabled">
+                  <CustomBadge value="Not Assigned" type="products" />
+              </IndexTable.Cell>
+          ) : (
+              <IndexTable.Cell className="approved">
+                  <CustomBadge value="Assigned" type="products" />
+              </IndexTable.Cell>
+          )}
 
           {product_status === 'Approved' ? (
         <IndexTable.Cell className="approved">
@@ -1244,9 +1264,11 @@ setSelectedStatus(selectedOption)
 
 
             if (selectedResources.length === 0) {
-                var url = `${apiUrl}/reassign-seller?id=${uniqueId}&email=${sellerEmailListSelected}`
+                var encodedEmail = encodeURIComponent(sellerEmailListSelected);
+                var url = `${apiUrl}/reassign-seller?id=${uniqueId}&email=${encodedEmail}`
             }else{
-                var url=`${apiUrl}/reassign-multiple-seller?ids=${selectedResources}&email=${sellerEmailListSelected}`
+                var encodedEmail = encodeURIComponent(sellerEmailListSelected);
+                var url=`${apiUrl}/reassign-multiple-seller?ids=${selectedResources}&email=${encodedEmail}`
             }
                 const response = await axios.get(url,
                     {
@@ -1276,24 +1298,24 @@ setSelectedStatus(selectedOption)
         setSelected(value)
         setLoading(true)
         const sessionToken = getAccessToken();
-        try {
-
-            const response = await axios.get(`${apiUrl}/product-filter?status=${value}&value=${queryValue}&seller=${selectedStatus.value}&page=${pagination}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            setProducts(response?.data?.products)
-            setLoading(false)
-
-
-
-        } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
+        // try {
+        //
+        //     const response = await axios.get(`${apiUrl}/product-filter?status=${value}&value=${queryValue}&seller=${selectedStatus.value}`,
+        //         {
+        //             headers: {
+        //                 Authorization: "Bearer " + sessionToken
+        //             }
+        //         })
+        //     setProducts(response?.data?.products)
+        //     setLoading(false)
+        //
+        //
+        //
+        // } catch (error) {
+        //
+        //     setToastMsg(error?.response?.data?.message)
+        //     setErrorToast(true)
+        // }
     }
 
     const handleExportProduct = async () => {
@@ -1588,6 +1610,7 @@ setSelectedStatus(selectedOption)
                     { title: "Type" },
                     { title: "Price" },
                     { title: "Quantity" },
+                    { title: "Assigned" },
                     { title: "Status" },
                     { title: "Action" },
                   ]}

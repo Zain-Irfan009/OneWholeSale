@@ -3,7 +3,7 @@ import {
     Page, Card, Tabs, Link, TextField, IndexTable, Loading, Icon, Text, Avatar, Pagination,
     Badge, EmptySearchResult, Toast, Tooltip,Button, Popover,ActionList,ButtonGroup,useIndexResourceState,Modal,TextContainer
 } from '@shopify/polaris';
-import { SearchMinor, ExternalMinor,DeleteMinor,HorizontalDotsMinor } from '@shopify/polaris-icons';
+import {SearchMinor, ExternalMinor, DeleteMinor, HorizontalDotsMinor, ViewMajor} from '@shopify/polaris-icons';
 import { AppContext } from '../../components/providers/ContextProvider'
 import { SkeltonPageForTable } from '../../components/global/SkeltonPage'
 import { CustomBadge } from '../../components/Utils/CustomBadge'
@@ -195,7 +195,7 @@ export function Orders() {
 
 
         try {
-            const response = await axios.get(`${apiUrl}/seller/search-order?value=${value}`,
+            const response = await axios.get(`${apiUrl}/seller/search-order?value=${value}&seller=${selectedStatus.value}&status=${selected}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -307,15 +307,43 @@ export function Orders() {
                     </Text>
                 </IndexTable.Cell>
 
-                {/*<IndexTable.Cell>*/}
-                {/*    { order_number != null ? order_number : '---'}*/}
-                {/*</IndexTable.Cell>*/}
+                <IndexTable.Cell>
+                    <Text variant="bodyMd" fontWeight="semibold" as="span">
+                        {order_number != null ? order_number : "---"}
+                    </Text>
+                </IndexTable.Cell>
                 <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    <CustomBadge value={financial_status=="paid" ? 'PAID' : financial_status} type="orders" variant={"financial"} />
-                </IndexTable.Cell>
+                {financial_status === 'paid' ? (
+                    <IndexTable.Cell>
+                        <Badge progress='complete'>{financial_status === 'paid' ? 'Paid' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : financial_status === 'refunded' ? (
+                    <IndexTable.Cell >
+                        <Badge progress='complete'>{financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : financial_status === 'voided' ? (
+                    <IndexTable.Cell className="voided" >
+                        <Badge progress='complete'>{financial_status === 'voided' ? 'Voided' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : financial_status === 'partially_paid' ? (
+                        <IndexTable.Cell className="partially_paid" >
+                            <Badge progress='complete'>{financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
+                        </IndexTable.Cell>
+                    ) :
+                    financial_status === 'partially_refunded' ? (
+                            <IndexTable.Cell className="partially_refunded" >
+                                <Badge progress='complete'>{financial_status === 'partially_refunded' ? 'Partially refunded' : ''}</Badge>
+                            </IndexTable.Cell>
+                        ):
 
+                        (
+
+                            <IndexTable.Cell className="payment_pending" >
+                                <Badge progress='complete'>{financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
+
+                            </IndexTable.Cell>
+                        )}
                 {fulfillment_status === 'fulfilled' ? (
                     <IndexTable.Cell className="fulfilled">
                         {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
@@ -334,32 +362,39 @@ export function Orders() {
                     </IndexTable.Cell>
                 )}
 
+
+                {/*<IndexTable.Cell>*/}
+                {/*    <Popover*/}
+                {/*        active={active[id]}*/}
+                {/*        activator={<Button onClick={() => toggleActive(id)}  plain>*/}
+                {/*            <Icon  source={HorizontalDotsMinor}></Icon>*/}
+                {/*        </Button>}*/}
+                {/*        autofocusTarget="first-node"*/}
+                {/*        onClose={()=>setActive(false)}*/}
+
+
+                {/*    >*/}
+                {/*        <ActionList*/}
+                {/*            actionRole="menuitem"*/}
+                {/*            items={[*/}
+                {/*                {*/}
+                {/*                    content: 'View',*/}
+                {/*                    onAction: ()=>handleViewAction(id),*/}
+                {/*                },*/}
+
+
+                {/*            ]}*/}
+                {/*        />*/}
+                {/*    </Popover>*/}
+                {/*</IndexTable.Cell>*/}
+
                 <IndexTable.Cell>
-                    <Popover
-                        active={active[id]}
-                        activator={<Button onClick={() => toggleActive(id)}  plain>
-                            <Icon  source={HorizontalDotsMinor}></Icon>
-                        </Button>}
-                        autofocusTarget="first-node"
-                        onClose={()=>setActive(false)}
-
-
-                    >
-                        <ActionList
-                            actionRole="menuitem"
-                            items={[
-                                {
-                                    content: 'View',
-                                    onAction: ()=>handleViewAction(id),
-                                },
-
-
-                            ]}
-                        />
-                    </Popover>
+                    <Tooltip content="View Order">
+                        <Button size="micro" onClick={() => handleViewAction(id)}>
+                            <Icon source={ViewMajor}></Icon>
+                        </Button>
+                    </Tooltip>
                 </IndexTable.Cell>
-
-
             </IndexTable.Row>
         ),
     ) : <EmptySearchResult title={"No Order Found"} withIllustration />
@@ -569,7 +604,7 @@ export function Orders() {
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.get(`${apiUrl}/seller/order-filter?status=${value}`,
+            const response = await axios.get(`${apiUrl}/seller/order-filter?status=${value}&value=${queryValue}&seller=${selectedStatus.value}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
@@ -744,7 +779,7 @@ export function Orders() {
                                     emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
-                                        // { title: 'Order Number' },
+                                        { title: 'Store Order Number' },
                                         { title: "Date" },
                                         { title: 'Payment Status' },
                                         { title: 'Order Status' },

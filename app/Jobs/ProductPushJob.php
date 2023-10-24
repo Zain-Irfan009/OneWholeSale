@@ -159,6 +159,8 @@ class ProductPushJob implements ShouldQueue
                 $product->user_id = $user->id;
             }
             $product->collections = $collections;
+            $product->vape_seller ='No';
+            $product->excise_tax = 0;
             $product->tags = $tags;
             $product->product_type = $product_data_first_record->type;
             $product->vendor = $product_data_first_record->vendor_name;
@@ -182,7 +184,8 @@ class ProductPushJob implements ShouldQueue
 
             $import_csv=CsvImport::where('product_id',$product_id)->whereNull('product_shopify_id')->update([
                 'imported'=>1,
-                'product_shopify_id'=>$response->id
+                'product_shopify_id'=>$response->id,
+                'p_status'=>'Completed'
                 ]);
 
             foreach ($response->variants as $product_variant) {
