@@ -65,8 +65,9 @@ export function ProductsListing() {
   const [active, setActive] = useState(false);
 
     const [sellerList, setSellerList] = useState([]);
-
+    const [deleteBtnLoading, setDeleteBtnLoading] = useState(false);
     const [skeleton, setSkeleton] = useState(false)
+
 
     const [sellerEmailList, setSellerEmailList] = useState(
         []
@@ -211,15 +212,15 @@ export function ProductsListing() {
     const [showClearButton, setShowClearButton] = useState(false);
     const toggleActive1 = useCallback(() => setActive((active) => !active), []);
 
+    const [deleteProductModal, setDeleteProductModal] = useState(false);
+
   const handleChange = useCallback((newChecked) => setChecked(newChecked), []);
 
   const deleteSellerModalHandler = () => {
     setDeleteSellerModal(true);
   };
 
-  const deleteModalCloseHandler = () => {
-    setDeleteSellerModal(false);
-  };
+
 
     const handleMultipleReassign = async () => {
 
@@ -545,20 +546,32 @@ setSelectedStatus(selectedOption)
         }
     }
 
-    const deleteProduct  = async (id) => {
 
-        setSkeleton(true)
-        setLoading(true)
+    const deleteProductModalHandler = (id) => {
+        setUniqueId(id)
+        setDeleteProductModal(true);
+    };
+
+    const deleteModalCloseHandler = () => {
+        setDeleteProductModal(false);
+    };
+
+    const deleteProduct  = async () => {
+        setDeleteBtnLoading(true)
+        // setSkeleton(true)
+        // setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.delete(`${apiUrl}/delete-product?id=${id}`,
+            const response = await axios.delete(`${apiUrl}/delete-product?id=${uniqueId}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
             getData();
+            setDeleteProductModal(false);
+            setDeleteBtnLoading(false)
             setLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
@@ -937,7 +950,8 @@ setSelectedStatus(selectedOption)
 
                 {
                   content: "Delete",
-                    onAction: ()=>deleteProduct(id),
+                    // onAction: ()=>deleteProduct(id),
+                    onAction: () =>deleteProductModalHandler(id),
                 },
               ]}
             />
@@ -1347,6 +1361,32 @@ setSelectedStatus(selectedOption)
     }
     return (
     <div className="Products-Page IndexTable-Page Orders-page">
+
+        <Modal
+            open={deleteProductModal}
+            onClose={deleteModalCloseHandler}
+            title="Delete Product"
+            primaryAction={{
+                content: "Delete Product",
+                destructive: true,
+                style: { backgroundColor: "red" },
+                onAction: deleteProduct,
+                loading: deleteBtnLoading,
+            }}
+            secondaryActions={[
+                {
+                    content: "Cancel",
+                    onAction: deleteModalCloseHandler,
+                },
+            ]}
+        >
+            <Modal.Section>
+
+                <div className="margin-top" />
+
+            </Modal.Section>
+        </Modal>
+
       <Modal
         open={modalReassign}
         onClose={handleReassignCloseAction}

@@ -213,11 +213,26 @@ Route::get('sync-collection', [\App\Http\Controllers\Admin\CollectionController:
 
 Route::get('/testing', function() {
 
-    $session=Session::where('shop','onewholesalelive.myshopify.com')->first();
+
+
+
+
+    $session=Session::where('shop','onetradingltd.myshopify.com')->first();
 
     $client = new Rest($session->shop, $session->access_token);
 
     $response = $client->get('/webhooks.json');
+
+//        $product_delete = $client->post( '/webhooks.json', [
+//
+//        "webhook" => array(
+//            "topic" => "products/delete",
+//            "format" => "json",
+//            "address" => "https://phpstack-1018470-3598964.cloudwaysapps.com/api/webhooks/product-delete"
+//        )
+//    ]);
+//    dd($product_delete);
+
     dd($response->getDecodedBody());
 
 })->name('getwebbhook');

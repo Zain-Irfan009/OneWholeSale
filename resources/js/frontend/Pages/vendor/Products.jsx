@@ -85,7 +85,8 @@ export function Products() {
     const [showPagination, setShowPagination] = useState(false);
     const [paginationUrl, setPaginationUrl] = useState([]);
 
-
+    const [deleteProductModal, setDeleteProductModal] = useState(false);
+    const [deleteBtnLoading, setDeleteBtnLoading] = useState(false);
 
     const handleEditAction = (id) => {
         navigate(`/edit-product/${id}`);
@@ -200,27 +201,41 @@ export function Products() {
 
 
 
+
+
     const handleReassignCloseAction=()=>{
         setUniqueId()
         setSellerEmail('')
         setModalReassign(false)
     }
 
-    const deleteProduct  = async (id) => {
 
+    const deleteProductModalHandler = (id) => {
+        setUniqueId(id)
+        setDeleteProductModal(true);
+    };
+
+    const deleteModalCloseHandler = () => {
+        setDeleteProductModal(false);
+    };
+
+    const deleteProduct  = async () => {
+        setDeleteBtnLoading(true)
         // setSkeleton(true)
-        setLoading(true)
+        // setLoading(true)
         const sessionToken = getAccessToken();
         try {
 
-            const response = await axios.delete(`${apiUrl}/seller/product-delete?id=${id}`,
+            const response = await axios.delete(`${apiUrl}/seller/product-delete?id=${uniqueId}`,
                 {
                     headers: {
                         Authorization: "Bearer " + sessionToken
                     }
                 })
             getData();
-            setLoading(false)
+            // setLoading(false)
+            setDeleteProductModal(false);
+            setDeleteBtnLoading(false)
             setToastMsg(response?.data?.message)
             setSucessToast(true)
             // setSkeleton(false)
@@ -409,7 +424,8 @@ console.log(error)
 
                                 {
                                     content: 'Delete',
-                                    onAction: ()=>deleteProduct(id),
+                                    // onAction: ()=>deleteProduct(id),
+                                    onAction: () =>deleteProductModalHandler(id),
                                 },
                             ]}
                         />
@@ -519,6 +535,32 @@ console.log(error)
 
     return (
         <div className='Products-Page IndexTable-Page Orders-page'>
+
+
+            <Modal
+                open={deleteProductModal}
+                onClose={deleteModalCloseHandler}
+                title="Delete Product"
+                primaryAction={{
+                    content: "Delete Product",
+                    destructive: true,
+                    style: { backgroundColor: "red" },
+                    onAction: deleteProduct,
+                    loading: deleteBtnLoading,
+                }}
+                secondaryActions={[
+                    {
+                        content: "Cancel",
+                        onAction: deleteModalCloseHandler,
+                    },
+                ]}
+            >
+                <Modal.Section>
+
+                    <div className="margin-top" />
+
+                </Modal.Section>
+            </Modal>
 
             <Modal
                 open={modalReassign}
