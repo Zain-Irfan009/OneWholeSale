@@ -422,11 +422,11 @@ console.log(error)
                                 //     onAction: ()=>handleViewAction(id),
                                 // },
 
-                                {
-                                    content: 'Delete',
-                                    // onAction: ()=>deleteProduct(id),
-                                    onAction: () =>deleteProductModalHandler(id),
-                                },
+                                // {
+                                //     content: 'Delete',
+                                //     // onAction: ()=>deleteProduct(id),
+                                //     onAction: () =>deleteProductModalHandler(id),
+                                // },
                             ]}
                         />
                     </Popover>
