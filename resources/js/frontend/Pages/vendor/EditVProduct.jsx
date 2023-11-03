@@ -79,7 +79,7 @@ export function EditVProduct() {
     const [sucessToast, setSucessToast] = useState(false);
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
-    const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
+    const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(true);
     const [status, setStatus] = useState("active");
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
@@ -2789,6 +2789,7 @@ export function EditVProduct() {
 
                         <Layout.Section oneThird>
                             <div className="Discount-Summary">
+                                <div className="status-div">
                                 <Card sectioned>
                                     <div className="Type-Section">
                                         <Select
@@ -2808,6 +2809,7 @@ export function EditVProduct() {
                                         />
                                     </div>
                                 </Card>
+                                </div>
                                 <Card sectioned title="Sellers">
                                     <div className="Type-Section">
                                         {/* <Text variant="bodyMd" as="p" fontWeight="regular">
