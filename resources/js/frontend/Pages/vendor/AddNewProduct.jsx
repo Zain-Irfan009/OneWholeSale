@@ -143,7 +143,7 @@ export function AddNewProduct() {
     const [optionsLoading, setOptionsLoading] = useState(false);
     const [price, setPrice] = useState("");
     const [compareatPrice, setCompareatPrice] = useState("");
-    const [chargeTaxChecked, setChargeTaxChecked] = useState(false);
+    const [chargeTaxChecked, setChargeTaxChecked] = useState(true);
     const [allowCustomer, setAllowCustomer] = useState(false);
     const [sku, setSku] = useState("");
     const [barcode, setBarcode] = useState("");
@@ -1806,7 +1806,7 @@ export function AddNewProduct() {
                                             </Text>
 
                                             <div className="label_editor">
-                                                <div className="hidden_fields">
+                                                <div className="">
                                                 <Checkbox
                                                     label="Track Quantity"
                                                     checked={
@@ -2211,6 +2211,7 @@ export function AddNewProduct() {
 
                         <Layout.Section oneThird>
                             <div className="Discount-Summary">
+                                <div className="status-div">
                                 <Card sectioned>
                                     <div className="Type-Section">
                                         <Select
@@ -2227,6 +2228,7 @@ export function AddNewProduct() {
                                         />
                                     </div>
                                 </Card>
+                                </div>
                                 <Card sectioned title="Sellers">
                                     <div className="Type-Section">
                                         {/* <Text variant="bodyMd" as="p" fontWeight="regular">
