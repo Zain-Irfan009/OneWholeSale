@@ -93,7 +93,7 @@ Route::get('/api/auth/callback', function (Request $request) {
     $response_product_create = Registry::register('/api/webhooks/product-create', Topics::PRODUCTS_CREATE, $shop, $session->getAccessToken());
     $response_product_update = Registry::register('/api/webhooks/product-update', Topics::PRODUCTS_UPDATE, $shop, $session->getAccessToken());
     $response_product_delete = Registry::register('/api/webhooks/product-delete', Topics::PRODUCTS_DELETE, $shop, $session->getAccessToken());
-
+    $response_inventory_update = Registry::register('/api/webhooks/inventory-update', Topics::INVENTORY_LEVELS_UPDATE, $shop, $session->getAccessToken());
 
     if ($response->isSuccess()) {
         Log::debug("Registered APP_UNINSTALLED webhook for shop $shop");

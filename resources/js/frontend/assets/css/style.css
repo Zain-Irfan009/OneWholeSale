@@ -305,3 +305,8 @@
 .Product-Title-Section h2:first-of-type{
     min-width:150px;
 }
+
+
+.Discount-Summary .status-div{
+    display:none;
+}

@@ -226,12 +226,12 @@ Route::get('/testing', function() {
 //        $product_delete = $client->post( '/webhooks.json', [
 //
 //        "webhook" => array(
-//            "topic" => "products/delete",
+//            "topic" => "inventory_levels/update",
 //            "format" => "json",
-//            "address" => "https://phpstack-1018470-3598964.cloudwaysapps.com/api/webhooks/product-delete"
+//            "address" => "https://phpstack-1018470-3598964.cloudwaysapps.com/api/webhooks/inventory-update"
 //        )
 //    ]);
-//    dd($product_delete);
+//    dd($product_delete->getDecodedBody());
 
     dd($response->getDecodedBody());
 
@@ -475,6 +475,38 @@ Route::post('/webhooks/product-delete', function (Request $request) {
         $error_log=new \App\Models\log();
         $error_log->log='Product delete catch';
         $error_log->verify=  $e->getMessage();
+        $error_log->save();
+    }
+});
+
+
+
+Route::post('/webhooks/inventory-update', function (Request $request) {
+    try {
+
+        $shop = $request->header('x-shopify-shop-domain');
+        $shop = Session::where('shop', $shop)->first();
+
+        $data = $request->getContent();
+        $data = json_decode($data);
+
+        $logs = new \App\Models\log();
+        $logs->log = 'inventory update res$data: '.json_encode($data);
+        $logs->save();
+
+
+
+        $product_variant=\App\Models\Variant::where('inventory_item_id',$data->inventory_item_id)->first();
+        if($product_variant){
+
+            $product_variant->quantity=$data->available;
+            $product_variant->save();
+        }
+
+    } catch (\Exception $e) {
+
+        $error_log = new \App\Models\ErrorLog();
+        $error_log->message = 'inventory update res catch'.json_encode($e->getMessage());
         $error_log->save();
     }
 });

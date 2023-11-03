@@ -1873,7 +1873,8 @@ $search_engine_meta_description=strip_tags($product->body_html);
         if($session) {
 
 
-            $product_gets = Product::where('shop_id',$session->id)->where('update_check',0)->take(500)->get();
+            $product_gets = Product::where('shop_id',$session->id)->where('update_check',0)->take(1000)->get();
+
 
             foreach ($product_gets as $product_get) {
 
