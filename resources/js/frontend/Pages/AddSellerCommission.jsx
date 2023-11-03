@@ -318,7 +318,7 @@ export function AddSellerCommission() {
         ) : null;
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            onChange={sellerUpdateText}
+            // onChange={sellerUpdateText}
             label="Seller Shop*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
