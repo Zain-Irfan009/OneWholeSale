@@ -1323,7 +1323,8 @@ export function EditProduct() {
     };
 
     const discardAddProduct = () => {
-        navigate("/productslisting");
+        // navigate("/productslisting");
+        navigate(-1);
     };
 
     const handleCreateDiscount = () => {
@@ -2068,7 +2069,8 @@ export function EditProduct() {
             setToastMsg(response?.data?.message);
             setSucessToast(true);
             setLoading(false)
-            navigate('/productslisting', { state: { customText: 'Product Updated Successfully' } })
+            // navigate('/productslisting', { state: { customText: 'Product Updated Successfully' } })
+            navigate(-1, { state: { customText: 'Product Updated Successfully' } })
             // setSkeleton(false)
         } catch (error) {
             console.log(error);

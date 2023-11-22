@@ -53,7 +53,7 @@ class DashboardController extends Controller
 
         $record = CommissionLog::where('user_id', $user->id)
             ->whereBetween('created_at', [$start, $end])
-            ->select(DB::raw('MONTH(created_at) as month, sum(total_product_commission ) as total_sales'))
+            ->select(DB::raw('MONTH(created_at) -1 as month, sum(total_product_commission ) as total_sales'))
             ->groupBy(DB::raw('MONTH(created_at)'))
             ->pluck('total_sales', 'month')
             ->toArray();
