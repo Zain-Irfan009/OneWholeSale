@@ -446,9 +446,18 @@ class OrderController extends Controller
             $log->log='abc'.$order->user_id;
             $log->verify=json_encode($order);
             $log->save();
-            $this->OrderCancelMail($newOrder->user_id,$order);
+            try {
+                $this->OrderCancelMail($newOrder->user_id,$order);
+//                $newOrder->delete();
+            }
+            catch (\Exception $exception){
+
+            }
+
 
         }
+
+
     }
 
     public function OrderFilter(Request $request)
@@ -626,6 +635,10 @@ public function OrderFilterPayment(Request $request){
             $orders = Order::where('financial_status','paid');
         }else if($request->value=='unpaid'){
             $orders = Order::where('financial_status','unpaid');
+        }
+
+        else if($request->value=='refunded'){
+            $orders = Order::where('financial_status','refunded');
         }
 
 

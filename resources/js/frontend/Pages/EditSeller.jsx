@@ -490,10 +490,9 @@ console.log('error',error)
                       placeholder="Enter Seller's Email"
                       type="text"
                       marginTop
-                      readOnly
                       name="title"
                       value={email}
-                      // onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value)}
                       error={formErrors.email}
                     />
 
