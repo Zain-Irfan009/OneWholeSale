@@ -663,7 +663,7 @@ export function Dashboard() {
 
 
         } catch (error) {
-
+        console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -693,18 +693,24 @@ export function Dashboard() {
         <Page  title="Dashboard">
           <Layout>
             <Layout.Section oneThird>
-              <LegacyCard title="Sales">
+                <div className="">
+              <LegacyCard  title="Sales">
                 <LegacyCard.Section>
                   <Text color="subdued" as="span">
                       Here you can check all recent Orders of your Marketplace Store.
                   </Text>
                 </LegacyCard.Section>
 
-                      <LegacyCard.Section>
-                          <AreaChart width={900} height={200} data={graphData}>
-                              <XAxis dataKey="name"/>
-                              <YAxis/>
-                              <CartesianGrid strokeDasharray="3 3"/>
+                  <LegacyCard.Section>
+                      <div className="area-chart-container">
+                          <AreaChart
+                              width={900}
+                              height={200}
+                              data={graphData}
+                          >
+                              <XAxis dataKey="name" />
+                              <YAxis />
+                              <CartesianGrid strokeDasharray="3 3" />
                               <Area
                                   type="monotone"
                                   dataKey="uv"
@@ -712,8 +718,11 @@ export function Dashboard() {
                                   fill="#8884d8"
                               />
                           </AreaChart>
-                      </LegacyCard.Section>
+                      </div>
+                  </LegacyCard.Section>
+
               </LegacyCard>
+                </div>
             </Layout.Section>
           </Layout>
             <div style={{ marginTop: "30px" }}></div>
