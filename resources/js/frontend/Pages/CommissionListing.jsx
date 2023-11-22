@@ -373,6 +373,11 @@ export function CommissionListing() {
         getData();
     }, [toggleLoadData]);
 
+
+
+
+
+
     const {selectedResources, allResourcesSelected, handleSelectionChange} =
         useIndexResourceState(commissions);
 
@@ -425,7 +430,7 @@ export function CommissionListing() {
                 </IndexTable.Cell>
 
 
-                    <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
+                <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
 
 
                 <IndexTable.Cell>
@@ -441,6 +446,57 @@ export function CommissionListing() {
                 <IndexTable.Cell>
                     {total_payout != null ? `${currency} ${total_payout.toFixed(2)}` : '---'}
                 </IndexTable.Cell>
+
+
+                {has_order?.fulfillment_status === 'fulfilled' ? (
+                    <IndexTable.Cell className="fulfilled">
+                        <Badge progress='complete'>{has_order?.fulfillment_status === 'fulfilled' ? 'Fulfilled' : ''}</Badge>
+
+
+                    </IndexTable.Cell>
+                ) : has_order?.fulfillment_status === 'partial' ? (
+                    <IndexTable.Cell className="partial">
+                        <Badge progress='complete'>{has_order?.fulfillment_status === 'partial' ? 'Partially fulfilled' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : (
+                    <IndexTable.Cell className="unfulfilled">
+                        <Badge progress='complete'>{has_order?.fulfillment_status==null ? 'Unfulfilled' : has_order?.fulfillment_status}</Badge>
+
+                    </IndexTable.Cell>
+                )}
+
+                {has_order?.financial_status === 'paid' ? (
+                    <IndexTable.Cell>
+                        <Badge progress='complete'>{has_order?.financial_status === 'paid' ? 'Paid' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) :  has_order?.financial_status === 'refunded' ? (
+                    <IndexTable.Cell className="unfulfilled" >
+                        <Badge progress='complete'>{has_order?.financial_status === 'refunded' ? 'Refunded' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) : has_order?.financial_status === 'voided' ? (
+                    <IndexTable.Cell className="voided" >
+                        <Badge progress='complete'>{has_order?.financial_status === 'voided' ? 'Voided' : ''}</Badge>
+                    </IndexTable.Cell>
+                ) :has_order?.financial_status === 'partially_paid' ? (
+                        <IndexTable.Cell className="partially_paid" >
+                            <Badge progress='complete'>{has_order?.financial_status === 'partially_paid' ? 'Partially paid' : ''}</Badge>
+                        </IndexTable.Cell>
+                    ) :
+                    has_order?.financial_status === 'partially_refunded' ? (
+                            <IndexTable.Cell className="partially_refunded" >
+                                <Badge progress='complete'>{has_order?.financial_status === 'partially_refunded' ? 'Partially refunded' : ''}</Badge>
+                            </IndexTable.Cell>
+                        ):
+
+                        (
+
+                            <IndexTable.Cell className="payment_pending" >
+                                <Badge progress='complete'>{has_order?.financial_status === 'pending' ? 'Payment Pending' : ''}</Badge>
+
+                            </IndexTable.Cell>
+                        )}
+
+
 
                 {/*<IndexTable.Cell>*/}
                 {/*    {refunded_admin_earning != null ? refunded_admin_earning : '---'}*/}
@@ -568,7 +624,7 @@ export function CommissionListing() {
                     title="Commissions"
                 >
                     <Card>
-                        <div className='Polaris-Table'>
+                        <div className='Polaris-Table commission_page'>
                             <Card.Section>
                                 <div className="commission_listing_search" style={{ padding: '16px', display: 'flex' }}>
                                     <div style={{ flex: '70%' }}>
@@ -632,6 +688,8 @@ export function CommissionListing() {
                                         { title: 'Subtotal Payout' },
                                         { title: 'Tax' },
                                         { title: 'Total Payout' },
+                                        { title: 'Order Status' },
+                                        { title: 'Payment Status' },
                                         // { title: 'Total Admin Earning' },
                                         // { title: 'Refunded Admin Earning' },
                                         // { title: 'VAT on Commission' },
