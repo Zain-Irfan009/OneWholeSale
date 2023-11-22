@@ -176,7 +176,13 @@ class ProductController extends Controller
         }else{
            $products=Product::query();
        }
-        $products=$products->where('product_name', 'like', '%' . $request->query_value . '%');
+        if ($request->query_value != null) {
+            $products = $products->where('product_name', 'like', '%' . $request->query_value . '%')
+                ->orWhereHas('variants', function ($query) use ($request) {
+                    $query->where('sku', 'like', '%' . $request->query_value . '%');
+                });
+        }
+
 
        $products=$products->where('user_id',$user->id)->with('hasVariantsCount')->get();
         $data = [

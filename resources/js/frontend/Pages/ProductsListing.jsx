@@ -53,16 +53,22 @@ export function ProductsListing() {
   const navigate = useNavigate();
     const location = useLocation();
 
+    const queryParams = new URLSearchParams(location.search);
+    const currentPage = parseInt(queryParams.get('page')) || 1;
+    const search_value = (queryParams.get('search')) || "";
+
   const [loading, setLoading] = useState(true);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [selected, setSelected] = useState(0);
-  const [queryValue, setQueryValue] = useState("");
+  const [queryValue, setQueryValue] = useState(search_value);
   const [toggleLoadData, setToggleLoadData] = useState(true);
   const [errorToast, setErrorToast] = useState(false);
   const [sucessToast, setSucessToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [storeUrl, setStoreUrl] = useState("");
   const [active, setActive] = useState(false);
+
+
 
     const [sellerList, setSellerList] = useState([]);
     const [deleteBtnLoading, setDeleteBtnLoading] = useState(false);
@@ -200,6 +206,8 @@ export function ProductsListing() {
   const [sellerEmail, setSellerEmail] = useState("");
     const [toggleLoadData1, setToggleLoadData1] = useState(true);
 
+    const [activeState, setActiveState] = useState(false);
+
 
 
 
@@ -260,6 +268,7 @@ export function ProductsListing() {
 setSelectedStatus(selectedOption)
 
         setShowClearButton(true)
+
 
         // try {
         //     const response = await axios.get(`${apiUrl}/search-seller-product?value=${selectedOption.value}&product_name=${queryValue}&status=${selected}`,
@@ -375,11 +384,20 @@ setSelectedStatus(selectedOption)
         setShowClearButton(true);
     };
 
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (activeState) {
+            params.set('search', queryValue);
+            navigate(`/productslisting?${params.toString()}`);
+        }
+
+    }, [queryValue]);
+
     const handleFiltersQueryChange = async (value)  => {
         // setTableLoading(true)
         setPageCursorValue('')
-
         setQueryValue(value)
+        setActiveState(true)
     // getData()
         const sessionToken = getAccessToken();
 
@@ -412,8 +430,17 @@ setSelectedStatus(selectedOption)
     const handlePagination = (value) => {
         console.log("value", value, nextPageCursor)
         if (value == "next") {
+
+            const nextPage = currentPage + 1;
+            queryParams.set('page', nextPage.toString());
+            navigate(`/productslisting?${queryParams.toString()}`);
+
             setPageCursorValue(nextPageCursor);
         } else {
+            const prevPage = currentPage - 1;
+            queryParams.set('page', prevPage.toString());
+            navigate(`/productslisting?${queryParams.toString()}`);
+
             setPageCursorValue(previousPageCursor);
         }
         setPageCursor(value);
@@ -433,7 +460,7 @@ setSelectedStatus(selectedOption)
                 var url = pageCursorValue+ '&value=' + queryValue +'&seller=' +selectedShop + '&status=' + selected ;
             } else {
                 var selectedShop = encodeURIComponent(selectedStatus.value);
-                var url = `${apiUrl}/products?${pageCursor}=${pageCursorValue}&value=${queryValue}&seller=${selectedShop}&status=${selected}`;
+                var url = `${apiUrl}/products?page=${currentPage}&${pageCursor}=${pageCursorValue}&value=${queryValue}&seller=${selectedShop}&status=${selected}`;
             }
             console.log(pageCursorValue)
 
@@ -676,6 +703,7 @@ setSelectedStatus(selectedOption)
   );
 
     useEffect(() => {
+
         getData()
     }, [toggleLoadData,queryValue,selectedStatus.value,selected]);
 

@@ -26,7 +26,7 @@ class SellerController extends Controller
 
         $sellers=User::query();
         if($request->value!=null){
-            $sellers=$sellers->where('email','like', '%' . $request->value . '%');
+            $sellers=$sellers->where('email','like', '%' . $request->value . '%')->orWhere('seller_shopname','like', '%' . $request->value . '%');
 
         }
         if($request->status==1){
@@ -283,7 +283,12 @@ class SellerController extends Controller
                 $this->ActiveSellerMetafield($shop,$client);
                 $type='Seller Status';
                 if($seller->status!=null) {
-                    $this->SendMail($seller, $Setting, $type);
+                    try {
+                        $this->SendMail($seller, $Setting, $type);
+                    }catch (\Exception $exception){
+
+                    }
+
                 }
 
 
