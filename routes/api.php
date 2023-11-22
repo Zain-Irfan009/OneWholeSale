@@ -226,9 +226,9 @@ Route::get('/testing', function() {
 //        $product_delete = $client->post( '/webhooks.json', [
 //
 //        "webhook" => array(
-//            "topic" => "inventory_levels/update",
+//            "topic" => "orders/updated",
 //            "format" => "json",
-//            "address" => "https://phpstack-1018470-3598964.cloudwaysapps.com/api/webhooks/inventory-update"
+//            "address" => "https://phpstack-1018470-3598964.cloudwaysapps.com/api/webhooks/order-update"
 //        )
 //    ]);
 //    dd($product_delete->getDecodedBody());

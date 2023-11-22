@@ -683,6 +683,7 @@ export function VDashboard() {
                 <Page  title="Dashboard">
                     <Layout>
                         <Layout.Section oneThird>
+                            <div className="graph_div">
                             <LegacyCard title="Sales">
                                 <LegacyCard.Section>
                                     <Text color="subdued" as="span">
@@ -704,6 +705,7 @@ export function VDashboard() {
                                     </AreaChart>
                                 </LegacyCard.Section>
                             </LegacyCard>
+                            </div>
                         </Layout.Section>
                     </Layout>
                     <div style={{ marginTop: "30px" }}></div>

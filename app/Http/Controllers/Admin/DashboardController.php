@@ -273,7 +273,7 @@ class DashboardController extends Controller
 
         $record = CommissionLog::where('shop_id', $shop->id)
             ->whereBetween('created_at', [$start, $end])
-            ->select(DB::raw('MONTH(created_at) as month, sum(total_product_commission + total_admin_earning) as total_sales'))
+            ->select(DB::raw('MONTH(created_at) -1 as month, sum(total_product_commission + total_admin_earning) as total_sales'))
             ->groupBy(DB::raw('MONTH(created_at)'))
             ->pluck('total_sales', 'month')
             ->toArray();
@@ -286,11 +286,11 @@ class DashboardController extends Controller
         $result = [];
 
         foreach ($months as $index => $monthName) {
+
             $monthNumber = $index;
             $value = $record[$monthNumber] ?? 0;
             $result[$monthNumber] = ['name' => $monthName, 'uv' => $value];
         }
-
 
 
         return response()->json($result);
