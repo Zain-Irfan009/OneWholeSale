@@ -170,12 +170,27 @@ class CommissionController extends Controller
 
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();
-        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->query_value . '%');
+//        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->query_value . '%');
+        $commissions=CommissionLog::query();
         if($request->value!='undefined'){
             $commissions=$commissions->where('seller_email',$request->value);
         }
+
+        $commissions = $commissions
+            ->join('orders', 'commission_logs.order_id', '=', 'orders.id')
+            ->where(function ($query) use ($request) {
+                $query->where('orders.order_number', 'like', '%' . $request->query_value . '%')
+                    ->orWhere('commission_logs.product_name', 'like', '%' . $request->query_value . '%');
+            })
+            ->where('commission_logs.shop_id', $session->id)
+            ->with('has_order', 'has_user', 'has_variant')
+            ->orderBy('commission_logs.id', 'desc') // Specify the table for id
+            ->get();
+
+
+
         $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
-        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
+//        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
         $data = [
             'data' => $commissions,
               'currency'=>$session->money_format,
@@ -230,6 +245,7 @@ class CommissionController extends Controller
         if($request->query_value!=null){
             $commission_logs=$commission_logs->where('product_name','like', '%' . $request->query_value . '%');
         }
+
         $commission_logs=$commission_logs->where('shop_id',$shop->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
 
         $data = [

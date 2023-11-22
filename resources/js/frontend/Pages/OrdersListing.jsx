@@ -1014,6 +1014,7 @@ export function OrdersListing() {
                                               { value: 'all', label: 'All' },
                                               { value: 'paid', label: 'Paid' },
                                               { value: 'unpaid', label: 'Unpaid' },
+                                              { value: 'refunded', label: 'Refunded' },
                                           ]}
                                           placeholder="Select Payment Status"
                                           value={selectedStatus}
