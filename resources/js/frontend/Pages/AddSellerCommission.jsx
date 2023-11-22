@@ -156,6 +156,10 @@ export function AddSellerCommission() {
   const [checkedVariantsCollections, setCheckedVariantsCollections] = useState(
     []
   );
+    const [orignalSellerEmailList, setOrignalSellerEmailList] = useState(
+        []
+    );
+
   const [
     previousCheckedVariantsCollections,
     setPreviousCheckedVariantsCollections,
@@ -204,6 +208,7 @@ export function AddSellerCommission() {
                 label: `${seller_shopname}`
             }));
             setSellerEmailList(arr_seller)
+            setOrignalSellerEmailList(arr_seller)
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -257,13 +262,13 @@ export function AddSellerCommission() {
 
             setTimeout(() => {
                 if (value === "") {
-                    setSellerEmailList(CollectionsOptionsData);
+                    setSellerEmailList(orignalSellerEmailList);
                     setOptionsLoading(false);
                     return;
                 }
 
                 const filterRegex = new RegExp(value, "i");
-                const resultOptions = CollectionsOptionsData.filter((option) =>
+                const resultOptions = sellerEmailList.filter((option) =>
                     option.label.match(filterRegex)
                 );
                 let endIndex = resultOptions.length - 1;
@@ -274,7 +279,7 @@ export function AddSellerCommission() {
                 setOptionsLoading(false);
             }, 300);
         },
-        [CollectionsOptionsData, optionsLoading, sellerEmailListSelected]
+        [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
     function tagTitleCase(string) {
         return string
@@ -299,26 +304,19 @@ export function AddSellerCommission() {
     const sellerContentMarkup =
         sellerEmailListSelected.length > 0 ? (
             <div className="Product-Tags-Stack">
-                <Stack spacing="extraTight" alignment="center">
-                    {sellerEmailListSelected.map((option) => {
-                        let tagLabel = "";
-                        tagLabel = option.replace("_", " ");
-                        tagLabel = tagTitleCase(tagLabel);
-                        return (
-                            <Tag
-                                key={`option${option}`}
-                                onRemove={removeSellerEmail(option)}
-                            >
-                                {tagLabel}
-                            </Tag>
-                        );
-                    })}
-                </Stack>
+                <Tag
+                    key={`option${sellerEmailListSelected[0]}`}
+                    onRemove={removeSellerEmail(sellerEmailListSelected[0])}
+                >
+                    {tagTitleCase(sellerEmailListSelected[0].replace("_", " "))}
+                </Tag>
             </div>
         ) : null;
+
+
     const sellerEmailTextField = (
         <Autocomplete.TextField
-            // onChange={sellerUpdateText}
+            onChange={sellerUpdateText}
             label="Seller Shop*"
             value={sellerEmailInputValue}
             placeholder="Select Seller"
