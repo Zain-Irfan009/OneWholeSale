@@ -274,6 +274,9 @@ class OrderController extends Controller
             } else if ($request->value == 'unpaid') {
                 $order = Order::where('financial_status', 'unpaid');
             }
+            else if($request->value=='refunded'){
+                $order = Order::where('financial_status','refunded');
+            }
 
             if ($request->status == 1) {
                 $order = $order->whereNull('fulfillment_status');

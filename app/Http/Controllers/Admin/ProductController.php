@@ -34,10 +34,13 @@ class ProductController extends Controller
         $session=Session::where('shop',$user->name)->first();
         if($session){
                 $products=Product::query();
-            if($request->value!=null){
-                $products=$products->where('product_name', 'like', '%' . $request->value . '%');
-            }
 
+            if ($request->value != null) {
+                $products = $products->where('product_name', 'like', '%' . $request->value . '%')
+                    ->orWhereHas('variants', function ($query) use ($request) {
+                        $query->where('sku', 'like', '%' . $request->value . '%');
+                    });
+            }
             if($request->status==0){
 
             }else if($request->status==1){

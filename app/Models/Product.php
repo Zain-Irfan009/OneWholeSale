@@ -14,4 +14,9 @@ class Product extends Model
             ->selectRaw('shopify_product_id, sum(quantity) as total_quantity')
             ->groupBy('shopify_product_id');
     }
+
+    public function variants()
+    {
+        return $this->hasMany(Variant::class, 'shopify_product_id', 'shopify_id');
+    }
 }
