@@ -153,10 +153,50 @@ class CommissionController extends Controller
 
         public function CommissionListing(Request $request){
 
+
             $user=auth()->user();
             $shop=Session::where('shop',$user->name)->first();
             $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
-            $commission_logs=CommissionLog::where('shop_id',$shop->id)->orderBy('id','desc')->with('has_order','has_user','has_variant')->paginate(20);
+
+            $commission_logs = CommissionLog::query()
+                ->when($request->seller !== 'undefined', function ($query) use ($request) {
+                    $query->where('commission_logs.user_id', $request->seller);
+                })
+                ->when($request->query_value, function ($query) use ($request) {
+                    $query->where(function ($subquery) use ($request) {
+                        $subquery->whereHas('has_order', function ($orderSubquery) use ($request) {
+                            $orderSubquery->where('order_number', 'like', '%' . $request->query_value . '%');
+                        })
+                            ->orWhere('product_name', 'like', '%' . $request->query_value . '%');
+                    });
+                })
+                ->where('commission_logs.shop_id', $shop->id)
+                ->when($request->payment_status !== 'undefined', function ($query) use ($request) {
+                    $query->whereHas('has_order', function ($subquery) use ($request) {
+                        $subquery->where('financial_status', $request->payment_status);
+                    });
+                })
+                ->when($request->fulfillment_status !== 'undefined', function ($query) use ($request) {
+                    if ($request->fulfillment_status == 1) {
+                        $query->whereHas('has_order', function ($subquery) {
+                            $subquery->whereNull('fulfillment_status');
+                        });
+                    } elseif ($request->fulfillment_status == 2) {
+                        $query->whereHas('has_order', function ($subquery) {
+                            $subquery->where('fulfillment_status', 'partial');
+                        });
+                    } elseif ($request->fulfillment_status == 3) {
+                        $query->whereHas('has_order', function ($subquery) {
+                            $subquery->where('fulfillment_status', 'fulfilled');
+                        });
+                    }
+                })
+                ->orderBy('commission_logs.id', 'desc')
+                ->with('has_order', 'has_user', 'has_variant')
+                ->paginate(20);
+
+
+
 
             $data = [
                 'data' => $commission_logs,
@@ -166,38 +206,7 @@ class CommissionController extends Controller
             return response()->json($data);
         }
 
-    public function SearchCommission(Request $request){
 
-        $user=auth()->user();
-        $session=Session::where('shop',$user->name)->first();
-//        $commissions=CommissionLog::where('product_name', 'like', '%' . $request->query_value . '%');
-        $commissions=CommissionLog::query();
-        if($request->value!='undefined'){
-            $commissions=$commissions->where('seller_email',$request->value);
-        }
-
-        $commissions = $commissions
-            ->join('orders', 'commission_logs.order_id', '=', 'orders.id')
-            ->where(function ($query) use ($request) {
-                $query->where('orders.order_number', 'like', '%' . $request->query_value . '%')
-                    ->orWhere('commission_logs.product_name', 'like', '%' . $request->query_value . '%');
-            })
-            ->where('commission_logs.shop_id', $session->id)
-            ->with('has_order', 'has_user', 'has_variant')
-            ->orderBy('commission_logs.id', 'desc') // Specify the table for id
-            ->get();
-
-
-
-        $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
-//        $commissions=$commissions->where('shop_id',$session->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
-        $data = [
-            'data' => $commissions,
-              'currency'=>$session->money_format,
-            'sellers'=>$sellers
-        ];
-        return response()->json($data);
-    }
 
     public function SearchSellerCommission(Request $request){
 
@@ -235,26 +244,7 @@ class CommissionController extends Controller
         return response()->json($data);
     }
 
-    public function FilterSellerCommission(Request $request){
 
-        $user=auth()->user();
-        $shop=Session::where('shop',$user->name)->first();
-        $sellers=User::where('role','seller')->where('shop_id',$shop->id)->get();
-        $commission_logs=CommissionLog::where('user_id',$request->value);
-
-        if($request->query_value!=null){
-            $commission_logs=$commission_logs->where('product_name','like', '%' . $request->query_value . '%');
-        }
-
-        $commission_logs=$commission_logs->where('shop_id',$shop->id)->with('has_order','has_user','has_variant')->orderBy('id','desc')->get();
-
-        $data = [
-            'data' => $commission_logs,
-            'currency'=>$shop->money_format,
-            'sellers'=>$sellers
-        ];
-        return response()->json($data);
-    }
 
 
     public function SellerCommissionSettingFilter(Request $request){

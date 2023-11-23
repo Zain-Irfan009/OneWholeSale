@@ -319,20 +319,18 @@
 }
 
 .area-chart-container {
+    width: 100%;
+
+}
+.recharts-wrapper,
+.recharts-surface {
     width: 100% !important;
 
 }
 
 @media (max-width: 768px) {
     .area-chart-container {
-        width: 100%; /* or any other width that suits your design */
-        height: auto; /* or any other height that suits your design */
-    }
-    .area-chart-container .recharts-wrapper{
-        width: 100% !important;
-    }
-
-    .area-chart-container .recharts-wrapper .recharts-surface{
-        width: 100% !important;
+        height: auto;
     }
 }
+
