@@ -82,6 +82,8 @@ export function MailConfiguration1() {
 
     const [publishSellerPageProfile, setPublishSellerPageProfile] = useState(false)
 
+    const [emailOrderStatus, setEmailOrderStatus] = useState(false)
+
     const [mailSubject, setMailSubject] = useState("");
     const [mailContent, setMailContent] = useState("");
     const [orderMailContent, setOrderMailContent] = useState("");
@@ -110,10 +112,10 @@ export function MailConfiguration1() {
             id: "1",
             content: "Product Email",
         },
-        // {
-        //     id: "2",
-        //     content: "Order Email",
-        // },
+        {
+            id: "2",
+            content: "Order Email",
+        },
         // {
         //     id: "3",
         //     content: "Inducements",
@@ -167,6 +169,10 @@ export function MailConfiguration1() {
         setPublishSellerPageProfile(!publishSellerPageProfile)
     }
 
+    const handleEmailOrderStatus = (e) => {
+        setEmailOrderStatus(!emailOrderStatus)
+    }
+
 
     function handleMailContent(event, editor) {
         const data = editor.getData();
@@ -192,7 +198,9 @@ export function MailConfiguration1() {
                     }
                 })
 
+            console.log(response)
             setPublishSellerPageProfile(response?.data?.data?.product_approval_status)
+            setEmailOrderStatus(response?.data?.data?.order_status)
             setMailSubject(response?.data?.data?.mail_subject)
             setMailContent(response?.data?.data?.mail_content)
             setHeaderBackgroundColor(response?.data?.data?.header_background_color)
@@ -254,13 +262,9 @@ export function MailConfiguration1() {
         try {
 
             let data = {
-                // product_approval_status: publishSellerPageProfile,
-                // mail_subject: mailSubject,
                 order_mail_content: orderMailContent,
-                // header_background_color: headerBackgroundColor,
-                // footer_background_color: footerBackgroundColor,
-                // mail_header_status:mailHeaderStatus,
-                // mail_footer_status:mailFooterStatus,
+                order_status: emailOrderStatus,
+
             }
 
             const response = await axios.post(`${apiUrl}/mail-configuration-save`,data,
@@ -425,6 +429,27 @@ export function MailConfiguration1() {
 
                                                                 <FormLayout>
                                                                     <Card sectioned title='Order Email'>
+
+
+                                                                        <p>
+                                                                            {`Status`}
+                                                                        </p>
+
+                                                                        <div className="edit_seller_page_toggle">
+                                                                                <span>
+                                                                                <input id='toggle'
+                                                                                       type="checkbox"
+                                                                                       className="tgl tgl-light"
+                                                                                       checked={emailOrderStatus}
+                                                                                       onChange={handleEmailOrderStatus}
+                                                                                />
+                                                                                <label htmlFor='toggle' className='tgl-btn'></label>
+                                                                                <p className="margin-top">
+                                                                            {`This will send notification to the seller when their product in order is placed.`}
+                                                                                </p>
+                                                                                </span>
+                                                                                     </div>
+
 
 
 

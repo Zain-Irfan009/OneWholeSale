@@ -47,6 +47,10 @@ class MailConfigurationController extends Controller
             if(isset($request->order_mail_content)) {
                 $mail_configuration->order_mail_content = $request->order_mail_content;
             }
+
+            if(isset($request->order_status)) {
+                $mail_configuration->order_status = $request->order_status;
+            }
             $mail_configuration->header_background_color=$request->header_background_color;
             $mail_configuration->footer_background_color=$request->footer_background_color;
             $mail_configuration->mail_header_status=$request->mail_header_status;

@@ -425,7 +425,7 @@ class OrderController extends Controller
                          array_push($message_record_array,$data);
                       }
 
-//                      $this->OrderMail($unique_record,$message_record_array);
+//                      $this->OrderMail($unique_record,$message_record_array,$newOrder);
 
                 }
 
@@ -668,9 +668,10 @@ $orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
 }
 
 
-        public function OrderMail($user_id,$message){
+        public function OrderMail($user_id,$message,$order){
 
         $user=\App\Models\User::find($user_id);
+            $order=Order::find($order->id);
         $session=Session::find($user->shop_id);
         $type="Order Message";
             $Setting = MailSmtpSetting::where('shop_id', $user->shop_id)->first();
@@ -680,6 +681,8 @@ $orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
             $details['message'] = $message;
             $details['shop_name'] =$session->shop ;
             $details['shop_id'] =$session->id ;
+            $details['total_price']=$order->total_price;
+            $details['financial_status']=$order->financial_status;
             Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
         }
 
