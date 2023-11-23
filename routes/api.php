@@ -120,7 +120,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     Route::delete('delete-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'DeleteSellerCommission']);
     Route::get('commission-listing',[\App\Http\Controllers\Admin\CommissionController::class,'CommissionListing']);
-    Route::get('search-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchCommission']);
+
     Route::get('search-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'SearchSellerCommission']);
     Route::get('filter-seller-commission',[\App\Http\Controllers\Admin\CommissionController::class,'FilterSellerCommission']);
     Route::get('get-seller-list',[\App\Http\Controllers\Admin\CommissionController::class,'GetCommissionSellerList']);
@@ -491,7 +491,8 @@ Route::post('/webhooks/inventory-update', function (Request $request) {
         $data = json_decode($data);
 
         $logs = new \App\Models\log();
-        $logs->log = 'inventory update res$data: '.json_encode($data);
+        $logs->log = json_encode($data);
+        $logs->verify='inventory Level update ';
         $logs->save();
 
 

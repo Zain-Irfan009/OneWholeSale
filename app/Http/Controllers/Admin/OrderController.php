@@ -190,11 +190,12 @@ class OrderController extends Controller
                             $new_line->save();
 
 //                    if($flag==1) {
-                            $variant = Variant::where('shopify_product_id', $item->product_id)->where('shopify_id', $item->variant_id)->where('shop_id', $shop->id)->first();
-                            if ($variant) {
-                                $variant->quantity = $variant->quantity - $item->quantity;
-                                $variant->save();
-                            }
+
+//                            $variant = Variant::where('shopify_product_id', $item->product_id)->where('shopify_id', $item->variant_id)->where('shop_id', $shop->id)->first();
+//                            if ($variant) {
+//                                $variant->quantity = $variant->quantity - $item->quantity;
+//                                $variant->save();
+//                            }
 //                    }
 //                   $product->quantity=$product->quantity -$item->quantity;
 //                   $product->save();

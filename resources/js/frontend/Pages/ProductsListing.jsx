@@ -269,34 +269,6 @@ setSelectedStatus(selectedOption)
 
         setShowClearButton(true)
 
-
-        // try {
-        //     const response = await axios.get(`${apiUrl}/search-seller-product?value=${selectedOption.value}&product_name=${queryValue}&status=${selected}`,
-        //         {
-        //             headers: {
-        //                 Authorization: "Bearer " + sessionToken
-        //             }
-        //         })
-        //     console.log(response?.data)
-        //     setProducts(response?.data?.products?.data)
-        //     setPaginationUrl(response?.data?.products?.links);
-        //     if (
-        //         response?.data?.products?.total >
-        //         response?.data?.products?.per_page
-        //     ) {
-        //         setShowPagination(true);
-        //     } else {
-        //         setShowPagination(false);
-        //     }
-        //
-        //     setLoading(false)
-        //
-        //
-        // } catch (error) {
-        //     setBtnLoading(false)
-        //     setToastMsg(error?.response?.data?.message)
-        //     setErrorToast(true)
-        // }
     };
 
 
@@ -394,35 +366,13 @@ setSelectedStatus(selectedOption)
     }, [queryValue]);
 
     const handleFiltersQueryChange = async (value)  => {
-        // setTableLoading(true)
+
         setPageCursorValue('')
         setQueryValue(value)
         setActiveState(true)
-    // getData()
+
         const sessionToken = getAccessToken();
 
-
-        // try {
-        //     const response = await axios.get(`${apiUrl}/search-product?value=${value}&seller=${selectedStatus.value}&status=${selected}`,
-        //         {
-        //             headers: {
-        //                 Authorization: "Bearer " + sessionToken
-        //             }
-        //         })
-        //
-        //     setProducts(response?.data?.data)
-        //     setTableLoading(false)
-        //
-        //
-        // } catch (error) {
-        //     setBtnLoading(false)
-        //     setToastMsg(error?.response?.data?.message)
-        //     setErrorToast(true)
-        // }
-        //
-        // setTimeout(() => {
-        //     setToggleLoadData(true)
-        // }, 1000);
     }
 
 
@@ -1340,24 +1290,7 @@ setSelectedStatus(selectedOption)
         setSelected(value)
         setLoading(true)
         const sessionToken = getAccessToken();
-        // try {
-        //
-        //     const response = await axios.get(`${apiUrl}/product-filter?status=${value}&value=${queryValue}&seller=${selectedStatus.value}`,
-        //         {
-        //             headers: {
-        //                 Authorization: "Bearer " + sessionToken
-        //             }
-        //         })
-        //     setProducts(response?.data?.products)
-        //     setLoading(false)
-        //
-        //
-        //
-        // } catch (error) {
-        //
-        //     setToastMsg(error?.response?.data?.message)
-        //     setErrorToast(true)
-        // }
+
     }
 
     const handleExportProduct = async () => {
