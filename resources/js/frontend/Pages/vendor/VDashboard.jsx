@@ -683,7 +683,7 @@ export function VDashboard() {
                 <Page  title="Dashboard">
                     <Layout>
                         <Layout.Section oneThird>
-                            <div className="graph_div">
+                            <div className="">
                             <LegacyCard title="Sales">
                                 <LegacyCard.Section>
                                     <Text color="subdued" as="span">
@@ -692,6 +692,7 @@ export function VDashboard() {
                                 </LegacyCard.Section>
 
                                 <LegacyCard.Section>
+                                    <div className="area-chart-container">
                                     <AreaChart width={900} height={200} data={graphData}>
                                         <XAxis dataKey="name"/>
                                         <YAxis/>
@@ -703,6 +704,7 @@ export function VDashboard() {
                                             fill="#8884d8"
                                         />
                                     </AreaChart>
+                                    </div>
                                 </LegacyCard.Section>
                             </LegacyCard>
                             </div>
