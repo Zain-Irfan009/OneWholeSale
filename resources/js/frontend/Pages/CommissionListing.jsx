@@ -16,51 +16,7 @@ import ReactSelect from "react-select";
 // import dateFormat from "dateformat";
 
 
-let data=[{
-    id:1,
-    order_id:'3232332',
-    date:'Mar 23, 2023',
-    seller_name:'Sagar Patel',
-    product_name:'10" RM decal Glow in the dark glass water bong 10"',
-    quantity:1,
-    price:'$22.00',
-    unit_product_commission:'$5.50',
-    total_product_commission:'$5.50',
-    total_admin_earning:'$15.50',
-    refunded_admin_earning:'$0.00',
-    vat_on_commission:'$0.00',
 
-},
-    {
-        id:2,
-        order_id:'3232332',
-        date:'Mar 23, 2023',
-        seller_name:'Sagar Patel',
-        product_name:'10" RM decal Glow in the dark glass water bong 10"',
-        quantity:1,
-        price:'$22.00',
-        unit_product_commission:'$5.50',
-        total_product_commission:'$5.50',
-        total_admin_earning:'$15.50',
-        refunded_admin_earning:'$0.00',
-        vat_on_commission:'$0.00',
-    },
-    {
-        id:3,
-        order_id:'3232332',
-        date:'Mar 23, 2023',
-        seller_name:'Sagar Patel',
-        product_name:'10" RM decal Glow in the dark glass water bong 10"',
-        quantity:1,
-        price:'$22.00',
-        unit_product_commission:'$5.50',
-        total_product_commission:'$5.50',
-        total_admin_earning:'$15.50',
-        refunded_admin_earning:'$0.00',
-        vat_on_commission:'$0.00',
-    }
-
-];
 
 
 export function CommissionListing() {
@@ -86,7 +42,9 @@ export function CommissionListing() {
     const [filterType, setFilterType] = useState('');
     const [showSelect, setShowSelect] = useState(true);
     const [showClearButton, setShowClearButton] = useState(false);
+    const [showPaymentClearButton, setShowPaymentClearButton] = useState(false);
     const toggleActive1 = useCallback(() => setActive((active) => !active), []);
+    const [tableLoading, setTableLoading] = useState(false);
 
     //pagination
     const [pagination, setPagination] = useState(1);
@@ -101,9 +59,30 @@ export function CommissionListing() {
     const [nextPageCursor, setNextPageCursor] = useState('')
     const [previousPageCursor, setPreviousPageCursor] = useState('')
     const [orderStatus, setOrderStatus] = useState('')
+    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('');
 
 
     const [uniqueId, setUniqueId] = useState()
+
+    const [itemStrings, setItemStrings] = useState([
+        "All",
+        "Unfulfilled",
+        "Partially Fulfilled",
+        "Fulfilled",
+
+    ]);
+
+
+
+
+    const tabs = itemStrings.map((item, index) => ({
+        content: item,
+        index,
+        onAction: () => {},
+        id: `${item}-${index}`,
+        isLocked: index === 0,
+
+    }));
 
     const toggleActive=(id)=>{
 
@@ -131,6 +110,15 @@ export function CommissionListing() {
         setLoading(true)
         setSelectedStatus('');
         setShowClearButton(false);
+        getData();
+
+    };
+
+
+    const handleClearPaymentButtonClick = () => {
+        setLoading(true)
+        setSelectedPaymentStatus('');
+        setShowPaymentClearButton(false);
         getData();
 
     };
@@ -175,44 +163,28 @@ export function CommissionListing() {
     const handleSelectChange = async (selectedOption)  => {
 
         const sessionToken = getAccessToken();
-        setLoading(true)
 
         setSelectedStatus(selectedOption)
+        setLoading(true)
         setShowClearButton(true)
-        try {
-            const response = await axios.get(`${apiUrl}/filter-seller-commission?value=${selectedOption.value}&query_value=${queryValue}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            console.log(response)
-            setCurrency(response?.data?.currency)
-            setCommissions(response?.data?.data)
-            let arr_seller = response?.data?.sellers.map(({ id,name, email,seller_shopname }) => ({
-                value: id,
-                label: `${seller_shopname}`
-            }));
-            setSellerList(arr_seller)
-            setLoading(false)
-            setCustomersLoading(false)
-            // setPaginationUrl(response?.data?.data?.links);
-            // if (
-            //     response?.data?.data?.total >
-            //     response?.data?.data?.per_page
-            // ) {
-            //     setShowPagination(true);
-            // } else {
-            //     setShowPagination(false);
-            // }
 
-
-        } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
     };
+
+
+    const handlePaymentSelectChange = (selectedOption) => {
+
+        const selectedValue =  selectedOption; // Access the value property of the selected option
+        setSelectedPaymentStatus(selectedValue);
+        setLoading(true)
+        setShowPaymentClearButton(true)
+
+    };
+
+
+    const handleOrderFilter =async (value) =>  {
+        setSelected(value)
+        setLoading(true)
+    }
 
 
     const resourceName = {
@@ -268,16 +240,17 @@ export function CommissionListing() {
     }
 
     const getData = async () => {
-        // setCustomersLoading(true)
-        // setLoading(true)
+
+        setTableLoading(true)
+
 
         const sessionToken = getAccessToken();
         try {
             if (pageCursorValue != '') {
 
-                var url = pageCursorValue;
+                var url = pageCursorValue+ '&payment_status=' + selectedPaymentStatus.value+ '&fulfillment_status=' + selected + '&seller='+selectedStatus.value + '&query_value'+queryValue;
             } else {
-                var url = `${apiUrl}/commission-listing?${pageCursor}=${pageCursorValue}`;
+                var url = `${apiUrl}/commission-listing?${pageCursor}=${pageCursorValue}&payment_status=${selectedPaymentStatus.value}&fulfillment_status=${selected}&seller=${selectedStatus.value}&query_value=${queryValue}`;
             }
 
             const response = await axios.get(url,
@@ -312,13 +285,14 @@ export function CommissionListing() {
                 setHasPreviousPage(false)
             }
 
+            setTableLoading(false)
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
             // setSucessToast(true)
 
 
         } catch (error) {
-
+            setTableLoading(false)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
@@ -328,50 +302,11 @@ export function CommissionListing() {
         setPageCursorValue('')
         setQueryValue(value)
 
-        const sessionToken = getAccessToken();
-
-
-        try {
-            const response = await axios.get(`${apiUrl}/search-commission?query_value=${value}&value=${selectedStatus.value}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            setCurrency(response?.data?.currency)
-            setCommissions(response?.data?.data)
-            let arr_seller = response?.data?.sellers.map(({ id,name, email,seller_shopname }) => ({
-                value: id,
-                label: `${seller_shopname}`
-            }));
-            setSellerList(arr_seller)
-            setLoading(false)
-            setCustomersLoading(false)
-            // setPaginationUrl(response?.data?.data?.links);
-            // if (
-            //     response?.data?.data?.total >
-            //     response?.data?.data?.per_page
-            // ) {
-            //     setShowPagination(true);
-            // } else {
-            //     setShowPagination(false);
-            // }
-
-        } catch (error) {
-            console.log(error)
-            setCustomersLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
-
-        setTimeout(() => {
-            setToggleLoadData(true)
-        }, 1000);
     }
 
     useEffect(() => {
         getData();
-    }, [toggleLoadData]);
+    }, [toggleLoadData,selectedPaymentStatus.value,selected,selectedStatus.value,queryValue]);
 
 
 
@@ -626,8 +561,16 @@ export function CommissionListing() {
                     <Card>
                         <div className='Polaris-Table commission_page'>
                             <Card.Section>
+
+                                <div>
+                                    <Tabs
+                                        tabs={tabs}
+                                        selected={selected}
+                                        onSelect={handleOrderFilter}
+                                    ></Tabs>
+                                </div>
                                 <div className="commission_listing_search" style={{ padding: '16px', display: 'flex' }}>
-                                    <div style={{ flex: '70%' }}>
+                                    <div style={{ flex: '40%' }}>
                                         <TextField
                                             placeholder='Search'
                                             value={queryValue}
@@ -638,7 +581,7 @@ export function CommissionListing() {
                                             prefix={<Icon source={SearchMinor} />}
                                         />
                                     </div>
-                                    <div style={{ flex: '30%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    <div style={{ flex: '30%', padding: '0px',alignItems: 'center', justifyContent: 'flex-end' }}>
 
                                         <div style={{ flex: '1' }}>
 
@@ -663,6 +606,40 @@ export function CommissionListing() {
                                         </div>
 
                                     </div>
+
+                                    <div style={{ flex: '30%', padding: '0px',alignItems: 'center', justifyContent: 'flex-end' }}>
+
+                                        <div style={{ flex: '1' }}>
+
+                                            <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
+                                                <ReactSelect
+                                                    name='pushed_status'
+                                                    options={[
+                                                        { value: 'all', label: 'All' },
+                                                        { value: 'paid', label: 'Paid' },
+                                                        { value: 'pending', label: 'Pending' },
+
+                                                    ]}
+                                                    placeholder="Select Payment Status"
+                                                    value={selectedPaymentStatus}
+                                                    onChange={(selectedOption) => handlePaymentSelectChange(selectedOption)}
+                                                    styles={{
+                                                        menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {showPaymentClearButton && (
+                                                <Button onClick={handleClearPaymentButtonClick} plain>
+                                                    Clear
+                                                </Button>
+                                            )}
+                                        </div>
+
+
+                                    </div>
+
+
                                 </div>
 
                                 <IndexTable
@@ -674,7 +651,7 @@ export function CommissionListing() {
                                         allResourcesSelected ? 'All' : selectedResources.length
                                     }
                                     onSelectionChange={handleSelectionChange}
-                                    loading={customersLoading}
+                                    loading={tableLoading}
                                     // emptyState={emptyStateMarkup}
                                     headings={[
                                         { title: 'Order Id' },
