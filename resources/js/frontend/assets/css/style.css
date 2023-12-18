@@ -334,3 +334,29 @@
     }
 }
 
+.note {
+    font-weight: 600 !important;
+    color: #e96566 !important;
+    font-size: 14px !important;
+    font-style: italic;
+}
+
+.text-danger {
+    color: #a94442;
+    font-weight: 700 !important;
+}
+
+.italic-def-font {
+    font-weight: 600;
+    color: #999999;
+    font-size: 14px;
+    font-style: italic;
+}
+
+
+
+
+
+
+
+
