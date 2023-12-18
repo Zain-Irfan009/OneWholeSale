@@ -533,6 +533,7 @@ export function OrdersListing() {
         created_at,
           financial_status,
           fulfillment_status,
+          cancelled_at,
         tracking_id,
       },
       index
@@ -610,7 +611,21 @@ export function OrdersListing() {
               </IndexTable.Cell>
           )}
 
-        {/*<IndexTable.Cell>*/}
+
+          {cancelled_at ? (
+              <IndexTable.Cell className="payment_pending">
+                  <Badge progress='complete'>
+                      Canceled
+                  </Badge>
+              </IndexTable.Cell>
+          ) :(
+              <IndexTable.Cell>
+                  <Badge progress='complete'>
+                        Not Canceled
+                  </Badge>
+              </IndexTable.Cell>
+          )}
+          {/*<IndexTable.Cell>*/}
         {/*  {tracking_id != null ? tracking_id : "N/A"}*/}
         {/*</IndexTable.Cell>*/}
 
@@ -1080,6 +1095,7 @@ export function OrdersListing() {
                     { title: "Date" },
                     { title: "Payment Status" },
                     { title: "Order Status" },
+                    { title: "Cancel" },
                     // { title: "Tracking Id" },
                     { title: "Action" },
                   ]}

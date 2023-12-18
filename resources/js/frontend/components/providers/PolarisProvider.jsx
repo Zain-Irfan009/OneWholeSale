@@ -5,6 +5,8 @@ import { AppProvider } from "@shopify/polaris";
 import translations from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
 
+
+
 export function PolarisProvider({ children }) {
 
 
@@ -12,38 +14,7 @@ export function PolarisProvider({ children }) {
   return (
     <AppProvider
       linkComponent={Link}
-      i18n={{
-        Polaris: {
-          Avatar: {
-            label: 'Avatar',
-            labelWithInitials: 'Avatar with initials {initials}',
-          },
-          ContextualSaveBar: {
-            save: 'Save',
-            discard: 'Discard',
-          },
-          TextField: {
-            characterCount: '{count} characters',
-          },
-          TopBar: {
-            toggleMenuLabel: 'Toggle menu',
-            SearchField: {
-              clearButtonLabel: 'Clear',
-              search: 'Search',
-            },
-          },
-          Modal: {
-            iFrameTitle: 'body markup',
-          },
-          Frame: {
-            skipToContent: 'Skip to content',
-            navigationLabel: 'Navigation',
-            Navigation: {
-              closeMobileNavigationLabel: 'Close navigation',
-            },
-          },
-        },
-      }}
+      i18n={translations}
     >
       {children}
     </AppProvider>

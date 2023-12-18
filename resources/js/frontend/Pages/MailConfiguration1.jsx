@@ -37,6 +37,7 @@ import {
     ActionList,
     useSetIndexFiltersMode,
     ChoiceList, RangeSlider, Checkbox, Pagination,
+    LegacyStack,
 } from '@shopify/polaris';
 import {
     SearchMinor, ChevronDownMinor, ChevronUpMinor, NoteMinor, HorizontalDotsMinor,ExternalMinor
@@ -356,38 +357,47 @@ export function MailConfiguration1() {
                                                                         {/*    onChange={(e) =>setMailSubject(e.target.value)}*/}
 
                                                                         {/*/>*/}
-                                                                        {!mailContentStatus &&
-                                                                            // <InputField
-                                                                            //     label='Mail Content *'
-                                                                            //     multiline={1}
-                                                                            //     type='text'
-                                                                            //     marginTop
-                                                                            //     name='title'
-                                                                            //     value={mailContent}
-                                                                            //     disabled
-                                                                            //     onChange={(e) =>setMailContent(e.target.value)}
-                                                                            //
-                                                                            // />
-                                                                            <div className="margin-top">
-                                                                            <CKEditor
-                                                                                editor={ClassicEditor}
-                                                                                data={mailContent}
-                                                                                onChange={handleMailContent}
-                                                                            />
-                                                                            </div>
-                                                                        }
 
-                                                                        {mailContentStatus &&
-                                                                            <div className='label_editor'>
-                                                                                <label >Mail Content *</label>
+
+                                                                            <div className="margin-top">
                                                                                 <CKEditor
                                                                                     editor={ClassicEditor}
-                                                                                    data={editMailContent}
-                                                                                    onChange={handleEditMailContent}
-
+                                                                                    data={mailContent}
+                                                                                    onChange={handleMailContent}
                                                                                 />
                                                                             </div>
-                                                                        }
+
+                                                                            <div className="imp-note">
+                                                                                <h4 className="note text-capitalize">Important Note:</h4>
+                                                                                <p>
+                                                                                   <span> The text used inside {'{{ }}'} with '$' symbol is a variable  (example, {'{$seller_name}'}).</span>
+                                                                                    <br />
+                                                                                    <span className="text-capitalize text-danger mp-bold">Do Not Remove or Change</span> these variables as they are representing their corresponding values.
+                                                                                    <br />
+                                                                                    Following are the variables you can use here.
+                                                                                </p>
+
+                                                                                <div className="margin-top">
+                                                                                    <LegacyStack spacing="loose" >
+                                                                                        <div>{'{$seller_name}'}</div>
+                                                                                        <div>-</div>
+                                                                                        <div className="italic-def-font">Seller Name</div>
+                                                                                    </LegacyStack>
+                                                                                    <LegacyStack spacing="loose">
+                                                                                        <div>{'{$shop}'}</div>
+                                                                                        <div>-</div>
+                                                                                        <div className="italic-def-font">Shop Name</div>
+                                                                                    </LegacyStack>
+                                                                                    <LegacyStack spacing="loose">
+                                                                                        <div>{'{$product_details}'}</div>
+                                                                                        <div>-</div>
+                                                                                        <div className="italic-def-font">Details of product</div>
+                                                                                    </LegacyStack>
+                                                                                </div>
+                                                                            </div>
+
+
+
                                                                         <div className="mail_config_btn_group" >
                                                                             <ButtonGroup>
                                                                                 {/*<Button>Reset</Button>*/}
@@ -448,7 +458,7 @@ export function MailConfiguration1() {
                                                                             {`This will send notification to the seller when their product in order is placed.`}
                                                                                 </p>
                                                                                 </span>
-                                                                                     </div>
+                                                                        </div>
 
 
 
@@ -463,18 +473,8 @@ export function MailConfiguration1() {
                                                                         {/*    onChange={(e) =>setMailSubject(e.target.value)}*/}
 
                                                                         {/*/>*/}
-                                                                        {!mailContentStatus &&
-                                                                            // <InputField
-                                                                            //     label='Mail Content *'
-                                                                            //     multiline={1}
-                                                                            //     type='text'
-                                                                            //     marginTop
-                                                                            //     name='title'
-                                                                            //     value={mailContent}
-                                                                            //     disabled
-                                                                            //     onChange={(e) =>setMailContent(e.target.value)}
-                                                                            //
-                                                                            // />
+
+
                                                                             <div className="margin-top">
                                                                                 <CKEditor
                                                                                     editor={ClassicEditor}
@@ -482,25 +482,39 @@ export function MailConfiguration1() {
                                                                                     onChange={handleOrderMailContent}
                                                                                 />
                                                                             </div>
-                                                                        }
 
-                                                                        {mailContentStatus &&
-                                                                            <div className='label_editor'>
-                                                                                <label >Mail Content *</label>
-                                                                                <CKEditor
-                                                                                    editor={ClassicEditor}
-                                                                                    data={editMailContent}
-                                                                                    onChange={handleEditMailContent}
+                                                                        <div className="imp-note">
+                                                                            <h4 className="note text-capitalize">Important Note:</h4>
+                                                                            <p>
+                                                                                <span> The text used inside {'{{ }}'} with '$' symbol is a variable  (example, {'{$seller_name}'}).</span>
+                                                                                <br />
+                                                                                <span className="text-capitalize text-danger mp-bold">Do Not Remove or Change</span> these variables as they are representing their corresponding values.
+                                                                                <br />
+                                                                                Following are the variables you can use here.
+                                                                            </p>
 
-                                                                                />
+                                                                            <div className="margin-top">
+                                                                                <LegacyStack spacing="loose" >
+                                                                                    <div>{'{$seller_name}'}</div>
+                                                                                    <div>-</div>
+                                                                                    <div className="italic-def-font">Seller Name</div>
+                                                                                </LegacyStack>
+                                                                                <LegacyStack spacing="loose">
+                                                                                    <div>{'{$shop}'}</div>
+                                                                                    <div>-</div>
+                                                                                    <div className="italic-def-font">Shop Name</div>
+                                                                                </LegacyStack>
+                                                                                <LegacyStack spacing="loose">
+                                                                                    <div>{'{$table_data}'}</div>
+                                                                                    <div>-</div>
+                                                                                    <div className="italic-def-font">Details of Order in Table</div>
+                                                                                </LegacyStack>
                                                                             </div>
-                                                                        }
-                                                                        <div className="mail_config_btn_group" >
-                                                                            <ButtonGroup>
-                                                                                {/*<Button>Reset</Button>*/}
-                                                                                {/*<Button primary onClick={handleEditAction}>Edit</Button>*/}
-                                                                            </ButtonGroup>
                                                                         </div>
+
+
+
+
 
 
                                                                     </Card>

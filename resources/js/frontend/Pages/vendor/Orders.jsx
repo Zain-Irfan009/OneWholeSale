@@ -290,7 +290,7 @@ export function Orders() {
 
     const rowMarkup = orders ? orders?.map(
         ({ id, order_number, gateway, financial_status,created_at,
-             fulfillment_status,payment_status,order_status,tracking_id  }, index) => (
+             fulfillment_status, cancelled_at,payment_status,order_status,tracking_id  }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -359,6 +359,20 @@ export function Orders() {
                     <IndexTable.Cell className="unfulfilled">
                         <Badge progress='complete'>{fulfillment_status==null ? 'Unfulfilled' : fulfillment_status}</Badge>
 
+                    </IndexTable.Cell>
+                )}
+
+                {cancelled_at ? (
+                    <IndexTable.Cell className="payment_pending">
+                        <Badge progress='complete'>
+                            Canceled
+                        </Badge>
+                    </IndexTable.Cell>
+                ) :(
+                    <IndexTable.Cell>
+                        <Badge progress='complete'>
+                            Not Canceled
+                        </Badge>
                     </IndexTable.Cell>
                 )}
 
@@ -785,6 +799,7 @@ export function Orders() {
                                         { title: 'Payment Status' },
                                         { title: 'Order Status' },
                                         // { title: 'Tracking Id' },
+                                        { title: "Cancel" },
                                         { title: 'Action' },
                                     ]}
                                 >

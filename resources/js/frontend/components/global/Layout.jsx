@@ -231,6 +231,13 @@ export function MainLayout(props) {
                         url: "/announcement",
                         onClick: () => setLocationChange("/announcement"),
                         selected: location.pathname === "/announcement",
+                    },
+                    {
+                        label: "test",
+                        icon: NoteMinor,
+                        url: "/test",
+                        onClick: () => setLocationChange("/test"),
+                        selected: location.pathname === "/test",
                     }
                 ]}
             />
