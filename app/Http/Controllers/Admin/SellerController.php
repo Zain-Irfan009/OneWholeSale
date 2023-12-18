@@ -286,7 +286,7 @@ class SellerController extends Controller
                     try {
                         $this->SendMail($seller, $Setting, $type);
                     }catch (\Exception $exception){
-
+                        dd($exception->getMessage());
                     }
 
                 }

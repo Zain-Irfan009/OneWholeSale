@@ -41,6 +41,7 @@ class SendMail extends Mailable
      */
     public function envelope()
     {
+
         if($this->type=='Seller Message'){
             return new Envelope(
                 subject: 'OneWholesale',
@@ -97,7 +98,7 @@ class SendMail extends Mailable
             else if($this->type=='Order Message'){
 
                 return new Content(
-                    view: 'email.order_message',
+                    view: 'email.order_message3',
                 );
             }
             else if($this->type=='Order Cancel'){

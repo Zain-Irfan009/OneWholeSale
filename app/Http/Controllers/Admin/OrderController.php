@@ -8,6 +8,7 @@ use App\Models\CommissionLog;
 use App\Models\GlobalCommission;
 use App\Models\LineItem;
 use App\Models\log;
+use App\Models\MailConfiguration;
 use App\Models\MailSmtpSetting;
 use App\Models\Order;
 use App\Models\OrderSeller;
@@ -57,6 +58,10 @@ class OrderController extends Controller
 
     public function singleOrder($order, $shop)
     {
+        $log=new log();
+        $log->log='order_start';
+        $log->verify='3232';
+        $log->save();
 
         $shop = Session::where('shop', $shop)->first();
 //        if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {
@@ -406,7 +411,9 @@ class OrderController extends Controller
 
 
             if($flag==1) {
+
                 $unique_records =array_unique($unique_user_array);
+
                 foreach ($unique_records as $unique_record) {
 
                     $order_seller = new OrderSeller();
@@ -418,15 +425,45 @@ class OrderController extends Controller
                      $message='';
                       $message_record_array=array();
                      foreach ($get_line_items as $get_line_item){
+
+                         $order_check=Order::find($get_line_item->order_id);
+                         $order_number=null;
+                         if($order_check){
+                             $order_number=$order_check->order_number;
+                         }
+                         $product=Product::where('shopify_id',$get_line_item->shopify_product_id)->first();
+                         $variant=Variant::where('shopify_id',$get_line_item->shopify_variant_id)->first();
+                         if($variant && $variant->src){
+                             $data['image'] = $variant->src;
+                         }
+                         else if($product && $product->featured_image){
+                             $data['product_image'] = $product->featured_image;
+                         }else{
+                             $data['product_image'] = env('APP_URL').'/public/empty.jpg';
+                         }
+                         $sub_total=$get_line_item['quantity']*$get_line_item['price'];
+
 //                          $message=$message."Product: ".$get_line_item['title'].' of Quantity: '.$get_line_item['quantity'].',';
+                         $data['order_id']=$newOrder->id;
+                         $data['order_number']=$order_number;
                          $data['product_name']=$get_line_item['title'];
                          $data['quantity']=$get_line_item['quantity'];
                          $data['sku']=$get_line_item['sku'];
+                         $data['price']=number_format($get_line_item['price'],2);
+                         $data['sub_total']=number_format($sub_total,2);
                          array_push($message_record_array,$data);
                       }
 
-//                      $this->OrderMail($unique_record,$message_record_array,$newOrder);
+                        try {
 
+                            $this->OrderMail($unique_record, $message_record_array, $newOrder);
+                        }catch (\Exception $exception){
+
+                         $log=new log();
+                         $log->log=json_encode($exception->getMessage());
+                         $log->verify='Order create mail';
+                         $log->save();
+                        }
                 }
 
 
@@ -447,8 +484,11 @@ class OrderController extends Controller
             $log->log='abc'.$order->user_id;
             $log->verify=json_encode($order);
             $log->save();
+
+            $newOrder->cancelled_at=$order->cancelled_at;
+            $newOrder->save();
             try {
-                $this->OrderCancelMail($newOrder->user_id,$order);
+//                $this->OrderCancelMail($newOrder->user_id,$order);
 //                $newOrder->delete();
             }
             catch (\Exception $exception){
@@ -674,16 +714,20 @@ $orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
             $order=Order::find($order->id);
         $session=Session::find($user->shop_id);
         $type="Order Message";
-            $Setting = MailSmtpSetting::where('shop_id', $user->shop_id)->first();
-            $details['to'] = $user->email;
-            $details['name'] = $user->name;
-            $details['subject'] = 'OneWholesale';
-            $details['message'] = $message;
-            $details['shop_name'] =$session->shop ;
-            $details['shop_id'] =$session->id ;
-            $details['total_price']=$order->total_price;
-            $details['financial_status']=$order->financial_status;
-            Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
+            $setting=MailConfiguration::where('shop_id',$user->shop_id)->first();
+            if($setting && $setting->order_status==1) {
+                $details['to'] = $user->email;
+                $details['name'] = $user->name;
+                $details['subject'] = 'OneWholesale';
+                $details['message'] = $message;
+                $details['shop_name'] = $session->shop;
+                $details['shop_id'] = $session->id;
+                $details['currency'] = $session->money_format;
+                $details['total_price'] = number_format($order->total_price, 2);
+                $details['financial_status'] = ucfirst($order->financial_status);
+
+                Mail::to($user->email)->send(new SendMail($details, $setting, $type));
+            }
         }
 
     public function OrderCancelMail($user_id,$order){

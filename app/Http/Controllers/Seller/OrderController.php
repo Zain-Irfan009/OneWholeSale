@@ -30,6 +30,7 @@ class OrderController extends Controller
             $data['financial_status']=$order->financial_status;
             $data['fulfillment_status']=$order->fulfillment_status;
             $data['created_at']=$order->created_at;
+            $data['cancelled_at']=$order->cancelled_at;
             array_push($order_array,$data);
         }
         if($user){
@@ -106,6 +107,7 @@ class OrderController extends Controller
             $data['financial_status']=$order->financial_status;
             $data['fulfillment_status']=$order->fulfillment_status;
             $data['created_at']=$order->created_at;
+            $data['cancelled_at']=$order->cancelled_at;
             array_push($order_array,$data);
         }
 
@@ -192,6 +194,7 @@ class OrderController extends Controller
                 $data['financial_status'] = $order->financial_status;
                 $data['fulfillment_status'] = $order->fulfillment_status;
                 $data['created_at'] = $order->created_at;
+                $data['cancelled_at']=$order->cancelled_at;
                 array_push($order_array, $data);
             }
         }
@@ -246,6 +249,7 @@ class OrderController extends Controller
                 $data['financial_status'] = $order->financial_status;
                 $data['fulfillment_status'] = $order->fulfillment_status;
                 $data['created_at'] = $order->created_at;
+                $data['cancelled_at']=$order->cancelled_at;
                 array_push($order_array, $data);
             }
         }
@@ -298,6 +302,7 @@ class OrderController extends Controller
                 $data['financial_status'] = $order->financial_status;
                 $data['fulfillment_status'] = $order->fulfillment_status;
                 $data['created_at'] = $order->created_at;
+                $data['cancelled_at']=$order->cancelled_at;
                 array_push($order_array, $data);
             }
 
