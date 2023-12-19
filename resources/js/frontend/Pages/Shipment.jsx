@@ -39,7 +39,7 @@ import {
 import { AppContext } from "../components/providers/ContextProvider";
 import { SkeltonPageForTable } from "../components/global/SkeltonPage";
 import { CustomBadge } from "../components/Utils/CustomBadge";
-// import { useAuthState } from '../../components/providers/AuthProvider'
+// import { useAuthState } from '../components/providers/AuthProvider'
 import axios from "axios";
 import { useNavigate,useLocation } from "react-router-dom";
 import { InputField } from "../components/Utils";
@@ -47,7 +47,7 @@ import {getAccessToken} from "../assets/cookies";
 import ReactSelect from "react-select";
 // import dateFormat from "dateformat";
 
-export function ProductsListing() {
+export function Shipment() {
     const { apiUrl } = useContext(AppContext);
     // const { user } = useAuthState();
     const navigate = useNavigate();
@@ -86,7 +86,7 @@ export function ProductsListing() {
     const [showPagination, setShowPagination] = useState(false);
     const [paginationUrl, setPaginationUrl] = useState([]);
 
-    const [products, setProducts] = useState([]);
+    const [shipments, setShipments] = useState([]);
     const [currency, setCurrency] = useState('');
     const [hasNextPage, setHasNextPage] = useState(false);
     const [hasPreviousPage, setHasPreviousPage] = useState(false);
@@ -104,16 +104,23 @@ export function ProductsListing() {
 
     const [sellerEmailInputValue, setSellerEmailInputValue] = useState("");
     const [optionsLoading, setOptionsLoading] = useState(false);
-    const CollectionsOptionsData = useMemo(
-        () => [
-            { value: "Catalogs", label: "catalog" },
-            { value: "Zippo Display", label: "zippo" },
-        ],
-        []
-    );
 
-    const [collectionOptionsSelected, setCollectionOptionsSelected] =
-        useState("");
+
+    const formatDate = (created_at) => {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const date = new Date(created_at);
+        const monthName = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        const formattedDate = `${monthName} ${day}, ${year}`;
+        return formattedDate;
+    }
+
     const sellerUpdateText = useCallback(
         (value) => {
             setSellerEmailInputValue(value);
@@ -144,14 +151,6 @@ export function ProductsListing() {
         [sellerEmailList, optionsLoading, sellerEmailListSelected]
     );
 
-    const removeSellerEmail = useCallback(
-        (collection) => () => {
-            const collectionOptions = [...sellerEmailListSelected];
-            collectionOptions.splice(collectionOptions.indexOf(collection), 1);
-            setSellerListSelected(collectionOptions);
-        },
-        [collectionOptionsSelected]
-    );
 
     function tagTitleCase(string) {
         return string
@@ -215,6 +214,7 @@ export function ProductsListing() {
     const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
+    const [selectedSeller, setSelectedSeller] = useState('');
     const [filterType, setFilterType] = useState('');
     const [showSelect, setShowSelect] = useState(true);
     const [showClearButton, setShowClearButton] = useState(false);
@@ -235,11 +235,6 @@ export function ProductsListing() {
         setModalReassign(true);
     }
 
-    const handleReassignAction = (id) => {
-        setUniqueId(id);
-        setSellerListSelected([])
-        setModalReassign(true);
-    };
 
     const handleSelectChange2 = useCallback((value) => setSelected2(value), []);
 
@@ -268,6 +263,24 @@ export function ProductsListing() {
         setSelectedStatus(selectedOption)
 
         setShowClearButton(true)
+
+    };
+
+    const handleSellerSelectChange = async (selectedOption)  => {
+
+        const sessionToken = getAccessToken();
+        setLoading(true)
+
+        setSelectedSeller(selectedOption)
+
+        setShowClearButton(true)
+
+    };
+
+
+    const handleSelectStatus = async (selectedOption)  => {
+
+        setSelectedStatus(selectedOption)
 
     };
 
@@ -328,6 +341,14 @@ export function ProductsListing() {
         <Toast content={toastMsg} onDismiss={toggleSuccessMsgActive} />
     ) : null;
 
+
+    const handleChangeStatus = (id) => {
+        setUniqueId(id);
+        setSellerListSelected([])
+        setModalReassign(true);
+    };
+
+
     // ---------------------Tag/Filter Code Start Here----------------------
     const handleQueryValueRemove = () => {
         setPageCursorValue("");
@@ -339,6 +360,7 @@ export function ProductsListing() {
     const handleClearButtonClick = () => {
         setLoading(true)
         setSelectedStatus('');
+        setSelectedSeller('');
         setShowClearButton(false);
         getData();
 
@@ -350,6 +372,7 @@ export function ProductsListing() {
     const handleFilterClick = (type) => {
         setFilterType(type);
         setSelectedStatus('');
+        setSelectedSeller('');
         setSelectedBrand('');
         setSelectedCategory('');
         setShowSelect(true);
@@ -360,7 +383,7 @@ export function ProductsListing() {
         const params = new URLSearchParams(location.search);
         if (activeState) {
             params.set('search', queryValue);
-            navigate(`/productslisting?${params.toString()}`);
+            navigate(`/shipment?${params.toString()}`);
         }
 
     }, [queryValue]);
@@ -383,13 +406,13 @@ export function ProductsListing() {
 
             const nextPage = currentPage + 1;
             queryParams.set('page', nextPage.toString());
-            navigate(`/productslisting?${queryParams.toString()}`);
+            navigate(`/shipments?${queryParams.toString()}`);
 
             setPageCursorValue(nextPageCursor);
         } else {
             const prevPage = currentPage - 1;
             queryParams.set('page', prevPage.toString());
-            navigate(`/productslisting?${queryParams.toString()}`);
+            navigate(`/shipments?${queryParams.toString()}`);
 
             setPageCursorValue(previousPageCursor);
         }
@@ -406,11 +429,13 @@ export function ProductsListing() {
         try {
 
             if (pageCursorValue != '') {
-                var selectedShop = encodeURIComponent(selectedStatus.value);
-                var url = pageCursorValue+ '&value=' + queryValue +'&seller=' +selectedShop + '&status=' + selected ;
+                var status = encodeURIComponent(selectedStatus.value);
+                var seller = encodeURIComponent(selectedSeller.value);
+                var url = pageCursorValue+ '&value=' + queryValue +'&status=' +status+'&seller='+seller ;
             } else {
-                var selectedShop = encodeURIComponent(selectedStatus.value);
-                var url = `${apiUrl}/products?page=${currentPage}&${pageCursor}=${pageCursorValue}&value=${queryValue}&seller=${selectedShop}&status=${selected}`;
+                var status = encodeURIComponent(selectedStatus.value);
+                var seller = encodeURIComponent(selectedSeller.value);
+                var url = `${apiUrl}/shipment?page=${currentPage}&${pageCursor}=${pageCursorValue}&value=${queryValue}&status=${status}&seller=${seller}`;
             }
             console.log(pageCursorValue)
 
@@ -427,29 +452,24 @@ export function ProductsListing() {
             }
 
             console.log(response?.data)
-            setProducts(response?.data?.products?.data)
-            let arr_seller = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
-                value: seller_shopname,
+            setShipments(response?.data?.shipments?.data)
+
+            let arr_seller = response?.data?.sellers.map(({ id,name,seller_shopname, email }) => ({
+                value: id,
+                // label: `${name} (${email})`
                 label: `${seller_shopname}`
             }));
             setSellerList(arr_seller)
-            let arr_seller1 = response?.data?.sellers.map(({ name, email,seller_shopname }) => ({
-                value: seller_shopname,
-                label: `${seller_shopname}`
-            }));
 
-            setSellerEmailList(arr_seller1)
-            setOrignalSellerEmailList(arr_seller1)
-            setCurrency(response?.data?.currency)
 
-            setNextPageCursor(response?.data?.products?.next_page_url)
-            setPreviousPageCursor(response?.data?.products?.prev_page_url)
-            if (response?.data?.products?.next_page_url) {
+            setNextPageCursor(response?.data?.shipments?.next_page_url)
+            setPreviousPageCursor(response?.data?.shipments?.prev_page_url)
+            if (response?.data?.shipments?.next_page_url) {
                 setHasNextPage(true)
             } else {
                 setHasNextPage(false)
             }
-            if (response?.data?.products?.prev_page_url) {
+            if (response?.data?.shipments?.prev_page_url) {
                 setHasPreviousPage(true)
             } else {
                 setHasPreviousPage(false)
@@ -485,43 +505,16 @@ export function ProductsListing() {
     // ---------------------Index Table Code Start Here----------------------
 
     const resourceName = {
-        singular: "product",
-        plural: "products",
+        singular: "shipment",
+        plural: "shipments",
     };
 
     const handleEditAction = (id) => {
-        navigate(`/edit-product/${id}`);
+        navigate(`/edit-shipment/${id}`);
     };
 
 
-    const handleEnableAction=async (id) => {
-        setSkeleton(true)
-        setLoading(true)
-        const sessionToken = getAccessToken();
 
-        try {
-            const response = await axios.get(`${apiUrl}/update-product-status?id=${id}&product_status=Approved`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-
-            setDisableModal(false);
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            getData()
-            setLoading(false)
-            setSkeleton(false)
-
-
-        } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setSkeleton(false)
-        }
-    }
 
 
     const deleteProductModalHandler = (id) => {
@@ -533,108 +526,14 @@ export function ProductsListing() {
         setDeleteProductModal(false);
     };
 
-    const deleteProduct  = async () => {
-        setDeleteBtnLoading(true)
-        // setSkeleton(true)
-        // setLoading(true)
-        const sessionToken = getAccessToken();
-        try {
-
-            const response = await axios.delete(`${apiUrl}/delete-product?id=${uniqueId}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            getData();
-            setDeleteProductModal(false);
-            setDeleteBtnLoading(false)
-            setLoading(false)
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            setSkeleton(false)
-
-        } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setBtnLoading(false)
-        }
-
-    }
-
-
-    const syncProduct  = async (id) => {
-
-        setSkeleton(true)
-        setLoading(true)
-        const sessionToken = getAccessToken();
-        try {
-
-            const response = await axios.get(`${apiUrl}/sync-product?id=${id}`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            getData();
-            setLoading(false)
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            setSkeleton(false)
-
-        } catch (error) {
-
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setBtnLoading(false)
-        }
-
-    }
 
 
 
-    const handleDisableAction = async(id) => {
 
-        setSkeleton(true)
-        setLoading(true)
-        const sessionToken = getAccessToken();
-        try {
-            const response = await axios.get(`${apiUrl}/update-product-status?id=${id}&product_status=Disabled`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
 
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            getData()
-            setLoading(false)
-            setSkeleton(false)
 
-        } catch (error) {
 
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setSkeleton(false)
-        }
-    };
 
-    const handleViewinStoreAction = useCallback(
-        () => console.log("View in Store action"),
-        []
-    );
-
-    const handleSendMessageAction = (id) => {
-        setUniqueId(id);
-        setModalReassign(true);
-    };
-
-    const handleChangePasswordAction = (id) => {
-        setUniqueId(id);
-        setModalChangePassword(true);
-    };
 
     const handleDeleteSellerAction = useCallback(
         () => console.log("View in delete action"),
@@ -642,7 +541,7 @@ export function ProductsListing() {
     );
 
     const { selectedResources, allResourcesSelected, handleSelectionChange } =
-        useIndexResourceState(products);
+        useIndexResourceState(shipments);
 
 
 
@@ -652,14 +551,14 @@ export function ProductsListing() {
         console.log(allResourcesSelected, "allResourcesSelected");
     }, [selectedResources,allResourcesSelected]);
 
-    const allResourcesSelect = products?.every(({ id }) =>
+    const allResourcesSelect = shipments?.every(({ id }) =>
         selectedResources.includes(id)
     );
 
     useEffect(() => {
 
         getData()
-    }, [toggleLoadData,queryValue,selectedStatus.value,selected]);
+    }, [toggleLoadData,queryValue,selectedStatus.value,selected,selectedSeller.value]);
 
 
     const promotedBulkActions = [
@@ -669,74 +568,7 @@ export function ProductsListing() {
         },
     ];
 
-    const handleMultipleStatusEnableAll=async () => {
 
-
-        setLoading(true)
-        setDisableModal(false);
-        setBtnLoading(true)
-        const sessionToken = getAccessToken();
-
-        try {
-            const response = await axios.get(`${apiUrl}/update-product-status-multiple?ids=${selectedResources}&status=1`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-
-            setDisableModal(false);
-
-
-            getData()
-
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            setBtnLoading(false)
-
-            setLoading(false)
-
-
-        } catch (error) {
-            console.log('error',error)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setBtnLoading(false)
-        }
-    }
-
-    const handleMultipleStatusDisableAll=async () => {
-
-
-        setLoading(true)
-        setDisableModal(false);
-        setBtnLoading(true)
-        const sessionToken = getAccessToken();
-
-        try {
-            const response = await axios.get(`${apiUrl}/update-product-status-multiple?ids=${selectedResources}&status=0`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-
-            setDisableModal(false);
-            getData()
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            setBtnLoading(false)
-
-            setLoading(false)
-
-
-        } catch (error) {
-            console.log('error',error)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-            setBtnLoading(false)
-        }
-    }
 
 
 
@@ -816,21 +648,17 @@ export function ProductsListing() {
         }
     }
 
-    const rowMarkup =products ? products?.map(
+    const rowMarkup =shipments ? shipments?.map(
         (
             {
                 id,
-                product_id,
-                featured_image,
-                product_name,
+                created_at,
                 seller_name,
-                type,
-                price,
-                quantity,
-                vendor,
-                collect_id,
-                has_variants_count,
-                product_status,
+                courier_name,
+                comment,
+                tracking_number,
+                status,
+                file
             },
             index
         ) => (
@@ -847,54 +675,23 @@ export function ProductsListing() {
                     </Text>
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>
-                    <Avatar size="small" shape="square" name="title" source={featured_image} />
-                </IndexTable.Cell>
+                <IndexTable.Cell className="Capitalize-Cell">
+                {seller_name != null ? seller_name : "---"}
+            </IndexTable.Cell>
+                <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
                 <IndexTable.Cell className="Capitalize-Cell">
-                    {product_name != null ? product_name.substring(0, 40) : "---"}
+                    {courier_name != null ? courier_name : "---"}
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>{vendor != null ? vendor : "---"}</IndexTable.Cell>
-
-                <IndexTable.Cell>
-                    <CustomBadge value={"NORMAL"} type="products" />
+                <IndexTable.Cell>{tracking_number != null ? tracking_number : "---"}</IndexTable.Cell>
+                <IndexTable.Cell className="fulfilled">
+                <Badge progress='complete'>{status != null ? status : "---"}</Badge>
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
-                <IndexTable.Cell>
-                    {has_variants_count &&
-                    has_variants_count.length > 0 &&
-                    has_variants_count[0].total_quantity !== 0
-                        ? has_variants_count[0].total_quantity
-                        : 0}
-                </IndexTable.Cell>
+                <IndexTable.Cell>{file != null ? 'Yes' : "No"}</IndexTable.Cell>
 
-                {collect_id == null ? (
-                    <IndexTable.Cell className="disabled">
-                        <CustomBadge value="Not Assigned" type="products" />
-                    </IndexTable.Cell>
-                ) : (
-                    <IndexTable.Cell className="approved">
-                        <CustomBadge value="Assigned" type="products" />
-                    </IndexTable.Cell>
-                )}
 
-                {product_status === 'Approved' ? (
-                    <IndexTable.Cell className="approved">
-                        <CustomBadge  value={product_status}  type="products" />
-                    </IndexTable.Cell>
-                ) : product_status === 'Approval Pending' ? (
-                    <IndexTable.Cell className="approval_pending">
-                        <CustomBadge  value={product_status}  type="products" />
-                    </IndexTable.Cell>
-                ) : (
-
-                    <IndexTable.Cell className="disabled">
-                        <CustomBadge  value={product_status}  type="products" />
-                    </IndexTable.Cell>
-
-                )}
                 <IndexTable.Cell>
                     <Popover
                         active={active[id]}
@@ -910,42 +707,21 @@ export function ProductsListing() {
                             actionRole="menuitem"
                             items={[
                                 {
-                                    content: "Edit",
-                                    onAction: () => handleEditAction(id),
-                                },
-                                // {
-                                //   content: "View in Store",
-                                //   onAction: handleViewinStoreAction,
-                                // },
-                                {
-                                    content: "Reassign",
-                                    onAction: () => handleReassignAction(id),
+                                    content: "Change Status",
+                                    onAction: () => handleChangeStatus(id),
                                 },
 
-                                {
-                                    content: product_status=='Approval Pending' ?"Enable" : product_status=='Approved' ? "Disable" :  product_status=='Disabled' ? "Enable" : '' ,
-                                    onAction: () =>  product_status=='Approval Pending' ?  handleEnableAction(id) : product_status=='Approved' ? handleDisableAction(id) :product_status=='Disabled' ? handleEnableAction(id) : '',
-                                },
-                                {
-                                    content: "Sync From your Store",
-                                    onAction: ()=>syncProduct(id),
-                                },
 
-                                {
-                                    content: "Delete",
-                                    // onAction: ()=>deleteProduct(id),
-                                    onAction: () =>deleteProductModalHandler(id),
-                                },
                             ]}
                         />
                     </Popover>
                 </IndexTable.Cell>
             </IndexTable.Row>
         )
-    ) : <EmptySearchResult title={"No Product Found"} withIllustration />
+    ) : <EmptySearchResult title={"No Shipment Found"} withIllustration />
 
     const emptyStateMarkup = (
-        <EmptySearchResult title={"No Product Found"} withIllustration />
+        <EmptySearchResult title={"No Shipment Found"} withIllustration />
     );
 
     const handleClearStates = () => {
@@ -961,8 +737,8 @@ export function ProductsListing() {
         </Button>
     );
 
-    const handleAddProduct = () => {
-        navigate("/add-product");
+    const handleAddShipment = () => {
+        navigate("/add-shipment");
     };
 
     // ---------------------New Table Code----------------------
@@ -987,10 +763,7 @@ export function ProductsListing() {
         (value) => setTaggedWith(value),
         []
     );
-    // const handleFiltersQueryChange = useCallback(
-    //   (value) => setQueryValue(value),
-    //   []
-    // );
+
     const handleAccountStatusRemove = useCallback(
         () => setAccountStatus(undefined),
         []
@@ -1002,9 +775,9 @@ export function ProductsListing() {
 
     const [itemStrings, setItemStrings] = useState([
         "All",
-        "Approval Pending",
-        "Approved",
-        "Disabled",
+        // "Approval Pending",
+        // "Approved",
+        // "Disabled",
     ]);
     const { mode, setMode } = useSetIndexFiltersMode();
     const [accountStatus, setAccountStatus] = useState(undefined);
@@ -1151,65 +924,6 @@ export function ProductsListing() {
 
     // ---------------------Api Code starts Here----------------------
 
-    const getCustomers = async () => {
-        setCustomersLoading(true);
-        try {
-            const response = await axios.get(
-                `${apiUrl}/api/shopify/customers?title=${queryValue}&${pageCursor}=${pageCursorValue}`,
-                {
-                    headers: { Authorization: `Bearer ${getAccessToken()}` },
-                }
-            );
-
-            // console.log('getCustomers response: ', response.data);
-            if (response.data.errors) {
-                setToastMsg(response.data.message);
-                setErrorToast(true);
-            } else {
-                let customers = response.data.data.body?.data?.customers;
-                let customersArray = [];
-                let nextValue = "";
-
-                if (customers?.edges?.length > 0) {
-                    let previousValue = customers.edges[0]?.cursor;
-                    customers?.edges?.map((item) => {
-                        nextValue = item.cursor;
-                        customersArray.push({
-                            id: item.node.id.replace("gid://shopify/Customer/", ""),
-                            name: item.node.displayName,
-                            email: item.node.email,
-                            ordersCount: item.node.ordersCount,
-                            totalSpent: item.node.totalSpent,
-                            address: item.node.defaultAddress?.formattedArea,
-                        });
-                    });
-
-                    setCustomers(customersArray);
-                    setPageCursorValue("");
-                    setNextPageCursor(nextValue);
-                    setPreviousPageCursor(previousValue);
-                    setHasNextPage(customers.pageInfo?.hasNextPage);
-                    setHasPreviousPage(customers.pageInfo?.hasPreviousPage);
-                } else {
-                    handleClearStates();
-                }
-                setStoreUrl(response.data.user?.shopifyShopDomainName);
-            }
-
-            setLoading(false);
-            setCustomersLoading(false);
-            setToggleLoadData(false);
-        } catch (error) {
-            console.warn("getCustomers Api Error", error.response);
-            setLoading(false);
-            // setCustomersLoading(false)
-            setToastMsg("Server Error");
-            setToggleLoadData(false);
-            setErrorToast(true);
-            handleClearStates();
-        }
-    };
-
     const closeDisableModal = () => {
         setDisableModal(false);
     };
@@ -1246,11 +960,11 @@ export function ProductsListing() {
 
 
             if (selectedResources.length === 0) {
-                var encodedEmail = encodeURIComponent(sellerEmailListSelected);
-                var url = `${apiUrl}/reassign-seller?id=${uniqueId}&email=${encodedEmail}`
+
+                var url = `${apiUrl}/change-status-shipment?id=${uniqueId}&status=${selectedStatus}`
             }else{
                 var encodedEmail = encodeURIComponent(sellerEmailListSelected);
-                var url=`${apiUrl}/reassign-multiple-seller?ids=${selectedResources}&email=${encodedEmail}`
+                var url=`${apiUrl}/change-status-shipment?ids=${selectedResources}&status=${selectedStatus}`
             }
             const response = await axios.get(url,
                 {
@@ -1313,37 +1027,14 @@ export function ProductsListing() {
     return (
         <div className="Products-Page IndexTable-Page Orders-page">
 
-            <Modal
-                open={deleteProductModal}
-                onClose={deleteModalCloseHandler}
-                title="Delete Product"
-                primaryAction={{
-                    content: "Delete Product",
-                    destructive: true,
-                    style: { backgroundColor: "red" },
-                    onAction: deleteProduct,
-                    loading: deleteBtnLoading,
-                }}
-                secondaryActions={[
-                    {
-                        content: "Cancel",
-                        onAction: deleteModalCloseHandler,
-                    },
-                ]}
-            >
-                <Modal.Section>
 
-                    <div className="margin-top" />
-
-                </Modal.Section>
-            </Modal>
 
             <Modal
                 open={modalReassign}
                 onClose={handleReassignCloseAction}
-                title="Assign Product To Seller"
+                title="Change Shipment Status"
                 primaryAction={{
-                    content: "Reassign",
+                    content: "Update",
                     destructive: true,
                     onAction: assignProductToSeller,
                     loading:btnLoading
@@ -1357,26 +1048,21 @@ export function ProductsListing() {
                 ]}
             >
                 <Modal.Section>
-                    {/*<InputField*/}
-                    {/*  label="Seller Email *"*/}
-                    {/*  type="text"*/}
-                    {/*  name="seller_email"*/}
-                    {/*  value={sellerEmail}*/}
-                    {/*  onChange={handleSellerEmail}*/}
-                    {/*  error={formErrors.sellerEmail}*/}
-                    {/*/>*/}
 
-                    <Autocomplete
-
-                        options={sellerEmailList}
-                        selected={sellerEmailListSelected}
-                        textField={sellerEmailTextField}
-                        loading={optionsLoading}
-                        onSelect={
-                            setSellerListSelected
-                        }
-                        listTitle="Sellers"
+                    <Select
+                        name='pushed_status'
+                        options={[
+                            { value: 'Updated', label: 'Updated' },
+                            { value: 'Received', label: 'Received' },
+                        ]}
+                        placeholder="Select Status"
+                        value={selectedStatus}
+                        onChange={(selectedOption) => handleSelectStatus(selectedOption)}
+                        styles={{
+                            menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                        }}
                     />
+
                 </Modal.Section>
             </Modal>
             <Modal
@@ -1489,18 +1175,10 @@ export function ProductsListing() {
             ) : (
                 <Page
                     fullWidth
-                    title="Products"
-                    primaryAction={{
-                        content: "Add Product",
-                        onAction: handleAddProduct,
-                    }}
-                    secondaryActions={
-                        <ButtonGroup>
+                    title="Shipments"
 
-                            <Button onClick={handleExportProduct} loading={btnLoading}>Export </Button>
 
-                        </ButtonGroup>
-                    }
+
                 >
                     <Card>
                         <div className="Polaris-Table product_listing">
@@ -1508,31 +1186,6 @@ export function ProductsListing() {
                                 <>
                                     <Card.Section fullWidth subdued hasPaddingTop={false}>
 
-                                        {/*<IndexFilters*/}
-                                        {/*  // sortOptions={sortOptions}*/}
-                                        {/*  // sortSelected={sortSelected}*/}
-                                        {/*  // queryValue={queryValue}*/}
-                                        {/*  // queryPlaceholder="Searching in all"*/}
-                                        {/*  // onQueryChange={handleFiltersQueryChange}*/}
-                                        {/*  // onQueryClear={() => {}}*/}
-                                        {/*  onSort={setSortSelected}*/}
-                                        {/*  primaryAction={primaryAction}*/}
-                                        {/*  cancelAction={{*/}
-                                        {/*    onAction: () => {},*/}
-                                        {/*    disabled: false,*/}
-                                        {/*    loading: false,*/}
-                                        {/*  }}*/}
-                                        {/*  tabs={tabs}*/}
-                                        {/*  selected={selected}*/}
-                                        {/*  onSelect={handleProductFilter}*/}
-                                        {/*  canCreateNewView*/}
-                                        {/*  onCreateNewView={onCreateNewView}*/}
-                                        {/*  filters={filters}*/}
-                                        {/*  // appliedFilters={appliedFilters}*/}
-                                        {/*  // onClearAll={handleFiltersClearAll}*/}
-                                        {/*  mode={mode}*/}
-                                        {/*  // setMode={setMode}*/}
-                                        {/*/>*/}
 
                                         <div>
                                             <Tabs
@@ -1542,9 +1195,9 @@ export function ProductsListing() {
                                             ></Tabs>
                                         </div>
                                         <div className="product_listing_search" style={{ padding: '16px', display: 'flex' }}>
-                                            <div style={{ flex: '70%' }}>
+                                            <div style={{ flex: '40%' }}>
                                                 <TextField
-                                                    placeholder='Search Product'
+                                                    placeholder='Search Shipment'
                                                     value={queryValue}
                                                     onChange={handleFiltersQueryChange}
                                                     clearButton
@@ -1552,6 +1205,31 @@ export function ProductsListing() {
                                                     autoComplete="off"
                                                     prefix={<Icon source={SearchMinor} />}
                                                 />
+                                            </div>
+                                            <div style={{ flex: '30%', padding: '0px',alignItems: 'center', justifyContent: 'flex-end' }}>
+
+                                                <div style={{ flex: '1' }}>
+
+                                                    <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
+                                                        <ReactSelect
+                                                            name='pushed_status'
+                                                            options={sellerList}
+                                                            placeholder="Select Seller"
+                                                            value={selectedSeller}
+                                                            onChange={(selectedOption) => handleSellerSelectChange(selectedOption)}
+                                                            styles={{
+                                                                menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+                                                            }}
+                                                        />
+                                                    </div>
+
+                                                    {showClearButton && (
+                                                        <Button onClick={handleClearButtonClick} plain>
+                                                            Clear
+                                                        </Button>
+                                                    )}
+                                                </div>
+
                                             </div>
 
 
@@ -1562,8 +1240,12 @@ export function ProductsListing() {
                                                     <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
                                                         <ReactSelect
                                                             name='pushed_status'
-                                                            options={sellerList}
-                                                            placeholder="Select Seller"
+                                                            options={[
+                                                                { value: 'In-transit', label: 'In-transit' },
+                                                                { value: 'Updated', label: 'Updated' },
+                                                                { value: 'Received', label: 'Received' },
+                                                            ]}
+                                                            placeholder="Select Status"
                                                             value={selectedStatus}
                                                             onChange={(selectedOption) => handleSelectChange(selectedOption)}
                                                             styles={{
@@ -1583,28 +1265,23 @@ export function ProductsListing() {
                                         </div>
                                         <IndexTable
                                             resourceName={resourceName}
-                                            itemCount={products?.length}
+                                            itemCount={shipments?.length}
                                             loading={tableLoading}
-                                            hasMoreItems
-                                            selectable={true}
-                                            selectedItemsCount={
-                                                allResourcesSelected ? 'All' : selectedResources.length
-                                            }
-                                            bulkActions={bulkActions}
-                                            promotedBulkActions={promotedBulkActions}
+
+                                            selectable={false}
+
+
                                             onSelectionChange={handleSelectionChange}
 
                                             emptyState={emptyStateMarkup}
                                             headings={[
-                                                { title: "Product Id" },
-                                                { title: "Image" },
-                                                { title: "Product Name" },
+                                                { title: "No" },
                                                 { title: "Seller" },
-                                                { title: "Type" },
-                                                { title: "Price" },
-                                                { title: "Quantity" },
-                                                { title: "Assigned" },
+                                                { title: "Date" },
+                                                { title: "Courier" },
+                                                { title: "Tracking Numbers" },
                                                 { title: "Status" },
+                                                { title: "Attachements" },
                                                 { title: "Action" },
                                             ]}
 

@@ -134,6 +134,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('mail-smtp-setting',[\App\Http\Controllers\Admin\MailConfigurationController::class,'MailSmtp']);
     Route::post('mail-smtp-setting-save',[\App\Http\Controllers\Admin\MailConfigurationController::class,'MailSmtpSettingSave']);
 
+    //shipment
+    Route::get('shipment',[\App\Http\Controllers\Admin\ShipmentController::class,'Shipments']);
+    Route::get('change-status-shipment',[\App\Http\Controllers\Admin\ShipmentController::class,'ChangeStatusShipment']);
+
 
     Route::prefix('/seller')->group(function(){
 
@@ -186,6 +190,15 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('collections',[\App\Http\Controllers\Seller\CollectionController::class,'Collections']);
         Route::get('get-data',[\App\Http\Controllers\Seller\DashboardController::class,'GetSellerData']);
 
+
+
+        //couriers
+        Route::get('couriers',[\App\Http\Controllers\Seller\ShipmentController::class,'Couriers']);
+        Route::post('add-shipment',[\App\Http\Controllers\Seller\ShipmentController::class,'AddShipment']);
+        Route::get('shipments',[\App\Http\Controllers\Seller\ShipmentController::class,'Shipments']);
+        Route::delete('delete-shipment',[\App\Http\Controllers\Seller\ShipmentController::class,'DeleteShipment']);
+        Route::get('shipment-view/{id}',[\App\Http\Controllers\Seller\ShipmentController::class,'ShipmentView']);
+        Route::post('edit-shipment',[\App\Http\Controllers\Seller\ShipmentController::class,'EditShipment']);
     });
 
 

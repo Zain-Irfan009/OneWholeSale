@@ -161,6 +161,14 @@ export function VendorLayout(props) {
                 onClick: () => setLocationChange("/vendor/profile"),
                 selected: location.pathname === "/profile",
             },
+
+            {
+                label: "Shipments",
+                icon: OrdersMinor,
+                url: "/shipments",
+                onClick: () => setLocationChange("/vendor/shipments"),
+                selected: location.pathname === "/shipments",
+            },
         ]}
       />
     </Navigation>

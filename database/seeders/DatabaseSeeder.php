@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,5 +21,18 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        $courierCompanies = [
+            ['courier' => 'UPS'],
+            ['courier' => 'Fedex'],
+            ['courier' => 'Canada Post'],
+            ['courier' => 'DHL'],
+            ['courier' => 'USPS'],
+
+            // Add more courier as needed
+        ];
+
+        // Insert data into the 'courier_companies' table
+        DB::table('couriers')->insert($courierCompanies);
     }
 }

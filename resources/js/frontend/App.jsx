@@ -19,11 +19,16 @@ import { Commissions } from "./Pages/vendor/Commissions";
 import { Profile } from "./Pages/vendor/Profile";
 import { AddNewProduct } from "./Pages/vendor/AddNewProduct";
 import { EditVProduct } from "./Pages/vendor/EditVProduct";
+import { Shipments } from "./Pages/vendor/Shipments";
+import { AddShipment } from "./Pages/vendor/AddShipment";
+import { EditShipment } from "./Pages/vendor/EditShipment";
 
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {MailConfiguration1} from "./Pages/MailConfiguration1"
 import {Announcement} from "./Pages/Announcement"
+// import {Test} from "./Pages/Test"
+import {Shipment} from "./Pages/Shipment"
 import {
     Dashboard,
     NotFound,
@@ -49,8 +54,8 @@ import { useAuthState, useAuthDispatch } from "./assets/AuthProvider";
 import { getAccessToken, setAccessToken } from "./assets/cookies";
 
 export default function App() {
-    // const apiUrl = "https://phpstack-1018470-3598964.cloudwaysapps.com/api";
-    const apiUrl = "https://workingproject.test/api";
+    const apiUrl = "https://phpstack-1018470-3598964.cloudwaysapps.com/api";
+    // const apiUrl = "https://workingproject.test/api";
     const [locationChange, setLocationChange] = useState(location.pathname);
 
     const { userRole, isLoggedIn, name } = useAuthState();
@@ -187,6 +192,8 @@ export default function App() {
                                 element={<Navigate to="/dashboard" />}
                             />
                             <Route path="/announcement" element={<Announcement />} />
+                            <Route path="/shipment" element={<Shipment />} />
+                            {/*<Route path="/test" element={<Test />} />*/}
                         </Routes>
                     </MainLayout>
                 ) : (
@@ -206,7 +213,13 @@ export default function App() {
                             />
                             <Route path="/commission" element={<Commissions />} />
                             <Route path="/profile" element={<Profile />} />
+                            <Route path="/shipments" element={<Shipments />} />
+                            <Route path="/add-shipment" element={<AddShipment />} />
                             <Route path="/add-product" element={<AddNewProduct />} />
+                            <Route
+                                path="/edit-shipment/:shipment_id"
+                                element={<EditShipment />}
+                            />
                             <Route
                                 path="/edit-product/:edit_product_id"
                                 element={<EditVProduct />}

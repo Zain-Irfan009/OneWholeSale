@@ -182,8 +182,8 @@ export function Products() {
     const [modalReassign, setModalReassign] = useState(false)
 
     const resourceName = {
-        singular: 'Customer',
-        plural: 'Customers',
+        singular: 'product',
+        plural: 'products',
     };
 
 
