@@ -689,7 +689,18 @@ export function Shipment() {
                 <Badge progress='complete'>{status != null ? status : "---"}</Badge>
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>{file != null ? 'Yes' : "No"}</IndexTable.Cell>
+                <IndexTable.Cell>
+                    {
+                        file != null ? (
+                            <a href={file} target="_blank" rel="noopener noreferrer">
+                                {file.substring(0, 20)}
+                            </a>
+                        ) : (
+                            "---"
+                        )
+                    }
+                </IndexTable.Cell>
+
 
 
                 <IndexTable.Cell>
