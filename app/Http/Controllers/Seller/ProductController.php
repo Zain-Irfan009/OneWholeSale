@@ -56,6 +56,7 @@ class ProductController extends Controller
             }
 
             $products=$products->where('user_id', $user->id)->orderBy('id','Desc')->get();
+
             if (count($products) > 0) {
                 $data = [
                     'products' => $products
@@ -135,19 +136,26 @@ class ProductController extends Controller
     public function ExportProduct(Request $request){
         $user=auth()->user();
 //        $shop=Session::where('shop',$user->name)->first();
-        $products=Product::where('user_id',$user->id)->get();
+        $products=Product::where('user_id',$user->id)->orderby('id','desc')->get();
 
         $name = 'Product-' . time() . '.csv';
         $file = fopen(public_path($name), 'w+');
 
         // Add the CSV headers
-        fputcsv($file, ['Product Name', 'Status']);
+        fputcsv($file, ['Product Name','Price','Quantity','Status']);
         foreach ($products as $product){
+            $quantity=0;
+            if($product->hasVariantsCount && count($product->hasVariantsCount) > 0 && $product->hasVariantsCount[0]->total_quantity!=0  ){
+                $quantity=$product->hasVariantsCount[0]->total_quantity;
+            }
+
 
             fputcsv($file, [
                 $product->product_name,
-//                $product->seller_name,
+                $product->price,
+                $quantity,
                 $product->product_status,
+
             ]);
         }
 
@@ -161,35 +169,47 @@ class ProductController extends Controller
         ]);
     }
 
-    public function SearchProducts(Request $request){
-        $user=auth()->user();
-        $session=Session::where('shop',$user->name)->first();
-       if ($request->status == 1) {
-            $status = 'Approval Pending';
-            $products = Product::where('product_status', $status);
-        } else if ($request->status == 2) {
-            $status = 'Approved';
-            $products = Product::where('product_status', $status);
-        } else if ($request->status == 3) {
-            $status = 'Disabled';
-            $products = Product::where('product_status', $status);
-        }else{
-           $products=Product::query();
-       }
-        if ($request->query_value != null) {
-            $products = $products->where('product_name', 'like', '%' . $request->query_value . '%')
-                ->orWhereHas('variants', function ($query) use ($request) {
-                    $query->where('sku', 'like', '%' . $request->query_value . '%');
-                });
+    public function SearchProducts(Request $request)
+    {
+        $user = auth()->user();
+        $session=Session::where('shop',$user->name)->first(); // Use firstOrFail() to throw an exception if not found
+
+        $products = Product::where('user_id', $user->id); // Start with products related to the user
+
+        // Filter products based on the status
+        if ($request->has('status')) {
+            if ($request->status == 1) {
+                $status = 'Approval Pending';
+            } elseif ($request->status == 2) {
+                $status = 'Approved';
+            } elseif ($request->status == 3) {
+                $status = 'Disabled';
+            }
+            if($request->status!=0) {
+                $products->where('product_status', $status);
+            }
         }
 
+        // Search products by name or SKU
+        if ($request->has('query_value')) {
+            $queryValue = '%' . $request->query_value . '%';
+            $products->where(function ($query) use ($queryValue) {
+                $query->where('product_name', 'like', $queryValue)
+                    ->orWhereHas('variants', function ($query) use ($queryValue) {
+                        $query->where('sku', 'like', $queryValue);
+                    });
+            });
+        }
 
-       $products=$products->where('user_id',$user->id)->with('hasVariantsCount')->get();
+        // Load relation 'hasVariantsCount' to eager load with products
+        $products = $products->with('hasVariantsCount')->get();
+
         $data = [
             'data' => $products
         ];
         return response()->json($data);
     }
+
 
 //    public function AddProduct(Request $request){
 //
@@ -807,7 +827,7 @@ class ProductController extends Controller
         if($request->status=='draft') {
             $product->product_status = 'Approval Pending';
         }else{
-            $product->product_status = 'Approved';
+            $product->product_status = 'Approval Pending';
         }
         $product->type='Normal';
         $product->vape_seller=$request->vape_seller;

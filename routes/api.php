@@ -206,6 +206,7 @@ Route::middleware('auth:sanctum')->group( function () {
 });
 
 Route::post('forgot-password',[\App\Http\Controllers\Seller\DashboardController::class,'ForgotPassword']);
+Route::post('set-new-password',[\App\Http\Controllers\Seller\DashboardController::class,'SetNewPassword']);
 
 
 
@@ -236,16 +237,18 @@ Route::get('/testing', function() {
 
     $response = $client->get('/webhooks.json');
 
-//        $product_delete = $client->post( '/webhooks.json', [
+//        $webhook_create = $client->post( '/webhooks.json', [
 //
 //        "webhook" => array(
-//            "topic" => "orders/updated",
+//            "topic" => "inventory_levels/update",
 //            "format" => "json",
-//            "address" => "https://phpstack-1018470-3598964.cloudwaysapps.com/api/webhooks/order-update"
+//            "address" => "https://marketplace.onewholesale.ca/api/webhooks/inventory-update"
 //        )
 //    ]);
-//    dd($product_delete->getDecodedBody());
+//    dd($webhook_create->getDecodedBody());
 
+//    $delete_create_webhook = $client->delete( '/webhooks/1205956903169.json');
+//dd($delete_create_webhook->getDecodedBody());
     dd($response->getDecodedBody());
 
 })->name('getwebbhook');

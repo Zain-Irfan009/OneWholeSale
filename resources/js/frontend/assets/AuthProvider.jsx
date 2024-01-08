@@ -50,7 +50,7 @@ function AuthProvider(props) {
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     useEffect(() => {
-      console.log("token", accessToken);
+      // console.log("token", accessToken);
         setaccessToken(getAccessToken())
     }, []);
 
@@ -77,19 +77,20 @@ function AuthProvider(props) {
     };
 
     const AuthCheck = async () => {
-        console.log("access token", getAccessToken());
+
         try {
             const res = await axios.get(`${props.apiUrl}profile`, {
                 headers: { Authorization: `Bearer ${getAccessToken()}` },
             });
+            const data =res?.data?.data
 
-            console.log("AuthCheck response: ", res);
+
 
             dispatch({
-                userEmail: res?.data?.data?.user?.email,
-                name: res?.data?.data?.user?.name,
-                userRole: res?.data?.data?.user?.role,
-                handle: res?.data?.data?.user?.collection_handle,
+                userEmail: data?.user?.email,
+                name: data?.user?.name,
+                userRole: data?.user?.role,
+                handle: data?.user?.collection_handle,
                 isLoggedIn: true,
                 userToken: getAccessToken(),
             });
@@ -102,10 +103,12 @@ function AuthProvider(props) {
                 setAccessToken(null);
                 navigate("/login");
             } else {
-                // if (error.response?.status == 401) {
-                setLoading(false);
-                setAccessToken(null);
-                navigate("/login");
+
+
+                    // if (error.response?.status == 401) {
+                    setLoading(false);
+                    setAccessToken(null);
+                    // navigate("/login");
                 //   } else if (error.response?.status == 403) {
                 //     setLoading(false);
                 //     setAccessToken(null);

@@ -50,6 +50,7 @@ class SellerController extends Controller
         $user=auth()->user();
         $shop=Session::where('shop',$user->name)->first();
         $client = new Rest($shop->shop, $shop->access_token);
+        $Setting = MailSmtpSetting::where('shop_id', $shop->id)->first();
         $verify_email=User::where('email',$request->seller_email)->where('shop_id',$shop->id)->where('role','seller')->first();
         if($verify_email){
             $data = [
@@ -120,6 +121,14 @@ class SellerController extends Controller
 
                 $this->SellerDetailMetafield($seller,$client);
             $this->ActiveSellerMetafield($shop,$client);
+            try {
+                $type='Set New Password';
+                $this->SendMail($seller, $Setting, $type);
+            }catch (\Exception $exception){
+
+
+            }
+
             $data = [
                 'message' => 'Seller Added Successfully',
                 'seller'=>$seller
@@ -626,15 +635,22 @@ class SellerController extends Controller
 
     public function SendMail($seller,$setting,$type){
 
-        if($seller->status==1){
-            $status="Active";
-        }elseif ($seller->status==0){
-            $status='Disabled';
+        if($type=='Set New Password'){
+            $details['to'] = $seller->email;
+            $details['name'] = $seller->name;
+            $details['subject'] = 'OneWholesale';
+            $details['link'] = 'https://workingproject.test/set-password?token='.encrypt($seller->id);
+        }else {
+            if ($seller->status == 1) {
+                $status = "Active";
+            } elseif ($seller->status == 0) {
+                $status = 'Disabled';
+            }
+            $details['to'] = $seller->email;
+            $details['name'] = $seller->name;
+            $details['subject'] = 'OneWholesale';
+            $details['status'] = $status;
         }
-        $details['to'] = $seller->email;
-        $details['name'] = $seller->name;
-        $details['subject'] = 'OneWholesale';
-        $details['status'] = $status;
         Mail::to($seller->email)->send(new SendMail($details, $setting,$type));
     }
 

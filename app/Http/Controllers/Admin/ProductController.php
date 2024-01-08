@@ -624,7 +624,12 @@ if(isset($request->images)) {
                 }
             }
         }
-        $this->SendMail($product,$product->product_status );
+        try {
+            $this->SendMail($product,$product->product_status );
+        }catch (\Exception $exception){
+
+        }
+
         $data = [
             'message' => 'Product Created Successfully',
         ];
@@ -704,8 +709,12 @@ if(isset($request->images)) {
                         $product_history->date=Carbon::now();
                         $product_history->save();
 
+                        try {
+                            $this->SendMail($product,$request->product_status);
+                        }catch (\Exception $exception){
 
-                        $this->SendMail($product,$request->product_status);
+                        }
+
 
 
                         $data = [
@@ -1035,7 +1044,12 @@ if(isset($request->images)) {
                 $product_history->status=$product_status_update['product']['status'];
                 $product_history->date=Carbon::now();
 
-                $this->SendMail($product,$product_status);
+                try {
+                    $this->SendMail($product,$product_status);
+                }catch (\Exception $exception){
+
+                }
+
             }
 
         }

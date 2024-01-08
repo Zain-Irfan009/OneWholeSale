@@ -275,8 +275,8 @@ class DashboardController extends Controller
                 $seller->name = $request->seller_name;
                 $seller->collection_id=$custom_collection->id;
                 $seller->collection_handle=$custom_collection->handle;
-                $seller->seller_shopname = $request->seller_shopname;
-                $seller->email = $request->seller_email;
+//                $seller->seller_shopname = $request->seller_shopname;
+//                $seller->email = $request->seller_email;
                 $seller->seller_store_address = $request->seller_store_address;
                 $seller->seller_zipcode = $request->seller_zipcode;
                 $seller->seller_contact = $request->seller_contact;
@@ -393,7 +393,7 @@ class DashboardController extends Controller
             $randomPassword = Str::random(8);
             $details['to'] = $user->email;
             $details['name'] = $user->name;
-            $details['subject'] = 'Hello HacktheStuff';
+            $details['subject'] = 'Onewholesale';
             $details['message'] = 'Your new Password is';
             $details['password'] = $randomPassword;
 
@@ -459,5 +459,26 @@ class DashboardController extends Controller
         ];
 
         return response()->json($data);
+    }
+
+
+    public function SetNewPassword(Request $request){
+//dd($request->all());
+        $validator = Validator::make($request->all(), [
+            'password' => 'min:8|string|required_with:password_confirmation|same:password_confirmation',
+            'password_confirmation' => 'min:8',
+        ]);
+
+        // Check if validation fails
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            $errorString = implode(", ", $errors->all());
+
+
+            return response()->json([
+                'message' => $errorString,
+            ],422);
+        }
+//        $seller->password=Hash::make($request->password);
     }
 }

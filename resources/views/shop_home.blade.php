@@ -6,6 +6,7 @@
 <script>
 var token='{{(isset($token))?$token:"" }}';
 
+
     setCookie('_UserSession',token,1);
     function setCookie(name,value,days) {
         var expires = "";
@@ -17,7 +18,7 @@ var token='{{(isset($token))?$token:"" }}';
         document.cookie = name + "=" + (value || "")  + expires + "; path=/";
     }
 
-console.log('function',getCookie('_UserSession'));
+
     function getCookie(name) {
         var nameEQ = name + "=";
 

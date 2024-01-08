@@ -44,7 +44,6 @@ Route::get('/shop_home', function (Request $request) {
         $user=\App\Models\User::where('name',$request->shop)->first();
         if($user!=null) {
           $token = $user->createToken('MyApp')->plainTextToken;
-
         }
         return view('shop_home',compact('token'));
     }

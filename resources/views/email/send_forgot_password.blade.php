@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="">
 </head>
 <body>
-<h2 style="text-align: center;">HacktheStuff</h2>
+<h2 style="text-align: center;">OneWholeSale</h2>
 <p>Hello! {!! $details['name'] !!}</p>
 <br>
 <p>{!! $details['message'] !!}  {!! $details['password'] !!}</p>

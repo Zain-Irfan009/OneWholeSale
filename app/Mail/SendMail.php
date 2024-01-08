@@ -69,6 +69,12 @@ class SendMail extends Mailable
             );
         }
 
+        else if($this->type=='Set New Password'){
+            return new Envelope(
+                subject: 'Set New Password',
+            );
+        }
+
         else {
             return new Envelope(
                 subject: 'Product Approved',
@@ -112,6 +118,12 @@ class SendMail extends Mailable
                 return new Content(
                     view: 'email.announcement_message',
                 );
+            }
+            else if($this->type=='Set New Password'){
+                return new Content(
+                    view: 'email.set_password',
+                );
+
             }
             else {
                 return new Content(
