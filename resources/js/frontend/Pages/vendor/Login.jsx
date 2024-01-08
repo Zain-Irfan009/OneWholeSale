@@ -55,6 +55,7 @@ export function Login(props) {
                 userRole: res?.data?.data?.role?.name,
                 name: res?.data?.data?.user?.name,
                 isLoggedIn: true,
+                handle: res?.data?.data?.user?.collection_handle,
                 userToken: res?.data?.data?.token,
             });
             setAccessToken(res?.data?.data?.token);
@@ -292,6 +293,7 @@ export function Login(props) {
                                                     <Link to="/reset-password">
                                                         Forgot the password?
                                                     </Link>
+
                                                 </Stack>
                                             </div>
                                         </FormLayout>

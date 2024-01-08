@@ -377,7 +377,7 @@ console.log(error)
                 <IndexTable.Cell>{price != null ? `${currency} ${price.toFixed(2)}` : '---'}</IndexTable.Cell>
                 <IndexTable.Cell>
                     {has_variants_count &&
-                    has_variants_count.length > 0 &&
+                    has_variants_count?.length > 0 &&
                     has_variants_count[0].total_quantity !== 0
                         ? has_variants_count[0].total_quantity
                         : 0}
@@ -483,7 +483,8 @@ console.log(error)
     const handleTabChange = async (selectedTabIndex) => {
 
         setSelected(selectedTabIndex)
-        setLoading(true)
+
+        setCustomersLoading(true)
         const sessionToken = getAccessToken();
         try {
 
@@ -493,8 +494,10 @@ console.log(error)
                         Authorization: "Bearer " + sessionToken
                     }
                 })
+
             setProducts(response?.data?.products)
-            setLoading(false)
+            setCustomersLoading(false)
+
 
             // setBtnLoading(false)
             // setToastMsg(response?.data?.message)
@@ -506,6 +509,9 @@ console.log(error)
             setToastMsg(error?.response?.data?.message)
             setErrorToast(true)
         }
+        setTimeout(() => {
+            setToggleLoadData(true)
+        }, 1000);
     }
 
     const tabs = [
@@ -641,7 +647,7 @@ console.log(error)
                                     hasMoreItems
                                     selectable={false}
                                     selectedItemsCount={
-                                        allResourcesSelected ? 'All' : selectedResources.length
+                                        allResourcesSelected ? 'All' : selectedResources?.length
                                     }
                                     onSelectionChange={handleSelectionChange}
                                     loading={customersLoading}

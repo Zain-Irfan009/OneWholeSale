@@ -283,7 +283,7 @@ export function Profile() {
             setUserId(response?.data?.name)
             setName(response?.data?.name)
             setShopName(response?.data?.seller_shopname)
-            setEmail(response?.data?.email)
+            // setEmail(response?.data?.email)
             setStoreAddress(response?.data?.seller_store_address)
             setZipcode(response?.data?.seller_zipcode)
             setcontact(response?.data?.seller_contact)
@@ -326,12 +326,12 @@ setLoading(false)
         if (name.trim() === '') {
             errors.name = 'Name is required';
         }
-        if (shopName.trim() === '') {
-            errors.shopName = 'Shop Name is required';
-        }
-        if (email.trim() === '') {
-            errors.email = 'Email is required';
-        }
+        // if (shopName.trim() === '') {
+        //     errors.shopName = 'Shop Name is required';
+        // }
+        // if (email.trim() === '') {
+        //     errors.email = 'Email is required';
+        // }
 
         if (storeAddress.trim() === '') {
             errors.storeAddress = 'Store Address is required';
@@ -359,8 +359,8 @@ setLoading(false)
         formData.append('seller_handle',handle);
         formData.append('id',userId);
         formData.append('seller_name',name);
-        formData.append('seller_shopname',shopName);
-        formData.append('seller_email',email);
+        // formData.append('seller_shopname',shopName);
+        // formData.append('seller_email',email);
         formData.append('seller_store_address',storeAddress);
         formData.append('seller_zipcode',zipcode);
         formData.append('seller_contact',contact);
@@ -607,17 +607,17 @@ setLoading(false)
                                                 autoComplete="off"
                                                 placeholder="Enter First Name"
                                             />
-                                            <InputField
-                                                marginTop
-                                                type="email"
-                                                label="Email"
-                                                name="email"
-                                                value={email}
-                                                // onChange={(e) => setEmail(e.target.value)}
-                                                autoComplete="off"
-                                                readOnly
-                                                placeholder="Enter Email Address"
-                                            />
+                                            {/*<InputField*/}
+                                            {/*    marginTop*/}
+                                            {/*    type="email"*/}
+                                            {/*    label="Email"*/}
+                                            {/*    name="email"*/}
+                                            {/*    value={email}*/}
+                                            {/*    // onChange={(e) => setEmail(e.target.value)}*/}
+                                            {/*    autoComplete="off"*/}
+                                            {/*    readOnly*/}
+                                            {/*    placeholder="Enter Email Address"*/}
+                                            {/*/>*/}
                                             <InputField
                                                 marginTop
                                                 type="number"
@@ -747,16 +747,16 @@ setLoading(false)
                                         <Card sectioned>
                                             <div className="TimeZone-Section">
 
-                                                <InputField
-                                                    label="Shop Name *"
-                                                    placeholder="Enter Seller Shop Name Here"
-                                                    type="text"
-                                                    marginTop
-                                                    name="title"
-                                                    value={shopName}
-                                                    onChange={(e) => setShopName(e.target.value)}
-                                                    // error={formErrors.shopName}
-                                                />
+                                                {/*<InputField*/}
+                                                {/*    label="Shop Name *"*/}
+                                                {/*    placeholder="Enter Seller Shop Name Here"*/}
+                                                {/*    type="text"*/}
+                                                {/*    marginTop*/}
+                                                {/*    name="title"*/}
+                                                {/*    value={shopName}*/}
+                                                {/*    onChange={(e) => setShopName(e.target.value)}*/}
+                                                {/*    // error={formErrors.shopName}*/}
+                                                {/*/>*/}
 
                                                 <InputField
                                                     multiline={1}

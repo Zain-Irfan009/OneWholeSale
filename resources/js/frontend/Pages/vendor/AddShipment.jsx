@@ -485,7 +485,7 @@ export function AddShipment() {
     }, []);
 
     const fileUpload = !mediaFiles.length && (
-        <DropZone.FileUpload actionHint="Accepts .csv, .xlsx only" />
+        <DropZone.FileUpload actionHint="Accepts .csv, .pdf, .xlsx only" />
     );
 
 
