@@ -2969,7 +2969,7 @@ export function EditVProduct() {
                                 <Card sectioned>
                                     <div className="Type-Section">
                                         <Select
-                                            label="Vape Product"
+                                            label="Excise tax"
                                             options={[
                                                 {
                                                     label: "Yes",
@@ -2985,7 +2985,7 @@ export function EditVProduct() {
                                             <div>
                                                 <div className="margin-top" />
                                                 <InputField
-                                                    label="Excise tax"
+                                                    label="Amount"
                                                     placeholder="Enter Excise Tax"
                                                     type="text"
                                                     marginTop
