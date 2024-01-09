@@ -148,7 +148,7 @@ class DashboardController extends Controller
 
         if($request->status==0) {
             $products = Product::where('user_id', $user->id)->count();
-            $orders = Order::where('user_id',$user->id)->count();
+            $orders=OrderSeller::where('user_id',$user->id)->count();
 
         }else if($request->status==1){
             $startDate = Carbon::now()->startOfWeek();
@@ -158,7 +158,7 @@ class DashboardController extends Controller
                 ->where('user_id', $user->id)
                 ->count();
 
-            $orders = Order::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
+            $orders = OrderSeller::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
 
         }else if($request->status==2){
             $startDate = Carbon::now()->startOfMonth();
@@ -168,7 +168,7 @@ class DashboardController extends Controller
                 ->where('user_id', $user->id)
                 ->count();
 
-            $orders = Order::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
+            $orders = OrderSeller::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
 
 
         }else if($request->status==3){
@@ -178,7 +178,7 @@ class DashboardController extends Controller
                 ->whereBetween('updated_at', [$startDate, $endDate])
                 ->count();
 
-            $orders = Order::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
+            $orders = OrderSeller::whereBetween('updated_at', [$startDate, $endDate])->where('user_id',$user->id)->count();
 
         }
         $data=[
@@ -194,9 +194,11 @@ class DashboardController extends Controller
     public function StoreEarning(Request $request){
         $user=auth()->user();
         $shop=Session::find($user->shop_id);
-        $store_earning=CommissionLog::where('user_id',$user->id)->sum('total_product_commission');
+        $store_earning=CommissionLog::where('user_id',$user->id)->sum('total_payout');
         $store_earning=(string)((float)$store_earning);
         $total_commission=$store_earning;
+        $total_commission = number_format($total_commission, 2, '.', '');
+
         $data=[
             'store_earning'=>$store_earning,
             'currency'=>$shop->money_format,
@@ -210,10 +212,11 @@ class DashboardController extends Controller
         $user=auth()->user();
         $shop=Session::find($user->shop_id);
         if($request->date==null){
-            $store_earning=CommissionLog::where('user_id',$user->id)->sum('total_product_commission');
+            $store_earning=CommissionLog::where('user_id',$user->id)->sum('total_payout');
             $store_earning=(string)((float)$store_earning);
 //            $total_commission=$user->total_commission;
             $total_commission=$store_earning;
+            $total_commission = number_format($total_commission, 2, '.', '');
             $data=[
                 'store_earning'=>$store_earning,
                 'currency'=>$shop->money_format,
@@ -224,11 +227,12 @@ class DashboardController extends Controller
 
         $date=explode(',',$request->date);
         $start_date=$date[0];
-        $end_date=$date[1];
+        $end_date = date('Y-m-d', strtotime($date[1] . ' + 1 day'));
         $store_earning = CommissionLog::where('user_id', $user->id)
             ->whereBetween('created_at', [$start_date, $end_date])
-            ->sum('total_product_commission');
+            ->sum('total_payout');
         $total_commission=(string)((float)$store_earning);
+        $total_commission = number_format($total_commission, 2, '.', '');
 
         $data=[
             'store_earning'=>$store_earning,
