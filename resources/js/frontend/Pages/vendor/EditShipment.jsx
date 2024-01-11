@@ -124,6 +124,15 @@ import Fileimg from "../../assets/file.jpg";
 
         };
 
+
+        const handleBlur = () => {
+            if (pendingTrackingNumber.trim() !== "") {
+                // Here, you can add any functionality you want to perform
+                // when the input field loses focus with a non-empty value.
+                addNewTrackingNumber(pendingTrackingNumber);
+            }
+        };
+
         const handleBannerRemove = (type) => {
             if (type == "favicons") {
                 setFile5();
@@ -664,6 +673,7 @@ import Fileimg from "../../assets/file.jpg";
                                             label="Tracking Number"
                                             value={pendingTrackingNumber}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                         />
                                     </div>
                                     <div className="tags_spacing">{trackingNumberToAddMarkup}</div>

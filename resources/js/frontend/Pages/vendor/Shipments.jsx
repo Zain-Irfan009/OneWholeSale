@@ -424,8 +424,8 @@ export function Shipments() {
                 setToastMsg(location.state?.customText)
                 setSucessToast(true)
             }
+            navigate(`/shipments`, { state: {} });
 
-            console.log(response?.data)
             setShipments(response?.data?.shipments?.data)
 
 

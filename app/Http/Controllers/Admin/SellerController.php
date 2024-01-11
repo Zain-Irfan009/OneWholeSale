@@ -8,6 +8,7 @@ use App\Models\Collection;
 use App\Models\MailSmtpSetting;
 use App\Models\Product;
 use App\Models\Session;
+use App\Models\Shipment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -375,6 +376,8 @@ class SellerController extends Controller
             if($user) {
                 $delete_collection = $client->delete('/custom_collections/' . $user->collection_id . '.json');
 //                if (!isset($delete_collection['errors']['key'])) {
+
+                Shipment::where('user_id',$request->id)->delete();
                     User::where('id', $request->id)->where('role', 'seller')->forceDelete();
 //                }
             }

@@ -99,13 +99,13 @@ export function AddShipment() {
     const [file5, setFile5] = useState();
     const [fileUrl5, setFileUrl5] = useState();
 
-    const handleKeyPress = (event) => {
-        const enterKeyPressed = event.keyCode === 13;
-        if (enterKeyPressed) {
-            event.preventDefault();
-            addNewTrackingNumber(pendingTrackingNumber);
-        }
-    };
+        const handleKeyPress = (event) => {
+            const enterKeyPressed = event.keyCode === 13;
+            if (enterKeyPressed) {
+                event.preventDefault();
+                addNewTrackingNumber(pendingTrackingNumber);
+            }
+        };
 
     const handleChange = (value) => {
         const trimmedValue = value.trim();
@@ -120,6 +120,14 @@ export function AddShipment() {
             setPendingTrackingNumber(value);
         }
 
+    };
+
+    const handleBlur = () => {
+        if (pendingTrackingNumber.trim() !== "") {
+            // Here, you can add any functionality you want to perform
+            // when the input field loses focus with a non-empty value.
+            addNewTrackingNumber(pendingTrackingNumber);
+        }
     };
 
     const handleBannerRemove = (type) => {
@@ -613,6 +621,8 @@ export function AddShipment() {
                                         label="Tracking Number"
                                         value={pendingTrackingNumber}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
+
                                     />
                                 </div>
                                 <div className="tags_spacing">{trackingNumberToAddMarkup}</div>

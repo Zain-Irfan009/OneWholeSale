@@ -113,11 +113,13 @@ class ShipmentController extends Controller
                 $filename1 = (asset('shipment/' . $filename1));
                 $shipment->file = $filename1;
             }else{
-                $shipment->file = $request->file_url;
+                if($request->file_url!='null') {
+                    $shipment->file = $request->file_url;
+                }
             }
             $shipment->save();
             $data = [
-                'message' => 'Shipment Created Successfully',
+                'message' => 'Shipment Updated Successfully',
             ];
             return response()->json($data);
         }
