@@ -29,7 +29,7 @@ $table_html .= '<thead>';
 $table_html .= '<tr>';
 $table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">Order Id</th>';
 $table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">Order Name</th>';
-$table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">Product Image</th>';
+//$table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">Product Image</th>';
 $table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">Product Name</th>';
 $table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">SKU</th>';
 $table_html .= '<th style="background-color: #f2f2f2; padding: 10px; text-align: left;">Price</th>';
@@ -45,7 +45,7 @@ foreach($details['message'] as $index => $product) {
     $table_html .= '<tr>';
     $table_html .= '<td style="border: 1px solid #ddd; padding: 10px; text-align: center;">' .$product['order_id'] . '</td>';
     $table_html .= '<td style="border: 1px solid #ddd; padding: 10px; text-align: center;">' .$product['order_number'] . '</td>';
-    $table_html .= '<td style="border: 1px solid #ddd; padding: 10px;"><img style="width:70px;" src=' . $product['product_image'] . '></td>';
+//    $table_html .= '<td style="border: 1px solid #ddd; padding: 10px;"><img style="width:70px;" src=' . $product['product_image'] . '></td>';
     $table_html .= '<td style="border: 1px solid #ddd; padding: 10px;">' . $product['product_name'] . '</td>';
     $table_html .= '<td style="border: 1px solid #ddd; padding: 10px;">' . $product['sku'] . '</td>';
     $table_html .= '<td style="border: 1px solid #ddd; padding: 10px;">' .$details['currency'].' '. $product['price'] . '</td>';
