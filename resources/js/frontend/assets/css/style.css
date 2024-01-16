@@ -208,6 +208,10 @@
     background:#FFEF9D;
 }
 
+.complete .Polaris-Badge{
+    background:#70ffa6;
+}
+
 .partial .Polaris-Badge{
     background:#FFD6A4;
 }

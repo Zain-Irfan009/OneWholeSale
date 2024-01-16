@@ -76,7 +76,7 @@ export function AddNewProduct() {
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
     const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
-    const [status, setStatus] = useState('active');
+    const [status, setStatus] = useState('');
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
     const [vendor, setVendor] = useState("");

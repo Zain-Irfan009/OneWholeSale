@@ -742,8 +742,8 @@ class ProductController extends Controller
             $collections='';
         }
 
-        if($request->status=="active"){
-            $status='active';
+        if($request->status){
+            $status=$request->status;
         }else{
             $status='draft';
         }
@@ -824,8 +824,8 @@ class ProductController extends Controller
         $product->price=$response->variants[0]->price;
         $product->quantity=$response->variants[0]->inventory_quantity;
 
-        if($request->status=='draft') {
-            $product->product_status = 'Approval Pending';
+        if($request->status){
+//            $product->product_status = 'Approval Pending';
         }else{
             $product->product_status = 'Approval Pending';
         }

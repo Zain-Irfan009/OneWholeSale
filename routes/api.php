@@ -18,6 +18,9 @@ use Shopify\Clients\Rest;
 |
 */
 
+Route::get('update-test',[\App\Http\Controllers\Admin\OrderController::class,'UpdateSomeOrder']);
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

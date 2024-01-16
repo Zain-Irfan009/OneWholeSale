@@ -751,4 +751,29 @@ $orders=$orders->where('shop_id', $shop->id)->orderBy('id', 'Desc')->get();
         Mail::to($user->email)->send(new SendMail($details, $Setting,$type));
     }
 
+
+    public function UpdateSomeOrder()
+    {
+
+        $orders_db = Order::orderBy('id','desc')->where('update_check',0)->take(500)->get();
+        $shop_name = 'onetradingltd.myshopify.com';
+        $user = \App\Models\User::where('name', 'onetradingltd.myshopify.com')->first();
+        $session = Session::where('shop', $user->name)->first();
+
+
+        $client = new Rest($session->shop, $session->access_token);
+        foreach ($orders_db as $order_db) {
+            $order = $client->get('/orders/' . $order_db->shopify_order_id . '.json');
+            $order = $order->getDecodedBody();
+
+            if (!isset($order['errors'])) {
+                $order = json_decode(json_encode($order));
+                $order = $order->order;
+                $this->singleOrder($order, $shop_name);
+            }
+            $order_db->update_check=1;
+            $order_db->save();
+        }
+        dd('done');
+    }
 }

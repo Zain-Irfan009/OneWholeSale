@@ -657,7 +657,7 @@ export function Logs() {
                 </IndexTable.Cell>
 
                 {status === 'In-Progress' ? (
-                    <IndexTable.Cell className="fulfilled">
+                    <IndexTable.Cell className="unfulfilled">
                         {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
                         <Badge progress='complete'>{status === 'In-Progress' ? 'In-Progress' : ''}</Badge>
 
@@ -668,7 +668,7 @@ export function Logs() {
                         <Badge progress='complete'>{status === 'Failed' ? 'Failed' : ''}</Badge>
                     </IndexTable.Cell>
                 ) : (
-                    <IndexTable.Cell className="unfulfilled">
+                    <IndexTable.Cell className="complete">
                         <Badge progress='complete'>{status==='Complete' ? 'Complete' : ''}</Badge>
 
                     </IndexTable.Cell>
