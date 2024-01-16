@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductHistory;
 use App\Models\Session;
 use App\Models\User;
+use App\Models\WebhookLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -294,5 +295,25 @@ class DashboardController extends Controller
 
 
         return response()->json($result);
+    }
+
+
+    public function Logs(Request $request){
+//        dd($request->all());
+        $user = auth()->user();
+        $session = Session::where('shop', $user->name)->first();
+        $sellers=User::where('role','seller')->where('shop_id',$session->id)->get();
+        $webhook_logs=WebhookLog::query();
+        if ($request->value != null) {
+            $webhook_logs=$webhook_logs->where('log','like', '%' . $request->value . '%');
+        }
+        if($request->status!= 'undefined'){
+            $webhook_logs=$webhook_logs->where('status',$request->status);
+        }
+        $webhook_logs=$webhook_logs->orderby('id','desc')->paginate(20);
+        $data = [
+            'webhook_logs'=>$webhook_logs,
+        ];
+        return response()->json($data);
     }
 }

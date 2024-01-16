@@ -47,7 +47,7 @@ import {getAccessToken} from "../assets/cookies";
 import ReactSelect from "react-select";
 // import dateFormat from "dateformat";
 
-export function Shipment() {
+export function Logs() {
     const { apiUrl } = useContext(AppContext);
     // const { user } = useAuthState();
     const navigate = useNavigate();
@@ -86,7 +86,7 @@ export function Shipment() {
     const [showPagination, setShowPagination] = useState(false);
     const [paginationUrl, setPaginationUrl] = useState([]);
 
-    const [shipments, setShipments] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [currency, setCurrency] = useState('');
     const [hasNextPage, setHasNextPage] = useState(false);
     const [hasPreviousPage, setHasPreviousPage] = useState(false);
@@ -383,7 +383,7 @@ export function Shipment() {
         const params = new URLSearchParams(location.search);
         if (activeState) {
             params.set('search', queryValue);
-            navigate(`/shipment?${params.toString()}`);
+            navigate(`/logs?${params.toString()}`);
         }
 
     }, [queryValue]);
@@ -406,13 +406,13 @@ export function Shipment() {
 
             const nextPage = currentPage + 1;
             queryParams.set('page', nextPage.toString());
-            navigate(`/shipments?${queryParams.toString()}`);
+            navigate(`/logs?${queryParams.toString()}`);
 
             setPageCursorValue(nextPageCursor);
         } else {
             const prevPage = currentPage - 1;
             queryParams.set('page', prevPage.toString());
-            navigate(`/shipments?${queryParams.toString()}`);
+            navigate(`/logs?${queryParams.toString()}`);
 
             setPageCursorValue(previousPageCursor);
         }
@@ -430,12 +430,10 @@ export function Shipment() {
 
             if (pageCursorValue != '') {
                 var status = encodeURIComponent(selectedStatus.value);
-                var seller = encodeURIComponent(selectedSeller.value);
-                var url = pageCursorValue+ '&value=' + queryValue +'&status=' +status+'&seller='+seller ;
+                var url = pageCursorValue+ '&value=' + queryValue +'&status=' +status ;
             } else {
                 var status = encodeURIComponent(selectedStatus.value);
-                var seller = encodeURIComponent(selectedSeller.value);
-                var url = `${apiUrl}/shipment?page=${currentPage}&${pageCursor}=${pageCursorValue}&value=${queryValue}&status=${status}&seller=${seller}`;
+                var url = `${apiUrl}/logs?page=${currentPage}&${pageCursor}=${pageCursorValue}&value=${queryValue}&status=${status}`;
             }
             console.log(pageCursorValue)
 
@@ -452,43 +450,25 @@ export function Shipment() {
             }
 
             console.log(response?.data)
-            setShipments(response?.data?.shipments?.data)
-
-            let arr_seller = response?.data?.sellers.map(({ id,name,seller_shopname, email }) => ({
-                value: id,
-                // label: `${name} (${email})`
-                label: `${seller_shopname}`
-            }));
-            setSellerList(arr_seller)
+            setLogs(response?.data?.webhook_logs?.data)
 
 
-            setNextPageCursor(response?.data?.shipments?.next_page_url)
-            setPreviousPageCursor(response?.data?.shipments?.prev_page_url)
-            if (response?.data?.shipments?.next_page_url) {
+            setNextPageCursor(response?.data?.webhook_logs?.next_page_url)
+            setPreviousPageCursor(response?.data?.webhook_logs?.prev_page_url)
+            if (response?.data?.webhook_logs?.next_page_url) {
                 setHasNextPage(true)
             } else {
                 setHasNextPage(false)
             }
-            if (response?.data?.shipments?.prev_page_url) {
+            if (response?.data?.webhook_logs?.prev_page_url) {
                 setHasPreviousPage(true)
             } else {
                 setHasPreviousPage(false)
             }
 
-            // setPaginationUrl(response?.data?.products?.links);
-            // if (
-            //     response?.data?.products?.total >
-            //     response?.data?.products?.per_page
-            // ) {
-            //     setShowPagination(true);
-            // } else {
-            //     setShowPagination(false);
-            // }
+
             setLoading(false)
             setTableLoading(false)
-            // setBtnLoading(false)
-            // setToastMsg(response?.data?.message)
-            // setSucessToast(true)
 
 
         } catch (error) {
@@ -505,13 +485,10 @@ export function Shipment() {
     // ---------------------Index Table Code Start Here----------------------
 
     const resourceName = {
-        singular: "shipment",
-        plural: "shipments",
+        singular: "log",
+        plural: "logs",
     };
 
-    const handleEditAction = (id) => {
-        navigate(`/edit-shipment/${id}`);
-    };
 
 
 
@@ -541,7 +518,7 @@ export function Shipment() {
     );
 
     const { selectedResources, allResourcesSelected, handleSelectionChange } =
-        useIndexResourceState(shipments);
+        useIndexResourceState(logs);
 
 
 
@@ -551,14 +528,14 @@ export function Shipment() {
         console.log(allResourcesSelected, "allResourcesSelected");
     }, [selectedResources,allResourcesSelected]);
 
-    const allResourcesSelect = shipments?.every(({ id }) =>
+    const allResourcesSelect = logs?.every(({ id }) =>
         selectedResources.includes(id)
     );
 
     useEffect(() => {
 
         getData()
-    }, [toggleLoadData,queryValue,selectedStatus.value,selected,selectedSeller.value]);
+    }, [toggleLoadData,queryValue,selectedStatus.value,selected]);
 
 
     const promotedBulkActions = [
@@ -648,17 +625,14 @@ export function Shipment() {
         }
     }
 
-    const rowMarkup =shipments ? shipments?.map(
+    const rowMarkup =logs ? logs?.map(
         (
             {
                 id,
-                created_at,
-                seller_name,
-                courier_name,
-                comment,
-                tracking_number,
                 status,
-                file
+                created_at,
+                log,
+
             },
             index
         ) => (
@@ -675,81 +649,37 @@ export function Shipment() {
                     </Text>
                 </IndexTable.Cell>
 
-                <IndexTable.Cell className="Capitalize-Cell">
-                {seller_name != null ? seller_name : "---"}
-            </IndexTable.Cell>
+
                 <IndexTable.Cell>{created_at != null ? formatDate(created_at) : "---"}</IndexTable.Cell>
 
                 <IndexTable.Cell className="Capitalize-Cell">
-                    {courier_name != null ? courier_name : "---"}
+                    {log != null ? log : "---"}
                 </IndexTable.Cell>
 
-                <IndexTable.Cell>{tracking_number != null ? tracking_number : "---"}</IndexTable.Cell>
-
-
-                {status === 'Updated' ? (
+                {status === 'In-Progress' ? (
                     <IndexTable.Cell className="fulfilled">
                         {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
-                        <Badge progress='complete'>{status === 'Updated' ? 'Updated' : ''}</Badge>
+                        <Badge progress='complete'>{status === 'In-Progress' ? 'In-Progress' : ''}</Badge>
 
 
                     </IndexTable.Cell>
-                ) : status === 'Received' ? (
+                ) : status === 'Failed' ? (
                     <IndexTable.Cell className="partial">
-                        <Badge progress='complete'>{status === 'Received' ? 'Received' : ''}</Badge>
+                        <Badge progress='complete'>{status === 'Failed' ? 'Failed' : ''}</Badge>
                     </IndexTable.Cell>
                 ) : (
                     <IndexTable.Cell className="unfulfilled">
-                        <Badge progress='complete'>{status==null ? 'In-transit' : status}</Badge>
+                        <Badge progress='complete'>{status==='Complete' ? 'Complete' : ''}</Badge>
 
                     </IndexTable.Cell>
                 )}
 
-
-                <IndexTable.Cell>
-                    {
-                        file != null ? (
-                            <a href={file} target="_blank" rel="noopener noreferrer">
-                                {file.substring(0, 20)}
-                            </a>
-                        ) : (
-                            "---"
-                        )
-                    }
-                </IndexTable.Cell>
-
-
-
-                <IndexTable.Cell>
-                    <Popover
-                        active={active[id]}
-                        activator={
-                            <Button onClick={() => toggleActive(id)} plain>
-                                <Icon source={HorizontalDotsMinor}></Icon>
-                            </Button>
-                        }
-                        autofocusTarget="first-node"
-                        onClose={() => setActive(false)}
-                    >
-                        <ActionList
-                            actionRole="menuitem"
-                            items={[
-                                {
-                                    content: "Change Status",
-                                    onAction: () => handleChangeStatus(id),
-                                },
-
-
-                            ]}
-                        />
-                    </Popover>
-                </IndexTable.Cell>
             </IndexTable.Row>
         )
-    ) : <EmptySearchResult title={"No Shipment Found"} withIllustration />
+    ) : <EmptySearchResult title={"No Log Found"} withIllustration />
 
     const emptyStateMarkup = (
-        <EmptySearchResult title={"No Shipment Found"} withIllustration />
+        <EmptySearchResult title={"No Log Found"} withIllustration />
     );
 
     const handleClearStates = () => {
@@ -765,9 +695,7 @@ export function Shipment() {
         </Button>
     );
 
-    const handleAddShipment = () => {
-        navigate("/add-shipment");
-    };
+
 
     // ---------------------New Table Code----------------------
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -971,229 +899,12 @@ export function Shipment() {
         setSellerEmail("");
         setModalReassign(false);
     };
-    const handleSellerEmail = (e) => {
-        setSellerEmail(e.target.value);
-    };
-
-    const assignProductToSeller = async () => {
-
-        const sessionToken = getAccessToken();
-        const errors = {};
-        console.log('selectedResources',selectedResources)
-        console.log('sellerEmailListSelected',sellerEmailListSelected)
-
-        setBtnLoading(true)
-
-        try {
 
 
-            if (selectedResources.length === 0) {
-
-                var url = `${apiUrl}/change-status-shipment?id=${uniqueId}&status=${selectedStatus}`
-            }else{
-                var encodedEmail = encodeURIComponent(sellerEmailListSelected);
-                var url=`${apiUrl}/change-status-shipment?ids=${selectedResources}&status=${selectedStatus}`
-            }
-            const response = await axios.get(url,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
 
 
-            setBtnLoading(false)
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            getData()
-            handleReassignCloseAction()
-
-
-        } catch (error) {
-            console.log(error)
-            setBtnLoading(false)
-            setToastMsg(error?.response?.data?.message)
-            setErrorToast(true)
-        }
-
-    }
-
-    const handleProductFilter =async (value) =>  {
-        setSelected(value)
-        setLoading(true)
-        const sessionToken = getAccessToken();
-
-    }
-
-    const handleExportProduct = async () => {
-        setBtnLoading(true)
-        const sessionToken = getAccessToken();
-        try {
-            const response = await axios.get(`${apiUrl}/export-product`,
-                {
-                    headers: {
-                        Authorization: "Bearer " + sessionToken
-                    }
-                })
-            const downloadLink = document.createElement('a');
-            downloadLink.href = response?.data?.link; // Replace 'fileUrl' with the key containing the download link in the API response
-            downloadLink.download =response?.data?.name; // Specify the desired filename and extension
-            downloadLink.target = '_blank';
-            downloadLink.click();
-            setBtnLoading(false)
-            setToastMsg(response?.data?.message)
-            setSucessToast(true)
-            // setSkeleton(false)
-
-        } catch (error) {
-            setBtnLoading(false)
-            setToastMsg('Export Failed')
-            setErrorToast(true)
-        }
-
-    }
     return (
         <div className="Products-Page IndexTable-Page Orders-page">
-
-
-
-            <Modal
-                open={modalReassign}
-                onClose={handleReassignCloseAction}
-                title="Change Shipment Status"
-                primaryAction={{
-                    content: "Update",
-                    destructive: true,
-                    onAction: assignProductToSeller,
-                    loading:btnLoading
-                }}
-                secondaryActions={[
-                    {
-                        content: "Cancel",
-
-                        onAction: handleReassignCloseAction,
-                    },
-                ]}
-            >
-                <Modal.Section>
-
-                    <Select
-                        name='pushed_status'
-                        options={[
-                            { value: 'Updated', label: 'Updated' },
-                            { value: 'Received', label: 'Received' },
-                        ]}
-                        placeholder="Select Status"
-                        value={selectedStatus}
-                        onChange={(selectedOption) => handleSelectStatus(selectedOption)}
-                        styles={{
-                            menuPortal: (base) => ({ ...base, zIndex: 99999 }),
-                        }}
-                    />
-
-                </Modal.Section>
-            </Modal>
-            <Modal
-                open={deleteSellerModal}
-                onClose={deleteModalCloseHandler}
-                title="Delete Seller"
-                primaryAction={{
-                    content: "Delete Seller",
-                    destructive: true,
-                    style: { backgroundColor: "red" },
-                }}
-                secondaryActions={[
-                    {
-                        content: "Cancel",
-                        onAction: deleteModalCloseHandler,
-                    },
-                ]}
-            >
-                <Modal.Section>
-                    <Text>Do you want to delete seller permanently?</Text>
-                    <div className="margin-top" />
-                    <Checkbox
-                        label="Delete Products from Shopify"
-                        checked={checked}
-                        onChange={handleChange}
-                    />
-                    <div className="margin-top" />
-                    <br />
-                    <div className="margin-top" />
-                    <b style={{ fontSize: "20px", color: "red", marginTop: "20px" }}>
-                        Note :
-                    </b>
-
-                    <br />
-                    <div className="margin-top" />
-                    <Text>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellendus
-                        fugiat alias voluptas non! Ipsum commodi nihil tempora dolorem autem
-                        quisquam modi ducimus, delectus, quidem ipsam, possimus voluptatibus
-                        cumque tenetur ea.
-                    </Text>
-                </Modal.Section>
-            </Modal>
-            <Modal
-                open={disableModal}
-                onClose={closeDisableModal}
-                title="Send Message to Seller"
-                primaryAction={{
-                    content: "Disable",
-                    destructive: true,
-                    disabled: btnLoading,
-                }}
-                secondaryActions={[
-                    {
-                        content: "Cancel",
-                        onAction: closeDisableModal,
-                    },
-                ]}
-            >
-                <Modal.Section>
-                    <Text>Are You sure you want to Disable ?</Text>
-                </Modal.Section>
-            </Modal>
-
-            <Modal
-                open={modalChangePassword}
-                onClose={handleChangePasswordCloseAction}
-                title="Reset Password For Seller"
-                loading={btnLoading[2]}
-                primaryAction={{
-                    content: "Change",
-                    destructive: true,
-                    disabled: btnLoading[2],
-                }}
-                secondaryActions={[
-                    {
-                        content: "Cancel",
-                        disabled: btnLoading[2],
-                        onAction: handleChangePasswordCloseAction,
-                    },
-                ]}
-            >
-                <Modal.Section>
-                    <InputField
-                        label="Password*"
-                        placeholder="Enter Password"
-                        type="password"
-                        name="password"
-                        value={password}
-                        onChange={handlePassword}
-                    />
-
-                    <InputField
-                        marginTop
-                        label="Confirm Password*"
-                        placeholder="Enter Password again"
-                        type="password"
-                        name="confirm_password"
-                        value={confirmPassword}
-                        onChange={handleConfirmPassword}
-                    />
-                </Modal.Section>
-            </Modal>
 
             {loading ? (
                 <span>
@@ -1203,7 +914,7 @@ export function Shipment() {
             ) : (
                 <Page
                     fullWidth
-                    title="Shipments"
+                    title="Logs"
 
 
 
@@ -1219,13 +930,12 @@ export function Shipment() {
                                             <Tabs
                                                 tabs={tabs}
                                                 selected={selected}
-                                                onSelect={handleProductFilter}
                                             ></Tabs>
                                         </div>
                                         <div className="product_listing_search" style={{ padding: '16px', display: 'flex' }}>
-                                            <div style={{ flex: '40%' }}>
+                                            <div style={{ flex: '60%' }}>
                                                 <TextField
-                                                    placeholder='Search Shipment'
+                                                    placeholder='Search Logs'
                                                     value={queryValue}
                                                     onChange={handleFiltersQueryChange}
                                                     clearButton
@@ -1234,34 +944,8 @@ export function Shipment() {
                                                     prefix={<Icon source={SearchMinor} />}
                                                 />
                                             </div>
-                                            <div style={{ flex: '30%', padding: '0px',alignItems: 'center', justifyContent: 'flex-end' }}>
 
-                                                <div style={{ flex: '1' }}>
-
-                                                    <div style={{ position: 'relative', width: 'auto', zIndex: 99999 }}>
-                                                        <ReactSelect
-                                                            name='pushed_status'
-                                                            options={sellerList}
-                                                            placeholder="Select Seller"
-                                                            value={selectedSeller}
-                                                            onChange={(selectedOption) => handleSellerSelectChange(selectedOption)}
-                                                            styles={{
-                                                                menuPortal: (base) => ({ ...base, zIndex: 99999 }),
-                                                            }}
-                                                        />
-                                                    </div>
-
-                                                    {showClearButton && (
-                                                        <Button onClick={handleClearButtonClick} plain>
-                                                            Clear
-                                                        </Button>
-                                                    )}
-                                                </div>
-
-                                            </div>
-
-
-                                            <div style={{ flex: '30%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                            <div style={{ flex: '40%', padding: '0px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
 
                                                 <div style={{ flex: '1' }}>
 
@@ -1269,9 +953,9 @@ export function Shipment() {
                                                         <ReactSelect
                                                             name='pushed_status'
                                                             options={[
-                                                                { value: 'In-transit', label: 'In-transit' },
-                                                                { value: 'Updated', label: 'Updated' },
-                                                                { value: 'Received', label: 'Received' },
+                                                                { value: 'In-Progress', label: 'In-Progress' },
+                                                                { value: 'Complete', label: 'Complete' },
+                                                                { value: 'Failed', label: 'Failed' },
                                                             ]}
                                                             placeholder="Select Status"
                                                             value={selectedStatus}
@@ -1293,7 +977,7 @@ export function Shipment() {
                                         </div>
                                         <IndexTable
                                             resourceName={resourceName}
-                                            itemCount={shipments?.length}
+                                            itemCount={logs?.length}
                                             loading={tableLoading}
 
                                             selectable={false}
@@ -1304,13 +988,9 @@ export function Shipment() {
                                             emptyState={emptyStateMarkup}
                                             headings={[
                                                 { title: "No" },
-                                                { title: "Seller" },
                                                 { title: "Date" },
-                                                { title: "Courier" },
-                                                { title: "Tracking Numbers" },
+                                                { title: "Log" },
                                                 { title: "Status" },
-                                                { title: "Attachements" },
-                                                { title: "Action" },
                                             ]}
 
                                         >

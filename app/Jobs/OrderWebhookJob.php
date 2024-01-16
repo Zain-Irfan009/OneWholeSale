@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 
 use App\Models\Log;
+use App\Models\WebhookLog;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -22,6 +23,7 @@ class OrderWebhookJob implements ShouldQueue
     public $timeout = 100000;
     protected $order;
     protected $shop_name;
+    protected $webhook_log_id;
 
     /**
      * Create a new job instance.
@@ -29,10 +31,11 @@ class OrderWebhookJob implements ShouldQueue
      * @return void
      */
 
-    public function __construct($order,$shop_name)
+    public function __construct($order,$shop_name,$webhook_log_id)
     {
         $this->order = $order;
         $this->shop_name = $shop_name;
+        $this->webhook_log_id = $webhook_log_id;
     }
 
 
@@ -45,8 +48,10 @@ class OrderWebhookJob implements ShouldQueue
     {
         $order=$this->order;
         $shop_name=$this->shop_name;
+        $webhook_log_id=$this->webhook_log_id;
     $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
         $ordercontroller->singleOrder($order,$shop_name);
+        WebhookLog::where('id', $webhook_log_id)->update(['status' => 'Complete']);
 
     }
 

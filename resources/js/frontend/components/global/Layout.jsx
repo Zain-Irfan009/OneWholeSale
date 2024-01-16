@@ -16,7 +16,7 @@ import axios from "axios";
 import { useAuthState, useAuthDispatch } from "../../assets/AuthProvider";
 
 export function MainLayout(props) {
-    const apiUrl = "https://phpstack-721835-3514666.cloudwaysapps.com/api/";
+    const apiUrl = "https://marketplace.onewholesale.ca/api/";
 
     // const dispatch = useAuthDispatch();
     const { name } = useAuthState();
@@ -238,6 +238,14 @@ export function MainLayout(props) {
                         url: "/shipment",
                         onClick: () => setLocationChange("/shipment"),
                         selected: location.pathname === "/shipment",
+                    },
+
+                    {
+                        label: "Logs",
+                        icon: NoteMinor,
+                        url: "/logs",
+                        onClick: () => setLocationChange("/logs"),
+                        selected: location.pathname === "/logs",
                     }
                 ]}
             />

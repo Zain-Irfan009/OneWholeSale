@@ -11,6 +11,7 @@ use App\Models\ProductImage;
 use App\Models\Session;
 use App\Models\User;
 use App\Models\Variant;
+use App\Models\WebhookLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,16 +27,18 @@ class ProductUpdateJob implements ShouldQueue
 
     public $data;
     public $shop;
-    public $timeout = 3600;
+    public $timeout = 100000;
+    protected $webhook_log_id;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data,$shop)
+    public function __construct($data,$shop,$webhook_log_id)
     {
         $this->data=$data;
         $this->shop=$shop;
+        $this->webhook_log_id = $webhook_log_id;
     }
 
     /**
@@ -48,6 +51,7 @@ class ProductUpdateJob implements ShouldQueue
 
         $product=$this->data;
         $shop=$this->shop;
+        $webhook_log_id=$this->webhook_log_id;
         $shop = Session::where('shop',$shop)->first();
 
 //        $logs=new log();
@@ -189,5 +193,7 @@ class ProductUpdateJob implements ShouldQueue
                 $product_image->save();
             }
         }
+
+        WebhookLog::where('id', $webhook_log_id)->update(['status' => 'Complete']);
     }
 }

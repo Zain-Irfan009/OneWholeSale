@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Session;
+use App\Models\WebhookLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Shopify\Clients\Rest;
@@ -138,6 +139,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('shipment',[\App\Http\Controllers\Admin\ShipmentController::class,'Shipments']);
     Route::get('change-status-shipment',[\App\Http\Controllers\Admin\ShipmentController::class,'ChangeStatusShipment']);
 
+    //logs
+    Route::get('logs',[\App\Http\Controllers\Admin\DashboardController::class,'Logs']);
 
     Route::prefix('/seller')->group(function(){
 
@@ -296,53 +299,64 @@ Route::post('/webhooks/collection-create', function (Request $request) {
 
 
     try {
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Collection Create';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
 
         $collection=json_decode($request->getContent());
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop);
+        \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop,$webhook_log->id);
 
 
     } catch (\Exception $e) {
 
-        $error_log=new \App\Models\log();
-        $error_log->log='Collection Create catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
     }
 });
 
 
 Route::post('/webhooks/collection-update', function (Request $request) {
     try {
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Collection Update';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
         $collection=json_decode($request->getContent());
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop);
+        \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop,$webhook_log->id);
 
     } catch (\Exception $e) {
-        $error_log=new \App\Models\log();
-        $error_log->log='Collection update catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
 
     }
 });
 
 Route::post('/webhooks/collection-delete', function (Request $request) {
     try {
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Collection Delete';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
         $collection=json_decode($request->getContent());
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
        \App\Models\Collection::where('shopify_id',$collection->id)->delete();
+        $webhook_log->status='Complete';
+        $webhook_log->save();
 
     } catch (\Exception $e) {
 
-        $error_log=new \App\Models\log();
-        $error_log->log='Collection delete catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
     }
 });
 
@@ -350,19 +364,21 @@ Route::post('/webhooks/order-create', function (Request $request) {
     try {
 
         $order=json_decode($request->getContent());
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Order Create ('.$order->name.')';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop);
+        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop,$webhook_log->id);
 //        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
 //        $ordercontroller->singleOrder($order,$shop->shop);
 
     } catch (\Exception $e) {
-
-        $error_log=new \App\Models\log();
-        $error_log->log='Order Create catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
     }
 });
 
@@ -370,20 +386,25 @@ Route::post('/webhooks/order-create', function (Request $request) {
 Route::post('/webhooks/order-update', function (Request $request) {
     try {
 
+
         $order=json_decode($request->getContent());
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Order Update ('.$order->name.')';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
 
-        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop);
+        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop,$webhook_log->id);
 //        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
 //        $ordercontroller->singleOrder($order,$shop->shop);
 
     } catch (\Exception $e) {
 
-        $error_log=new \App\Models\log();
-        $error_log->log='Order update catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
+
     }
 });
 
@@ -392,57 +413,65 @@ Route::post('/webhooks/product-create', function (Request $request) {
 
 
     try {
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Product Create';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
         $product=json_decode($request->getContent());
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        \App\Jobs\ProductCreateWebhookJob::dispatch($product,$shop->shop);
+        \App\Jobs\ProductCreateWebhookJob::dispatch($product,$shop->shop,$webhook_log->id);
 
     } catch (\Exception $e) {
 
-        $error_log=new \App\Models\log();
-        $error_log->log='Product Create catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
     }
 });
 Route::post('/webhooks/product-update', function (Request $request) {
 
 
     try {
-
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Product Update';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
         $product=json_decode($request->getContent());
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
 //        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
-        \App\Jobs\ProductUpdateJob::dispatch($product,$shop->shop);
+        \App\Jobs\ProductUpdateJob::dispatch($product,$shop->shop,$webhook_log->id);
 //        $productcontroller->createShopifyProducts($product,$shop->shop);
 
     } catch (\Exception $e) {
 
-        $error_log=new \App\Models\log();
-        $error_log->log='Product update catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
     }
 });
 Route::post('/webhooks/product-delete', function (Request $request) {
 
 
     try {
+        $webhook_log=new \App\Models\WebhookLog();
+        $webhook_log->log='Product Delete';
+        $webhook_log->status='In-Progress';
+        $webhook_log->save();
         $product=json_decode($request->getContent());
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        \App\Jobs\ProductDeleteWebhookJob::dispatch($product,$shop->shop);
+        \App\Jobs\ProductDeleteWebhookJob::dispatch($product,$shop->shop,$webhook_log->id);
 
 
     } catch (\Exception $e) {
 
-        $error_log=new \App\Models\log();
-        $error_log->log='Product delete catch';
-        $error_log->verify=  $e->getMessage();
-        $error_log->save();
+        $webhook_log->status='Failed';
+        $webhook_log->failed_reason=  $e->getMessage();
+        $webhook_log->save();
     }
 });
 
