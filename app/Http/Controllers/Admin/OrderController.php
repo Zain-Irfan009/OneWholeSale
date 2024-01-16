@@ -58,10 +58,7 @@ class OrderController extends Controller
 
     public function singleOrder($order, $shop)
     {
-        $log=new log();
-        $log->log='order_start';
-        $log->verify='3232';
-        $log->save();
+
 
         $shop = Session::where('shop', $shop)->first();
 //        if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {

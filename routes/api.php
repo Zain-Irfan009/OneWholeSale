@@ -236,13 +236,13 @@ Route::get('/testing', function() {
     $client = new Rest($session->shop, $session->access_token);
 
     $response = $client->get('/webhooks.json');
-
+//
 //        $webhook_create = $client->post( '/webhooks.json', [
 //
 //        "webhook" => array(
-//            "topic" => "inventory_levels/update",
+//            "topic" => "products/delete",
 //            "format" => "json",
-//            "address" => "https://marketplace.onewholesale.ca/api/webhooks/inventory-update"
+//            "address" => "https://marketplace.onewholesale.ca/api/webhooks/product-delete"
 //        )
 //    ]);
 //    dd($webhook_create->getDecodedBody());
@@ -297,18 +297,11 @@ Route::post('/webhooks/collection-create', function (Request $request) {
 
     try {
 
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='collection create';
-        $logs->save();
         $collection=json_decode($request->getContent());
-
-
-
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $collectioncontroller = new \App\Http\Controllers\Admin\CollectionController();
-        $collectioncontroller->singleCollection($collection,$shop->shop);
+        \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop);
+
 
     } catch (\Exception $e) {
 
@@ -322,16 +315,11 @@ Route::post('/webhooks/collection-create', function (Request $request) {
 
 Route::post('/webhooks/collection-update', function (Request $request) {
     try {
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='collection update';
-        $logs->save();
         $collection=json_decode($request->getContent());
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $collectioncontroller = new \App\Http\Controllers\Admin\CollectionController();
-        $collectioncontroller->singleCollection($collection,$shop->shop);
+        \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop);
 
     } catch (\Exception $e) {
         $error_log=new \App\Models\log();
@@ -344,16 +332,7 @@ Route::post('/webhooks/collection-update', function (Request $request) {
 
 Route::post('/webhooks/collection-delete', function (Request $request) {
     try {
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='collection Delete';
-        $logs->save();
         $collection=json_decode($request->getContent());
-
-        $logs->log=$collection->id;
-        $logs->verify='collection Delete dssd';
-        $logs->save();
-
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
        \App\Models\Collection::where('shopify_id',$collection->id)->delete();
@@ -370,16 +349,13 @@ Route::post('/webhooks/collection-delete', function (Request $request) {
 Route::post('/webhooks/order-create', function (Request $request) {
     try {
 
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='order create';
-        $logs->save();
         $order=json_decode($request->getContent());
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
-        $ordercontroller->singleOrder($order,$shop->shop);
+        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop);
+//        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
+//        $ordercontroller->singleOrder($order,$shop->shop);
 
     } catch (\Exception $e) {
 
@@ -394,16 +370,13 @@ Route::post('/webhooks/order-create', function (Request $request) {
 Route::post('/webhooks/order-update', function (Request $request) {
     try {
 
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='order update';
-        $logs->save();
         $order=json_decode($request->getContent());
-
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
-        $ordercontroller->singleOrder($order,$shop->shop);
+
+        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop);
+//        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
+//        $ordercontroller->singleOrder($order,$shop->shop);
 
     } catch (\Exception $e) {
 
@@ -419,19 +392,11 @@ Route::post('/webhooks/product-create', function (Request $request) {
 
 
     try {
-
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='product create';
-        $logs->save();
         $product=json_decode($request->getContent());
-
-
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
-        $productcontroller->createShopifyProducts($product,$shop->shop);
+        \App\Jobs\ProductCreateWebhookJob::dispatch($product,$shop->shop);
 
     } catch (\Exception $e) {
 
@@ -446,17 +411,11 @@ Route::post('/webhooks/product-update', function (Request $request) {
 
     try {
 
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='product update';
-        $logs->save();
         $product=json_decode($request->getContent());
-
-
 
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
+//        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
         \App\Jobs\ProductUpdateJob::dispatch($product,$shop->shop);
 //        $productcontroller->createShopifyProducts($product,$shop->shop);
 
@@ -472,19 +431,11 @@ Route::post('/webhooks/product-delete', function (Request $request) {
 
 
     try {
-
-        $logs=new \App\Models\log();
-        $logs->log=json_encode($request->getContent());
-        $logs->verify='product delete';
-        $logs->save();
         $product=json_decode($request->getContent());
-
-
-
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
-        $productcontroller = new \App\Http\Controllers\Admin\ProductController();
-        $productcontroller->ShopifyDeleteProduct($product,$shop->shop);
+        \App\Jobs\ProductDeleteWebhookJob::dispatch($product,$shop->shop);
+
 
     } catch (\Exception $e) {
 
@@ -506,24 +457,13 @@ Route::post('/webhooks/inventory-update', function (Request $request) {
         $data = $request->getContent();
         $data = json_decode($data);
 
-        $logs = new \App\Models\log();
-        $logs->log = json_encode($data);
-        $logs->verify='inventory Level update ';
-        $logs->save();
-
-
-
-        $product_variant=\App\Models\Variant::where('inventory_item_id',$data->inventory_item_id)->first();
-        if($product_variant){
-
-            $product_variant->quantity=$data->available;
-            $product_variant->save();
-        }
+        \App\Jobs\InventoryLevelUpdateWebhookJob::dispatch($data);
 
     } catch (\Exception $e) {
 
-        $error_log = new \App\Models\ErrorLog();
-        $error_log->message = 'inventory update res catch'.json_encode($e->getMessage());
+        $error_log = new \App\Models\log();
+        $error_log->log = json_encode($e->getMessage());
+        $error_log->verify = 'inventory update res catch';
         $error_log->save();
     }
 });
