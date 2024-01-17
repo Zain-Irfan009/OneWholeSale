@@ -291,14 +291,14 @@ export function VendorViewOrder() {
                     // }}
                 >
 
-                    <Layout>
-                        <Layout.Section>
+                    <Layout >
+                        <Layout.Section >
                             <Card title="Order Details">
                                 <Card.Section>
-                                    <Scrollable
-                                        style={{
-                                            height: lineItems?.length == 1 ? "75px" : "225px",
-                                        }}
+                                    <Scrollable className="scroll_div"
+                                        // style={{
+                                        //     height: lineItems?.length == 1 ? "75px" : "225px",
+                                        // }}
                                     >
                                         {lineItems?.map((item) => {
                                             return (
@@ -360,7 +360,7 @@ export function VendorViewOrder() {
                                                 </p>
                                                 <p>
                                                     {currency}{" "}
-                                                    {totalCost}
+                                                    {Number(totalCost).toFixed(2)}
                                                 </p>
                                             </Stack>
                                         </div>
@@ -402,7 +402,7 @@ export function VendorViewOrder() {
                                                 <p>Total</p>
                                                 <p>
                                                     {currency}{" "}
-                                                    {totalCost}
+                                                    {Number(totalCost).toFixed(2)}
                                                 </p>
                                             </Stack>
                                         </div>
@@ -412,7 +412,7 @@ export function VendorViewOrder() {
                                                 <p>To be paid by customer</p>
                                                 <p>
                                                     {currency}{" "}
-                                                    {totalCost}
+                                                    {Number(totalCost).toFixed(2)}
                                                 </p>
                                             </Stack>
                                         </div>

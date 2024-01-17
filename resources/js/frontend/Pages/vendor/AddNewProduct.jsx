@@ -75,7 +75,7 @@ export function AddNewProduct() {
     const [sucessToast, setSucessToast] = useState(false);
     const [toastMsg, setToastMsg] = useState("");
     const [discardModal, setDiscardModal] = useState(false);
-    const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(false);
+    const [trackQuantityIsChecked, setTrackQuantityIsChecked] = useState(true);
     const [status, setStatus] = useState('');
     const [showSaveBar, setShowSaveBar] = useState(false);
     const [variantsMarkup, setVariantsMarkup] = useState([]);
@@ -1003,7 +1003,7 @@ export function AddNewProduct() {
     );
 
     const collectionsContentMarkup =
-        collectionOptionsSelected.length > 0 ? (
+        collectionOptionsSelected?.length > 0 ? (
             <div className="Product-Tags-Stack">
                 <Stack spacing="extraTight" alignment="center">
                     {collectionOptionsSelected.map((option) => {
@@ -1476,7 +1476,7 @@ export function AddNewProduct() {
             });
 
             setCollectionOptionsSelected(
-                response?.data?.collections.title.split(",")
+                response?.data?.collections?.title.split(",")
             );
             setVendor(response?.data?.shop_name)
 
