@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SendMail;
 use App\Models\Courier;
+use App\Models\MailSmtpSetting;
+use App\Models\Session;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ShipmentController extends Controller
 {
@@ -58,6 +62,21 @@ class ShipmentController extends Controller
             $shipment->file=$filename1;
         }
         $shipment->save();
+
+        $Setting = MailSmtpSetting::where('shop_id', $user->shop_id)->first();
+        $type='Shipment';
+        $details['to'] = $user->email;
+        $details['name'] = $user->name;
+        $details['subject'] = 'Shipment Attachment';
+        $details['tracking_number']=$shipment->tracking_number;
+        $details['comment']=$shipment->comment;
+        $details['courier']=$shipment->courier_name;
+        $details['attachment']=$shipment->file;
+        try {
+        Mail::to('support@onewholesale.ca')->send(new SendMail($details, $Setting, $type));
+        }catch (\Exception $exception){
+
+        }
         $data = [
             'message' => 'Shipment Created Successfully',
         ];

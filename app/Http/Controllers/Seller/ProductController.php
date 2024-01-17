@@ -73,7 +73,7 @@ class ProductController extends Controller
             $product=Product::find($id);
             if($product){
                 $variants=Variant::where('shopify_product_id',$product->shopify_id)->get();
-                $options=Option::where('shopify_product_id',$product->shopify_id)->get();
+                $options=Option::where('shopify_product_id',$product->shopify_id)->where('name','!=','title')->get();
                 $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price','barcode','src')->where('shopify_product_id', $product->shopify_id)->get();
                 $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->whereNotNull('shopify_image_id')->orderBy('position','asc')->get();
                 $data = [
