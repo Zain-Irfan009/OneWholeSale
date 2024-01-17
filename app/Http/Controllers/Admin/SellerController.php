@@ -290,13 +290,13 @@ class SellerController extends Controller
                 }
 
                 $this->ActiveSellerMetafield($shop,$client);
-                $this->ActiveSellerMetafield($shop,$client);
+//                $this->ActiveSellerMetafield($shop,$client);
                 $type='Seller Status';
                 if($seller->status!=null) {
                     try {
                         $this->SendMail($seller, $Setting, $type);
                     }catch (\Exception $exception){
-                        dd($exception->getMessage());
+
                     }
 
                 }
