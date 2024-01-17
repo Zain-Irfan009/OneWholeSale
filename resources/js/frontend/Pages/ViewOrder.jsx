@@ -178,6 +178,8 @@ export function ViewOrder() {
                 })
 
             console.log(response?.data?.order_sellers)
+            console.log(response?.data?.line_items,'Line_items')
+
             setSubtotalPrice(response?.data?.order?.subtotal_price)
             setTotalTax(response?.data?.order?.total_tax)
             setTotalPrice(response?.data?.order?.total_price)
@@ -302,10 +304,10 @@ console.log('check',cartPrices)
                         <Layout.Section>
                             <Card title="Order Details">
                                 <Card.Section>
-                                    <Scrollable
-                                        style={{
-                                            height: lineItems?.length == 1 ? "75px" : "225px",
-                                        }}
+                                    <Scrollable className="scroll_div"
+                                        // style={{
+                                        //     height: lineItems?.length == 1 ? "75px" : "225px",
+                                        // }}
                                     >
                                         {lineItems?.map((item) => {
                                             return (
@@ -362,6 +364,7 @@ console.log('check',cartPrices)
                                                     </p>
                                                     <p>
                                                         {currency}{" "}
+
                                                         {subtotalPrice}
                                                     </p>
                                                 </Stack>
