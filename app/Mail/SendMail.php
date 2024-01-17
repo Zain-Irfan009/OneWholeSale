@@ -75,12 +75,21 @@ class SendMail extends Mailable
             );
         }
 
+        else if($this->type=='Shipment'){
+            return new Envelope(
+                subject: 'Shipment Attachment',
+            );
+        }
+
         else {
             return new Envelope(
                 subject: 'Product Approved',
             );
         }
+
     }
+
+
 
     /**
      * Get the message content definition.
@@ -125,6 +134,12 @@ class SendMail extends Mailable
                 );
 
             }
+            else if($this->type=='Shipment'){
+                return new Content(
+                    view: 'email.shipment_file',
+                );
+
+            }
             else {
                 return new Content(
                     view: 'email.send_mail',
@@ -139,6 +154,15 @@ class SendMail extends Mailable
      */
     public function attachments()
     {
+        if (isset($this->details['attachment'])) {
+            // Assuming $this->details['attachment'] contains the path to the attachment file
+            $attachmentPath = $this->details['attachment'];
+
+            return [
+                $attachmentPath,
+            ];
+        }
+
         return [];
     }
 }

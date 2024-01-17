@@ -549,6 +549,7 @@ class OrderController extends Controller
 
             $line_items=LineItem::where('shopify_order_id',$order->shopify_order_id)->get();
 
+
             $order_sellers=OrderSeller::where('order_id',$order->id)->get();
             $order_seller_array=array();
             foreach ($order_sellers as $order_seller){
