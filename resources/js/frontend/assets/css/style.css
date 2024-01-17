@@ -362,7 +362,10 @@
     overflow-x:hidden !important;
 }
 
-
+.scroll_div{
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
 
 
 
