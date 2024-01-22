@@ -566,8 +566,10 @@ class ProductController extends Controller
 
 
         if (isset($request->options)) {
-
-            $options=json_decode($request->options);
+            $array = json_decode($request->options, true);
+            $names = array_column($array, 'name');
+            if (in_array(true, $names)) {
+                $options = json_decode($request->options);
 
             if (count($options) > 0) {
                 foreach ($options as $index => $option) {
@@ -588,6 +590,36 @@ class ProductController extends Controller
 
             }
         }
+            else{
+
+                if(isset($request->product_id)){
+                    $get_product=Product::find($request->product_id);
+                    if($get_product){
+                        $options_get=Option::where('shopify_product_id',$get_product->shopify_id)->get();
+
+                        if (count($options_get) > 0) {
+                            foreach ($options_get as $index => $g_option) {
+                                $temp = [];
+
+                                if (isset($g_option->name) && $g_option->name != null) {
+
+
+                                    array_push($options_array, [
+                                        'name' => $g_option->name,
+                                        'position' => $index + 1,
+                                        'values' => [$g_option->values]
+                                    ]);
+
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         $variants_array = [];
 
