@@ -367,6 +367,10 @@
     overflow-y: auto !important;
 }
 
+.Product-Variants-Table .price_div {
+   width:60px;
+}
+
 
 
 

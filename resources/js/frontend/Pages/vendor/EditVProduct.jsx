@@ -947,6 +947,7 @@ export function EditVProduct() {
                     </IndexTable.Cell>
 
                     <IndexTable.Cell>
+                        <div className="price_div">
                         <InputField
                             type="text"
                             value={data?.price}
@@ -961,6 +962,7 @@ export function EditVProduct() {
                             // prefix="$"
                             autoComplete="off"
                         />
+                        </div>
                     </IndexTable.Cell>
                     <IndexTable.Cell>
                         <InputField
