@@ -406,13 +406,13 @@ export function Shipment() {
 
             const nextPage = currentPage + 1;
             queryParams.set('page', nextPage.toString());
-            navigate(`/shipments?${queryParams.toString()}`);
+            navigate(`/shipment?${queryParams.toString()}`);
 
             setPageCursorValue(nextPageCursor);
         } else {
             const prevPage = currentPage - 1;
             queryParams.set('page', prevPage.toString());
-            navigate(`/shipments?${queryParams.toString()}`);
+            navigate(`/shipment?${queryParams.toString()}`);
 
             setPageCursorValue(previousPageCursor);
         }

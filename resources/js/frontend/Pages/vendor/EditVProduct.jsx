@@ -1221,6 +1221,7 @@ export function EditVProduct() {
         let markup = calculateMarkup();
         setVariantsMarkup(markup);
         console.log('varinatImageModal', varinatImageModal);
+        console.log('update variantsMarkup', variantsMarkup);
 
         // Using setTimeout to set commonState to false after 1000 milliseconds (1 seconds)
         const timeoutId = setTimeout(() => {
