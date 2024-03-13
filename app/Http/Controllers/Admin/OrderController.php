@@ -16,6 +16,7 @@ use App\Models\Product;
 use App\Models\SellerCommission;
 use App\Models\Session;
 use App\Models\Variant;
+use Carbon\Carbon;
 use http\Client\Curl\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,14 +64,18 @@ class OrderController extends Controller
         $shop = Session::where('shop', $shop)->first();
 //        if ($order->financial_status != 'refunded' && $order->cancelled_at == null) {
 
+        $createdAt = Carbon::parse($order->created_at);
 
-            $newOrder = Order::where('shopify_order_id',$order->id)->where('shop_id',$shop->id)->first();
+// Define your target date
+        $targetDate = Carbon::createFromDate(2023, 8, 1); // Augest 1, 2023
+        if ($createdAt->gt($targetDate)){
+            $newOrder = Order::where('shopify_order_id', $order->id)->where('shop_id', $shop->id)->first();
 
-            $flag=0;
-            if ($newOrder == null) {
-                $newOrder = new Order();
-                $flag=1;
-            }
+        $flag = 0;
+        if ($newOrder == null) {
+            $newOrder = new Order();
+            $flag = 1;
+        }
 //            else{
 //                if ($order->financial_status != 'refunded' ||  $order->cancelled_at == null) {
 //                $commission_get_logs=  CommissionLog::where('shopify_order_id',$order->id)->sum('total_payout');
@@ -81,51 +86,51 @@ class OrderController extends Controller
 //                }
 //            }
 //            }
-            $newOrder->shopify_order_id = $order->id;
-            $newOrder->email = $order->email;
-            $newOrder->order_number = $order->name;
-            if (isset($order->shipping_address)) {
-                $newOrder->shipping_name = $order->shipping_address->name;
-                $newOrder->address1 = $order->shipping_address->address1;
-                $newOrder->address2 = $order->shipping_address->address2;
-                $newOrder->phone = $order->shipping_address->phone;
-                $newOrder->city = $order->shipping_address->city;
-                $newOrder->zip = $order->shipping_address->zip;
-                $newOrder->province = $order->shipping_address->province;
-                $newOrder->country = $order->shipping_address->country;
-            }
+        $newOrder->shopify_order_id = $order->id;
+        $newOrder->email = $order->email;
+        $newOrder->order_number = $order->name;
+        if (isset($order->shipping_address)) {
+            $newOrder->shipping_name = $order->shipping_address->name;
+            $newOrder->address1 = $order->shipping_address->address1;
+            $newOrder->address2 = $order->shipping_address->address2;
+            $newOrder->phone = $order->shipping_address->phone;
+            $newOrder->city = $order->shipping_address->city;
+            $newOrder->zip = $order->shipping_address->zip;
+            $newOrder->province = $order->shipping_address->province;
+            $newOrder->country = $order->shipping_address->country;
+        }
 
-            if (isset($order->billing_address)) {
-                $newOrder->billing_shipping_name = $order->billing_address->name;
-                $newOrder->billing_address1 = $order->billing_address->address1;
-                $newOrder->billing_address2 = $order->billing_address->address2;
-                $newOrder->billing_phone = $order->billing_address->phone;
-                $newOrder->billing_city = $order->billing_address->city;
-                $newOrder->billing_zip = $order->billing_address->zip;
-                $newOrder->billing_province = $order->billing_address->province;
-                $newOrder->billing_country = $order->billing_address->country;
-            }
+        if (isset($order->billing_address)) {
+            $newOrder->billing_shipping_name = $order->billing_address->name;
+            $newOrder->billing_address1 = $order->billing_address->address1;
+            $newOrder->billing_address2 = $order->billing_address->address2;
+            $newOrder->billing_phone = $order->billing_address->phone;
+            $newOrder->billing_city = $order->billing_address->city;
+            $newOrder->billing_zip = $order->billing_address->zip;
+            $newOrder->billing_province = $order->billing_address->province;
+            $newOrder->billing_country = $order->billing_address->country;
+        }
 
-            $newOrder->financial_status = $order->financial_status;
-            $newOrder->fulfillment_status = $order->fulfillment_status;
-            if (isset($order->customer)) {
-                $newOrder->first_name = $order->customer->first_name;
-                $newOrder->last_name = $order->customer->last_name;
-                $newOrder->customer_phone = $order->customer->phone;
-                $newOrder->customer_email = $order->customer->email;
-                $newOrder->customer_id = $order->customer->id;
-            }
-            $newOrder->shopify_created_at = date_create($order->created_at)->format('Y-m-d h:i:s');
-            $newOrder->shopify_updated_at = date_create($order->updated_at)->format('Y-m-d h:i:s');
-            $newOrder->tags = $order->tags;
-            $newOrder->note = $order->note;
+        $newOrder->financial_status = $order->financial_status;
+        $newOrder->fulfillment_status = $order->fulfillment_status;
+        if (isset($order->customer)) {
+            $newOrder->first_name = $order->customer->first_name;
+            $newOrder->last_name = $order->customer->last_name;
+            $newOrder->customer_phone = $order->customer->phone;
+            $newOrder->customer_email = $order->customer->email;
+            $newOrder->customer_id = $order->customer->id;
+        }
+        $newOrder->shopify_created_at = date_create($order->created_at)->format('Y-m-d h:i:s');
+        $newOrder->shopify_updated_at = date_create($order->updated_at)->format('Y-m-d h:i:s');
+        $newOrder->tags = $order->tags;
+        $newOrder->note = $order->note;
         if ($order->total_price > 0) {
             $total_price = $order->current_total_price;
         } else {
             $total_price = $order->total_price;
         }
         $newOrder->total_price = $total_price;
-            $newOrder->currency = $order->currency;
+        $newOrder->currency = $order->currency;
 
         if ($order->current_subtotal_price > 0) {
             $sub_total_price = $order->current_subtotal_price;
@@ -134,62 +139,62 @@ class OrderController extends Controller
         }
         $newOrder->subtotal_price = $sub_total_price;
 
-            $newOrder->total_weight = $order->total_weight;
-            $newOrder->taxes_included = $order->taxes_included;
-            $newOrder->total_tax = $order->total_tax;
-            $newOrder->currency = $order->currency;
-            $newOrder->total_discounts = $order->total_discounts;
-            $newOrder->gateway=(count($order->payment_gateway_names) > 0)?$order->payment_gateway_names[0]:null;
-            $newOrder->shop_id = $shop->id;
-            $newOrder->save();
+        $newOrder->total_weight = $order->total_weight;
+        $newOrder->taxes_included = $order->taxes_included;
+        $newOrder->total_tax = $order->total_tax;
+        $newOrder->currency = $order->currency;
+        $newOrder->total_discounts = $order->total_discounts;
+        $newOrder->gateway = (count($order->payment_gateway_names) > 0) ? $order->payment_gateway_names[0] : null;
+        $newOrder->shop_id = $shop->id;
+        $newOrder->save();
 
-            $unique_user_array=array();
+        $unique_user_array = array();
 
-            foreach ($order->line_items as $item) {
+        foreach ($order->line_items as $item) {
 //                if (!in_array($item->id, $refund_line_items)) {
-            $quantity=$item->quantity;
-                if (($order->refunds)) {
-                    foreach ($order->refunds as $refund_odr) {
-                        foreach ($refund_odr->refund_line_items as $refund_item) {
-                            if($refund_item->line_item_id==$item->id){
-                                $quantity= $quantity- $refund_item->quantity;
-                            }
+            $quantity = $item->quantity;
+            if (($order->refunds)) {
+                foreach ($order->refunds as $refund_odr) {
+                    foreach ($refund_odr->refund_line_items as $refund_item) {
+                        if ($refund_item->line_item_id == $item->id) {
+                            $quantity = $quantity - $refund_item->quantity;
                         }
                     }
                 }
-                    if($quantity > 0) {
-                        $new_line = LineItem::where('lineitem_id', $item->id)->where('order_id', $newOrder->id)->where('shop_id', $shop->id)->first();
-                        if ($new_line == null) {
-                            $new_line = new Lineitem();
-                        }
-                        $new_line->shopify_product_id = $item->product_id;
-                        $new_line->shopify_variant_id = $item->variant_id;
-                        $new_line->lineitem_id = $item->id;
-                        $new_line->title = $item->title;
-                        $new_line->quantity = $quantity;
-                        $new_line->sku = $item->sku;
-                        $new_line->variant_title = $item->variant_title;
-                        $new_line->title = $item->title;
-                        $new_line->vendor = $item->vendor;
-                        $new_line->price = $item->price;
-                        $new_line->requires_shipping = $item->requires_shipping;
-                        $new_line->taxable = $item->taxable;
-                        $new_line->name = $item->name;
-                        $new_line->properties = json_encode($item->properties, true);
-                        $new_line->fulfillable_quantity = $item->fulfillable_quantity;
-                        $new_line->fulfillment_status = $item->fulfillment_status;
-                        $new_line->order_id = $newOrder->id;
-                        $new_line->shop_id = $shop->id;
-                        $new_line->shopify_order_id = $order->id;
-                        $new_line->save();
+            }
+            if ($quantity > 0) {
+                $new_line = LineItem::where('lineitem_id', $item->id)->where('order_id', $newOrder->id)->where('shop_id', $shop->id)->first();
+                if ($new_line == null) {
+                    $new_line = new Lineitem();
+                }
+                $new_line->shopify_product_id = $item->product_id;
+                $new_line->shopify_variant_id = $item->variant_id;
+                $new_line->lineitem_id = $item->id;
+                $new_line->title = $item->title;
+                $new_line->quantity = $quantity;
+                $new_line->sku = $item->sku;
+                $new_line->variant_title = $item->variant_title;
+                $new_line->title = $item->title;
+                $new_line->vendor = $item->vendor;
+                $new_line->price = $item->price;
+                $new_line->requires_shipping = $item->requires_shipping;
+                $new_line->taxable = $item->taxable;
+                $new_line->name = $item->name;
+                $new_line->properties = json_encode($item->properties, true);
+                $new_line->fulfillable_quantity = $item->fulfillable_quantity;
+                $new_line->fulfillment_status = $item->fulfillment_status;
+                $new_line->order_id = $newOrder->id;
+                $new_line->shop_id = $shop->id;
+                $new_line->shopify_order_id = $order->id;
+                $new_line->save();
 
 
-                        $product = Product::where('shopify_id', $item->product_id)->where('shop_id', $shop->id)->first();
+                $product = Product::where('shopify_id', $item->product_id)->where('shop_id', $shop->id)->first();
 
-                        if ($product) {
+                if ($product) {
 
-                            $new_line->user_id = $product->user_id;
-                            $new_line->save();
+                    $new_line->user_id = $product->user_id;
+                    $new_line->save();
 
 //                    if($flag==1) {
 
@@ -201,300 +206,295 @@ class OrderController extends Controller
 //                    }
 //                   $product->quantity=$product->quantity -$item->quantity;
 //                   $product->save();
-                            $user = \App\Models\User::find($product->user_id);
+                    $user = \App\Models\User::find($product->user_id);
 
 
-                            if ($user) {
-                                array_push($unique_user_array, $user->id);
-                                $seller_commission = SellerCommission::where('user_id', $user->id)->where('shop_id', $shop->id)->first();
+                    if ($user) {
+                        array_push($unique_user_array, $user->id);
+                        $seller_commission = SellerCommission::where('user_id', $user->id)->where('shop_id', $shop->id)->first();
 
-                                if ($product->vape_seller == "Yes") {
+                        if ($product->vape_seller == "Yes") {
 
-                                    $item_price = $item->price * $item->quantity;
-                                    $excise_tax = $product->excise_tax * $item->quantity;
-                                    $amount_without_excise_tax = $item_price - $excise_tax;
+                            $item_price = $item->price * $item->quantity;
+                            $excise_tax = $product->excise_tax * $item->quantity;
+                            $amount_without_excise_tax = $item_price - $excise_tax;
 
-                                    if ($seller_commission) {
+                            if ($seller_commission) {
 
-                                        if ($seller_commission->commission_type == '%') {
+                                if ($seller_commission->commission_type == '%') {
 
-                                            $unit_payout_subtract = 1 - ($seller_commission->first_commission / 100);
-                                            $unit_payout_subtract_excise = $item->price - $product->excise_tax;
-                                            $unit_payout = $unit_payout_subtract_excise * $unit_payout_subtract;
-                                            $unit_payout = $unit_payout + $product->excise_tax;
+                                    $unit_payout_subtract = 1 - ($seller_commission->first_commission / 100);
+                                    $unit_payout_subtract_excise = $item->price - $product->excise_tax;
+                                    $unit_payout = $unit_payout_subtract_excise * $unit_payout_subtract;
+                                    $unit_payout = $unit_payout + $product->excise_tax;
 
-                                            $sub_total_payout = $unit_payout * $item->quantity;
+                                    $sub_total_payout = $unit_payout * $item->quantity;
 
-                                            if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
-                                                $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
-                                                $total_payout = $sub_total_payout + $sub_total_payout_tax;
-                                            } else {
-                                                $sub_total_payout_tax = $sub_total_payout * 0;
-                                                $total_payout = $sub_total_payout + 0;
-                                            }
-
-
-                                            $unit_product_commission = $item->price - $product->excise_tax;
-                                            $unit_product_commission = $unit_product_commission * ($seller_commission->first_commission / 100);
-                                            $unit_product_commission = $unit_product_commission + $product->excise_tax;
-
-
-                                            $commission = $amount_without_excise_tax * ($seller_commission->first_commission / 100);
-                                            $total_commission = $commission + $excise_tax;
-                                        } else if ($seller_commission->commission_type == 'fixed') {
-                                            $unit_product_commission = $seller_commission->first_commission;
-                                            $total_commission = $seller_commission->first_commission * $item->quantity;
-                                        }
+                                    if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
+                                        $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
+                                        $total_payout = $sub_total_payout + $sub_total_payout_tax;
                                     } else {
-                                        $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
-                                        if ($global_commission) {
-                                            if ($global_commission->commission_type == '%') {
-
-                                                $unit_payout_subtract = 1 - ($global_commission->global_commission / 100);
-                                                $unit_payout_subtract_excise = $item->price - $product->excise_tax;
-                                                $unit_payout = $unit_payout_subtract_excise * $unit_payout_subtract;
-                                                $unit_payout = $unit_payout + $product->excise_tax;
-
-                                                $sub_total_payout = $unit_payout * $item->quantity;
-
-                                                if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
-                                                    $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
-                                                    $total_payout = $sub_total_payout + $sub_total_payout_tax;
-                                                } else {
-                                                    $sub_total_payout_tax = $sub_total_payout * 0;
-                                                    $total_payout = $sub_total_payout + 0;
-                                                }
-
-
-                                                $unit_product_commission = $item->price - $product->excise_tax;
-                                                $unit_product_commission = $unit_product_commission * ($global_commission->global_commission / 100);
-                                                $unit_product_commission = $unit_product_commission + $product->excise_tax;
-
-                                                $commission = $amount_without_excise_tax * ($global_commission->global_commission / 100);
-                                                $total_commission = $commission + $excise_tax;
-
-                                            } else if ($global_commission->commission_type == 'fixed') {
-                                                $unit_product_commission = $global_commission->global_commission;
-                                                $total_commission = $global_commission->global_commission * $item->quantity;
-                                            }
-
-                                        }
-
-                                    }
-                                    $admin_earning = $item_price - $total_commission;
-                                } else {
-                                    if ($seller_commission) {
-                                        if ($seller_commission->commission_type == '%') {
-
-                                            $unit_payout = 1 - ($seller_commission->first_commission / 100);
-                                            $unit_payout = $item->price * $unit_payout;
-
-                                            $sub_total_payout = $unit_payout * $item->quantity;
-
-                                            if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
-                                                $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
-                                                $total_payout = $sub_total_payout + $sub_total_payout_tax;
-                                            } else {
-                                                $sub_total_payout_tax = $sub_total_payout * 0;
-                                                $total_payout = $sub_total_payout + 0;
-                                            }
-
-                                            $commission = ($seller_commission->first_commission / 100) * $item->price;
-                                            $total_commission = $commission * $item->quantity;
-                                        } else if ($seller_commission->commission_type == 'fixed') {
-                                            $commission = $seller_commission->first_commission;
-                                            $total_commission = $seller_commission->first_commission * $item->quantity;
-                                        }
-
-                                    } else {
-                                        $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
-                                        if ($global_commission) {
-                                            if ($global_commission->commission_type == '%') {
-
-                                                $unit_payout = 1 - ($global_commission->global_commission / 100);
-                                                $unit_payout = $item->price * $unit_payout;
-
-                                                $sub_total_payout = $unit_payout * $item->quantity;
-
-                                                if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
-                                                    $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
-                                                    $total_payout = $sub_total_payout + $sub_total_payout_tax;
-                                                } else {
-                                                    $sub_total_payout_tax = $sub_total_payout * 0;
-                                                    $total_payout = $sub_total_payout + 0;
-                                                }
-
-
-                                                $commission = ($global_commission->global_commission / 100) * $item->price;
-                                                $total_commission = $commission * $item->quantity;
-
-                                            } else if ($global_commission->commission_type == 'fixed') {
-                                                $commission = $global_commission->global_commission;
-                                                $total_commission = $global_commission->global_commission * $item->quantity;
-                                            }
-
-                                        }
-
+                                        $sub_total_payout_tax = $sub_total_payout * 0;
+                                        $total_payout = $sub_total_payout + 0;
                                     }
 
-                                    $admin_earning = ($item->price * $item->quantity) - $total_commission;
+
+                                    $unit_product_commission = $item->price - $product->excise_tax;
+                                    $unit_product_commission = $unit_product_commission * ($seller_commission->first_commission / 100);
+                                    $unit_product_commission = $unit_product_commission + $product->excise_tax;
+
+
+                                    $commission = $amount_without_excise_tax * ($seller_commission->first_commission / 100);
+                                    $total_commission = $commission + $excise_tax;
+                                } else if ($seller_commission->commission_type == 'fixed') {
+                                    $unit_product_commission = $seller_commission->first_commission;
+                                    $total_commission = $seller_commission->first_commission * $item->quantity;
+                                }
+                            } else {
+                                $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
+                                if ($global_commission) {
+                                    if ($global_commission->commission_type == '%') {
+
+                                        $unit_payout_subtract = 1 - ($global_commission->global_commission / 100);
+                                        $unit_payout_subtract_excise = $item->price - $product->excise_tax;
+                                        $unit_payout = $unit_payout_subtract_excise * $unit_payout_subtract;
+                                        $unit_payout = $unit_payout + $product->excise_tax;
+
+                                        $sub_total_payout = $unit_payout * $item->quantity;
+
+                                        if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
+                                            $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
+                                            $total_payout = $sub_total_payout + $sub_total_payout_tax;
+                                        } else {
+                                            $sub_total_payout_tax = $sub_total_payout * 0;
+                                            $total_payout = $sub_total_payout + 0;
+                                        }
+
+
+                                        $unit_product_commission = $item->price - $product->excise_tax;
+                                        $unit_product_commission = $unit_product_commission * ($global_commission->global_commission / 100);
+                                        $unit_product_commission = $unit_product_commission + $product->excise_tax;
+
+                                        $commission = $amount_without_excise_tax * ($global_commission->global_commission / 100);
+                                        $total_commission = $commission + $excise_tax;
+
+                                    } else if ($global_commission->commission_type == 'fixed') {
+                                        $unit_product_commission = $global_commission->global_commission;
+                                        $total_commission = $global_commission->global_commission * $item->quantity;
+                                    }
+
                                 }
 
-                                $newOrder->user_id = $user->id;
-                                $newOrder->user_name = $user->name;
-                                $newOrder->user_email = $user->email;
-                                $newOrder->seller_shopname = $user->seller_shopname;
-                                $newOrder->save();
+                            }
+                            $admin_earning = $item_price - $total_commission;
+                        } else {
+                            if ($seller_commission) {
+                                if ($seller_commission->commission_type == '%') {
+
+                                    $unit_payout = 1 - ($seller_commission->first_commission / 100);
+                                    $unit_payout = $item->price * $unit_payout;
+
+                                    $sub_total_payout = $unit_payout * $item->quantity;
+
+                                    if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
+                                        $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
+                                        $total_payout = $sub_total_payout + $sub_total_payout_tax;
+                                    } else {
+                                        $sub_total_payout_tax = $sub_total_payout * 0;
+                                        $total_payout = $sub_total_payout + 0;
+                                    }
+
+                                    $commission = ($seller_commission->first_commission / 100) * $item->price;
+                                    $total_commission = $commission * $item->quantity;
+                                } else if ($seller_commission->commission_type == 'fixed') {
+                                    $commission = $seller_commission->first_commission;
+                                    $total_commission = $seller_commission->first_commission * $item->quantity;
+                                }
+
+                            } else {
+                                $global_commission = GlobalCommission::where('shop_id', $shop->id)->first();
+                                if ($global_commission) {
+                                    if ($global_commission->commission_type == '%') {
+
+                                        $unit_payout = 1 - ($global_commission->global_commission / 100);
+                                        $unit_payout = $item->price * $unit_payout;
+
+                                        $sub_total_payout = $unit_payout * $item->quantity;
+
+                                        if ($user->taxPayingSeller && $user->taxPayingSeller == 'Yes') {
+                                            $sub_total_payout_tax = $sub_total_payout * ($user->tax / 100);
+                                            $total_payout = $sub_total_payout + $sub_total_payout_tax;
+                                        } else {
+                                            $sub_total_payout_tax = $sub_total_payout * 0;
+                                            $total_payout = $sub_total_payout + 0;
+                                        }
+
+
+                                        $commission = ($global_commission->global_commission / 100) * $item->price;
+                                        $total_commission = $commission * $item->quantity;
+
+                                    } else if ($global_commission->commission_type == 'fixed') {
+                                        $commission = $global_commission->global_commission;
+                                        $total_commission = $global_commission->global_commission * $item->quantity;
+                                    }
+
+                                }
+
+                            }
+
+                            $admin_earning = ($item->price * $item->quantity) - $total_commission;
+                        }
+
+                        $newOrder->user_id = $user->id;
+                        $newOrder->user_name = $user->name;
+                        $newOrder->user_email = $user->email;
+                        $newOrder->seller_shopname = $user->seller_shopname;
+                        $newOrder->save();
 
 //                        if ($flag == 1) {
 
-                                $commission_log = CommissionLog::where('shopify_order_id', $order->id)->where('shopify_line_item_id', $item->id)->first();
-                                if ($commission_log == null) {
-                                    $commission_log = new CommissionLog();
-                                }
+                        $commission_log = CommissionLog::where('shopify_order_id', $order->id)->where('shopify_line_item_id', $item->id)->first();
+                        if ($commission_log == null) {
+                            $commission_log = new CommissionLog();
+                        }
 //                            $user->total_commission = $user->total_commission + $total_commission;
-                                $user->total_commission = $user->total_commission + $total_payout;
-                                $user->save();
+                        $user->total_commission = $user->total_commission + $total_payout;
+                        $user->save();
 
-                                $commission_log->user_id = $user->id;
-                                $commission_log->seller_name = $user->name;
-                                $commission_log->seller_email = $user->email;
-                                $commission_log->order_id = $newOrder->id;
-                                if ($product->vape_seller == "Yes") {
-                                    $commission_log->commission = $unit_product_commission;
-                                } else {
-                                    $commission_log->commission = $commission;
-                                }
-                                $commission_log->shopify_product_id = $item->product_id;
-                                $commission_log->shopify_order_id = $order->id;
-                                $commission_log->shopify_line_item_id = $item->id;
-                                $commission_log->shopify_variant_id = $item->variant_id;
-                                $commission_log->product_name = $new_line->title;
-                                $commission_log->quantity = $new_line->quantity;
-                                $commission_log->price = $new_line->price;
+                        $commission_log->user_id = $user->id;
+                        $commission_log->seller_name = $user->name;
+                        $commission_log->seller_email = $user->email;
+                        $commission_log->order_id = $newOrder->id;
+                        if ($product->vape_seller == "Yes") {
+                            $commission_log->commission = $unit_product_commission;
+                        } else {
+                            $commission_log->commission = $commission;
+                        }
+                        $commission_log->shopify_product_id = $item->product_id;
+                        $commission_log->shopify_order_id = $order->id;
+                        $commission_log->shopify_line_item_id = $item->id;
+                        $commission_log->shopify_variant_id = $item->variant_id;
+                        $commission_log->product_name = $new_line->title;
+                        $commission_log->quantity = $new_line->quantity;
+                        $commission_log->price = $new_line->price;
 
-                                if ($product->vape_seller == "Yes") {
-                                    $commission_log->unit_product_commission = $unit_product_commission;
-                                } else {
-                                    $commission_log->unit_product_commission = $commission;
-                                }
-                                $commission_log->total_admin_earning = $admin_earning;
-                                $commission_log->total_product_commission = $total_commission;
-                                $commission_log->unit_payout = $unit_payout;
-                                $commission_log->sub_total_payout = $sub_total_payout;
-                                $commission_log->sub_total_payout_tax = $sub_total_payout_tax;
-                                $commission_log->total_payout = $total_payout;
-                                $commission_log->shop_id = $shop->id;
-                                $commission_log->save();
+                        if ($product->vape_seller == "Yes") {
+                            $commission_log->unit_product_commission = $unit_product_commission;
+                        } else {
+                            $commission_log->unit_product_commission = $commission;
+                        }
+                        $commission_log->total_admin_earning = $admin_earning;
+                        $commission_log->total_product_commission = $total_commission;
+                        $commission_log->unit_payout = $unit_payout;
+                        $commission_log->sub_total_payout = $sub_total_payout;
+                        $commission_log->sub_total_payout_tax = $sub_total_payout_tax;
+                        $commission_log->total_payout = $total_payout;
+                        $commission_log->shop_id = $shop->id;
+                        $commission_log->save();
 
 //                        }
-                            }
-
-                        }
-
                     }
-                    else{
-                    LineItem::where('lineitem_id',$item->id)->where('shopify_order_id',$order->id)->delete();
-                    CommissionLog::where('shopify_line_item_id',$item->id)->where('shopify_order_id',$order->id)->delete();
+
                 }
+
+            } else {
+                LineItem::where('lineitem_id', $item->id)->where('shopify_order_id', $order->id)->delete();
+                CommissionLog::where('shopify_line_item_id', $item->id)->where('shopify_order_id', $order->id)->delete();
+            }
 
 //                }else{
 //                    LineItem::where('lineitem_id',$item->id)->where('shopify_order_id',$order->id)->delete();
 //                    CommissionLog::where('shopify_line_item_id',$item->id)->where('shopify_order_id',$order->id)->delete();
 //                }
-            }
+        }
 
 
+        if ($flag == 1) {
 
+            $unique_records = array_unique($unique_user_array);
 
-            if($flag==1) {
+            foreach ($unique_records as $unique_record) {
 
-                $unique_records =array_unique($unique_user_array);
+                $order_seller = new OrderSeller();
+                $order_seller->order_id = $newOrder->id;
+                $order_seller->user_id = $unique_record;
+                $order_seller->save();
 
-                foreach ($unique_records as $unique_record) {
+                $get_line_items = LineItem::where('order_id', $newOrder->id)->where('user_id', $unique_record)->get();
+                $message = '';
+                $message_record_array = array();
+                foreach ($get_line_items as $get_line_item) {
 
-                    $order_seller = new OrderSeller();
-                    $order_seller->order_id = $newOrder->id;
-                    $order_seller->user_id = $unique_record;
-                    $order_seller->save();
-
-                    $get_line_items=LineItem::where('order_id',$newOrder->id)->where('user_id',$unique_record)->get();
-                     $message='';
-                      $message_record_array=array();
-                     foreach ($get_line_items as $get_line_item){
-
-                         $order_check=Order::find($get_line_item->order_id);
-                         $order_number=null;
-                         if($order_check){
-                             $order_number=$order_check->order_number;
-                         }
-                         $product=Product::where('shopify_id',$get_line_item->shopify_product_id)->first();
-                         $variant=Variant::where('shopify_id',$get_line_item->shopify_variant_id)->first();
-                         if($variant && $variant->src){
-                             $data['image'] = $variant->src;
-                         }
-                         else if($product && $product->featured_image){
-                             $data['product_image'] = $product->featured_image;
-                         }else{
-                             $data['product_image'] = env('APP_URL').'/public/empty.jpg';
-                         }
-                         $sub_total=$get_line_item['quantity']*$get_line_item['price'];
+                    $order_check = Order::find($get_line_item->order_id);
+                    $order_number = null;
+                    if ($order_check) {
+                        $order_number = $order_check->order_number;
+                    }
+                    $product = Product::where('shopify_id', $get_line_item->shopify_product_id)->first();
+                    $variant = Variant::where('shopify_id', $get_line_item->shopify_variant_id)->first();
+                    if ($variant && $variant->src) {
+                        $data['image'] = $variant->src;
+                    } else if ($product && $product->featured_image) {
+                        $data['product_image'] = $product->featured_image;
+                    } else {
+                        $data['product_image'] = env('APP_URL') . '/public/empty.jpg';
+                    }
+                    $sub_total = $get_line_item['quantity'] * $get_line_item['price'];
 
 //                          $message=$message."Product: ".$get_line_item['title'].' of Quantity: '.$get_line_item['quantity'].',';
-                         $data['order_id']=$newOrder->id;
-                         $data['order_number']=$order_number;
-                         $data['product_name']=$get_line_item['title'];
-                         $data['quantity']=$get_line_item['quantity'];
-                         $data['sku']=$get_line_item['sku'];
-                         $data['price']=number_format($get_line_item['price'],2);
-                         $data['sub_total']=number_format($sub_total,2);
-                         array_push($message_record_array,$data);
-                      }
-
-                        try {
-
-                            $this->OrderMail($unique_record, $message_record_array, $newOrder);
-                        }catch (\Exception $exception){
-
-                         $log=new log();
-                         $log->log=json_encode($exception->getMessage());
-                         $log->verify='Order create mail';
-                         $log->save();
-                        }
+                    $data['order_id'] = $newOrder->id;
+                    $data['order_number'] = $order_number;
+                    $data['product_name'] = $get_line_item['title'];
+                    $data['quantity'] = $get_line_item['quantity'];
+                    $data['sku'] = $get_line_item['sku'];
+                    $data['price'] = number_format($get_line_item['price'], 2);
+                    $data['sub_total'] = number_format($sub_total, 2);
+                    array_push($message_record_array, $data);
                 }
 
+                try {
 
+                    $this->OrderMail($unique_record, $message_record_array, $newOrder);
+                } catch (\Exception $exception) {
+
+                    $log = new log();
+                    $log->log = json_encode($exception->getMessage());
+                    $log->verify = 'Order create mail';
+                    $log->save();
+                }
             }
+
+
+        }
 //        }
 
-        if ($order->financial_status == 'refunded' ||  $order->cancelled_at != null) {
-            $commission_get_logs=  CommissionLog::where('shopify_order_id',$order->id)->sum('total_payout');
+        if ($order->financial_status == 'refunded' || $order->cancelled_at != null) {
+            $commission_get_logs = CommissionLog::where('shopify_order_id', $order->id)->sum('total_payout');
 //            $user->total_commission = $user->total_commission - $commission_get_logs;
 //            $user->save();
-            CommissionLog::where('shopify_order_id',$order->id)->delete();
-            $log=new log();
-            $log->log='ewe';
-            $log->verify='3232';
+            CommissionLog::where('shopify_order_id', $order->id)->delete();
+            $log = new log();
+            $log->log = 'ewe';
+            $log->verify = '3232';
             $log->save();
 
-            $log=new log();
-            $log->log='abc'.$order->user_id;
-            $log->verify=json_encode($order);
+            $log = new log();
+            $log->log = 'abc' . $order->user_id;
+            $log->verify = json_encode($order);
             $log->save();
 
-            $newOrder->cancelled_at=$order->cancelled_at;
+            $newOrder->cancelled_at = $order->cancelled_at;
             $newOrder->save();
             try {
 //                $this->OrderCancelMail($newOrder->user_id,$order);
 //                $newOrder->delete();
-            }
-            catch (\Exception $exception){
+            } catch (\Exception $exception) {
 
             }
 
 
         }
-
+    }
 
     }
 

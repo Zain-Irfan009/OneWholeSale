@@ -25,14 +25,16 @@ class OrderController extends Controller
 
         foreach ($order_sellers as $order_seller){
             $order=Order::find($order_seller->order_id);
-            $data['id']=$order->id;
-            $data['order_number']=$order->order_number;
-            $data['financial_status']=$order->financial_status;
-            $data['fulfillment_status']=$order->fulfillment_status;
-            $data['created_at']=$order->created_at;
-            $data['cancelled_at']=$order->cancelled_at;
-            array_push($order_array,$data);
-        }
+            if($order) {
+                $data['id'] = $order->id;
+                $data['order_number'] = $order->order_number;
+                $data['financial_status'] = $order->financial_status;
+                $data['fulfillment_status'] = $order->fulfillment_status;
+                $data['created_at'] = $order->created_at;
+                $data['cancelled_at'] = $order->cancelled_at;
+                array_push($order_array, $data);
+            }
+            }
         if($user){
 
             $data = [
@@ -100,15 +102,17 @@ class OrderController extends Controller
 
         foreach ($order_sellers as $order_seller){
             $order=Order::find($order_seller->order_id);
-            $data['id']=$order->id;
-            $data['order_number']=$order->order_number;
-            $data['shipping_name']=$order->shipping_name;
-            $data['email']=$order->email;
-            $data['financial_status']=$order->financial_status;
-            $data['fulfillment_status']=$order->fulfillment_status;
-            $data['created_at']=$order->created_at;
-            $data['cancelled_at']=$order->cancelled_at;
-            array_push($order_array,$data);
+            if($order) {
+                $data['id'] = $order->id;
+                $data['order_number'] = $order->order_number;
+                $data['shipping_name'] = $order->shipping_name;
+                $data['email'] = $order->email;
+                $data['financial_status'] = $order->financial_status;
+                $data['fulfillment_status'] = $order->fulfillment_status;
+                $data['created_at'] = $order->created_at;
+                $data['cancelled_at'] = $order->cancelled_at;
+                array_push($order_array, $data);
+            }
         }
 
 

@@ -2,6 +2,7 @@
 
 use App\Models\Session;
 use App\Models\WebhookLog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Shopify\Clients\Rest;
@@ -233,10 +234,16 @@ Route::get('sync-collection', [\App\Http\Controllers\Admin\CollectionController:
 
 Route::get('/testing', function() {
 
-
-
-
-
+//    $targetDate = Carbon::create(2023, 8, 1);
+//
+//// Retrieve orders where the date part of shopify_created_at is before the target date
+//    $orders = \App\Models\Order::whereDate('shopify_created_at', '<', $targetDate)->get();
+//    foreach ($orders as $order){
+//        \App\Models\LineItem::where('order_id',$order->id)->delete();
+//        \App\Models\CommissionLog::where('order_id',$order->id)->delete();
+//        $order->delete();
+//    }
+dd(2);
     $session=Session::where('shop','onetradingltd.myshopify.com')->first();
 
     $client = new Rest($session->shop, $session->access_token);

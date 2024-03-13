@@ -29,18 +29,21 @@ class DashboardController extends Controller
         $shop=Session::where('shop',$user->name)->first();
 
         $order_sellers=OrderSeller::where('user_id',$user->id)->latest()->take(3)->get();
+
         $orders=array();
         foreach ($order_sellers as $order_seller){
 
             $order=Order::find($order_seller->order_id);
-            $data['id']=$order->id;
-            $data['shopify_order_id']=$order->shopify_order_id;
-            $data['order_number']=$order->order_number;
-            $data['user_name']=$user->name;
-            $data['total_price']=$order->total_price;
-            $data['financial_status']=$order->financial_status;
-            $data['created_at']=$order->created_at;
-            array_push($orders,$data);
+            if($order) {
+                $data['id'] = $order->id;
+                $data['shopify_order_id'] = $order->shopify_order_id;
+                $data['order_number'] = $order->order_number;
+                $data['user_name'] = $user->name;
+                $data['total_price'] = $order->total_price;
+                $data['financial_status'] = $order->financial_status;
+                $data['created_at'] = $order->created_at;
+                array_push($orders, $data);
+            }
         }
 
         return response()->json($orders);
