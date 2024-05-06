@@ -162,6 +162,8 @@ class ProductUpdateJob implements ShouldQueue
 
             }
         }
+
+        Option::where('shopify_product_id',$product->id)->delete();
         if(count($product->options) >= 1) {
             foreach ($product->options as $product_option) {
                 $option=Option::where('shopify_product_id',$product->id)->where('shopify_id',$product_option->id)->first();

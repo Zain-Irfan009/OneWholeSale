@@ -179,7 +179,8 @@ if(isset($request->variants) ) {
                 'weight_unit' => $request->weight_unit,
                 'barcode' => $request->barcode,
                 'taxable' => $request->taxable,
-                'price' => number_format($variant->price, 2),
+//                'price' => number_format($variant->price, 2),
+                'price' => number_format(floatval($variant->price), 2),
                 'compare_at_price' => ($variant->compare_at_price=="") ? 0 : number_format($variant->compare_at_price, 2),
                 'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
                 'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
@@ -343,6 +344,7 @@ if(isset($request->images)) {
 
             $product_get=Product::find($request->product_id);
             $response = $client->put('/products/' . $product_get->shopify_id .'.json', $productdata);
+
         }else {
 
             $response = $client->post('/products.json', $productdata);
