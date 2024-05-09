@@ -404,12 +404,18 @@ class DashboardController extends Controller
             $details['message'] = 'Your new Password is';
             $details['password'] = $randomPassword;
 
-            Mail::to($details['to'])
-                ->send(new ForgotPasswordMail($details));
-            $status="Password Send Successfully on mail";
-            $user->password= Hash::make($randomPassword);
-            $user->save();
-            return response()->json($status);
+            try {
+
+                Mail::to($details['to'])
+                    ->send(new ForgotPasswordMail($details));
+
+                $status = "Password Send Successfully on mail";
+                $user->password = Hash::make($randomPassword);
+                $user->save();
+                return response()->json($status);
+            }catch (\Exception $exception){
+                return response()->json('Network issue, Click on the Reset Password again');
+            }
         }else{
             $status="We can't find a user with that email address.";
             return response()->json($status);

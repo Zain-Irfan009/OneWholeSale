@@ -61,15 +61,19 @@ export function ResetPassword() {
 
         try {
             const response = await axios.post(`${apiUrl}/forgot-password`, data)
-            console.log('forgot password response: ', response.data);
 
-            setSucessToast(true)
             setBtnLoading(false)
             if (response?.data == "We can't find a user with that email address.") {
+                setErrorToast(true)
+                setToastMsg(response?.data)
+                setBtnDisabled(false)
+            }else if(response?.data == "Network issue, Click on the Reset Password again"){
+                setErrorToast(true)
                 setToastMsg(response?.data)
                 setBtnDisabled(false)
             }
             else {
+                setSucessToast(true)
                 setToastMsg(response?.data)
                 setTime(60)
                 setTimeout(() => {
