@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('sync-all-product',[\App\Http\Controllers\Admin\ProductController::class,'SyncAllProducts']);
+Route::get('sync-all-product1',[\App\Http\Controllers\Admin\ProductController::class,'SyncAllProducts1']);
 
 Route::middleware('auth:sanctum')->group( function () {
     Route::get('profile', [App\Http\Controllers\AuthController::class, 'profile']);

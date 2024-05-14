@@ -691,7 +691,7 @@ import Fileimg from "../../assets/file.jpg";
                                             </a>
                                         }
 
-                                        <DropZone onDrop={handleDropZoneDrop} variableHeight label="Upload File">
+                                        <DropZone onDrop={handleDropZoneDrop} variableHeight label="Upload Packing List File(No Shipping Label)">
                                             {uploadedFiles}
                                             {fileUpload}
                                         </DropZone>
