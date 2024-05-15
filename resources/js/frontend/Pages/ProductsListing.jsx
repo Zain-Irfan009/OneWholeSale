@@ -705,6 +705,42 @@ export function ProductsListing() {
         }
     }
 
+    const handleMultipleDelete=async () => {
+
+
+        setLoading(true)
+        setDisableModal(false);
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/delete-products-multiple?ids=${selectedResources}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+
+            setDisableModal(false);
+
+
+            getData()
+
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+
     const handleMultipleStatusDisableAll=async () => {
 
 
@@ -793,6 +829,12 @@ export function ProductsListing() {
             //   handleSelectionChange(newSelection);
             // },
             onAction: () => handleMultipleStatusDisableAll(),
+        },
+
+        {
+            // content: allResourcesSelect ? "Disable all" : "Enable all",
+            content:  "Delete all" ,
+            onAction: () => handleMultipleDelete(),
         },
 
 

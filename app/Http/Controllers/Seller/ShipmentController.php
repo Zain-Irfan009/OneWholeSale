@@ -67,6 +67,7 @@ class ShipmentController extends Controller
         $type='Shipment';
         $details['to'] = $user->email;
         $details['name'] = $user->name;
+        $details['store_name'] = $user->seller_shopname;
         $details['subject'] = 'Shipment Attachment';
         $details['tracking_number']=$shipment->tracking_number;
         $details['comment']=$shipment->comment;

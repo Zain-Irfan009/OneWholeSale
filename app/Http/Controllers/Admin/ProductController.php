@@ -840,6 +840,34 @@ if(isset($request->images)) {
     }
 
 
+    public function DeleteProductMultiple(Request $request){
+        $user=auth()->user();
+        $session=Session::where('shop',$user->name)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        if($session) {
+            $product_ids = explode(',', $request->ids);
+            foreach ($product_ids as $product_id){
+                $product = Product::find($product_id);
+            if ($product) {
+                $product_api = $client->delete('/products/' . $product->shopify_id . '.json');
+                $product_api = $product_api->getDecodedBody();
+//                if(!isset($product_api['errors'])){
+
+                Option::where('shopify_product_id', $product->shopify_id)->delete();
+                Variant::where('shopify_product_id', $product->shopify_id)->delete();
+                ProductImage::where('shopify_product_id', $product->shopify_id)->delete();
+                $product->delete();
+
+//                }
+            }
+        }
+            $data = [
+                'message' => 'Product Deleted Successfully',
+            ];
+        }
+        return response()->json($data);
+    }
+
     public function SyncProduct(Request $request){
         $user=auth()->user();
         $session=Session::where('shop',$user->name)->first();

@@ -76,6 +76,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('reassign-multiple-seller',[\App\Http\Controllers\Admin\ProductController::class,'ReassignMultipleSeller']);
     Route::delete('delete-product',[\App\Http\Controllers\Admin\ProductController::class,'DeleteProduct']);
     Route::get('sync-product',[\App\Http\Controllers\Admin\ProductController::class,'SyncProduct']);
+    Route::get('delete-products-multiple',[\App\Http\Controllers\Admin\ProductController::class,'DeleteProductMultiple']);
+
+
+
 
 
 
