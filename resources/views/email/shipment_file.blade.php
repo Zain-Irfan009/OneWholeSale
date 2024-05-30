@@ -17,6 +17,7 @@
 <p>This email contains an Information of Shipment of {!! $details['name'] !!}  Vendor. Please find the details below:</p>
 
 <p><strong>Name:</strong> {!! $details['name'] !!}</p>
+<p><strong>Email:</strong> {!! $details['email'] !!}</p>
 <p><strong>Store Name:</strong> {!! $details['store_name'] !!}</p>
 
 <p><strong>Courier:</strong> {!! $details['courier'] !!}</p>

@@ -65,7 +65,7 @@ class ShipmentController extends Controller
 
         $Setting = MailSmtpSetting::where('shop_id', $user->shop_id)->first();
         $type='Shipment';
-        $details['to'] = $user->email;
+        $details['email'] = $user->email;
         $details['name'] = $user->name;
         $details['store_name'] = $user->seller_shopname;
         $details['subject'] = 'Shipment Attachment';
@@ -73,8 +73,10 @@ class ShipmentController extends Controller
         $details['comment']=$shipment->comment;
         $details['courier']=$shipment->courier_name;
         $details['attachment']=$shipment->file;
+
         try {
         Mail::to('support@onewholesale.ca')->send(new SendMail($details, $Setting, $type));
+
         }catch (\Exception $exception){
 
         }
