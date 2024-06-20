@@ -624,6 +624,9 @@ export function EditVProduct() {
                 case "barcode":
                     updatedObject.barcode = value;
                     break;
+                case "shopify_id":
+                    updatedObject.shopify_id = value;
+                    break;
                 default:
 
                     break;

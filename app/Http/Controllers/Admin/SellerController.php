@@ -224,6 +224,11 @@ class SellerController extends Controller
                 $seller->save();
             $this->SellerDetailMetafield($seller,$client);
                 $this->ActiveSellerMetafield($shop,$client);
+
+
+                    Product::where('user_id',$seller->id)->update(['seller_name'=>$seller->name,'seller_email'=>$seller->email,'vendor'=>$seller->seller_shopname,'collections'=>$seller->seller_shopname]);
+
+
                 $data = [
                     'message' => 'Seller Updated Successfully',
                     'seller' => $seller

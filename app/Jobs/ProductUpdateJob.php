@@ -94,8 +94,8 @@ class ProductUpdateJob implements ShouldQueue
         $p->quantity=$product->variants[0]->inventory_quantity;
 //        $p->vape_seller ='No';
 //        $p->excise_tax = 0;
-        $p->search_engine_title=$product->title;
-        $p->search_engine_meta_description=$search_engine_meta_description;
+//        $p->search_engine_title=$product->title;
+//        $p->search_engine_meta_description=$search_engine_meta_description;
         $p->type='Normal';
         if($flag==1) {
             $p->product_status = 'Approval Pending';

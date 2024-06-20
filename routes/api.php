@@ -248,22 +248,23 @@ Route::get('/testing', function() {
 //        \App\Models\CommissionLog::where('order_id',$order->id)->delete();
 //        $order->delete();
 //    }
-dd(2);
+
     $session=Session::where('shop','onetradingltd.myshopify.com')->first();
 
     $client = new Rest($session->shop, $session->access_token);
 
     $response = $client->get('/webhooks.json');
+    dd($response->getDecodedBody());
 //
-//        $webhook_create = $client->post( '/webhooks.json', [
-//
-//        "webhook" => array(
-//            "topic" => "products/delete",
-//            "format" => "json",
-//            "address" => "https://marketplace.onewholesale.ca/api/webhooks/product-delete"
-//        )
-//    ]);
-//    dd($webhook_create->getDecodedBody());
+        $webhook_create = $client->post( '/webhooks.json', [
+
+        "webhook" => array(
+            "topic" => "orders/updated",
+            "format" => "json",
+            "address" => "https://marketplace.onewholesale.ca/api/webhooks/order-update"
+        )
+    ]);
+    dd($webhook_create->getDecodedBody());
 
 //    $delete_create_webhook = $client->delete( '/webhooks/1205956903169.json');
 //dd($delete_create_webhook->getDecodedBody());

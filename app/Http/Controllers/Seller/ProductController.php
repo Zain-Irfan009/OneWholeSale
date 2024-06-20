@@ -74,7 +74,7 @@ class ProductController extends Controller
             if($product){
                 $variants=Variant::where('shopify_product_id',$product->shopify_id)->get();
                 $options=Option::where('shopify_product_id',$product->shopify_id)->where('name','!=','title')->get();
-                $selected_variant=Variant::select('title','price','quantity','sku','compare_at_price','barcode','src')->where('shopify_product_id', $product->shopify_id)->get();
+                $selected_variant=Variant::select('shopify_id','title','price','quantity','sku','compare_at_price','barcode','src')->where('shopify_product_id', $product->shopify_id)->get();
                 $product_images=ProductImage::where('shopify_product_id',$product->shopify_id)->whereNotNull('shopify_image_id')->orderBy('position','asc')->get();
                 $data = [
                     'product'=>$product,
@@ -638,47 +638,90 @@ class ProductController extends Controller
                     $variant_option2 = (isset($title[1])) ? $title[1] : null;
                     $variant_option3 = (isset($title[2])) ? $title[2] : null;
 
-                    if ($variant->title != 'Default Title') {
+                    if (isset($variant->shopify_id)){
+                        if ($variant->title != 'Default Title') {
 
-                        array_push($variants_array, [
-                            'title' => $variant->title,
-                            'sku' => $variant->sku,
-                            'option1' => $variant_option1,
-                            'option2' => $variant_option2,
-                            'option3' => $variant_option3,
-                            'inventory_quantity' => (isset($variant->quantity)) ? $variant->quantity : 0,
+                            array_push($variants_array, [
+                                'id'=>$variant->shopify_id,
+                                'title' => $variant->title,
+                                'sku' => $variant->sku,
+                                'option1' => $variant_option1,
+                                'option2' => $variant_option2,
+                                'option3' => $variant_option3,
+                                'inventory_quantity' => (isset($variant->quantity)) ? $variant->quantity : 0,
 //                "fulfillment_service" => common::getInventoryManager(),
 //                'inventory_management' => common::getInventoryManager(),
-                            'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
-                            'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
-                            'weight_unit' => $request->weight_unit,
-                            'barcode' => $request->barcode,
-                            'taxable' => $request->taxable,
-                            'price' => ($variant->price=="") ? 0 :number_format($variant->price, 2),
-                            'compare_at_price' => ($variant->compare_at_price=="") ? 0 : number_format($variant->compare_at_price, 2),
-                            'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
-                            'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
-                            'barcode'=>(isset($variant->barcode)) ? $variant->barcode : ''
+                                'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+                                'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+                                'weight_unit' => $request->weight_unit,
+                                'barcode' => $request->barcode,
+                                'taxable' => $request->taxable,
+                                'price' => ($variant->price == "") ? 0 : number_format($variant->price, 2),
+                                'compare_at_price' => ($variant->compare_at_price == "") ? 0 : number_format($variant->compare_at_price, 2),
+                                'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
+                                'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
+                                'barcode' => (isset($variant->barcode)) ? $variant->barcode : ''
 
 
+                            ]);
+                        } else {
 
-                        ]);
-                    }
-                    else{
+                            array_push($variants_array, [
+                                'id'=>$variant->shopify_id,
+                                'price' => $request->product_price,
+                                'inventory_quantity' => $request->product_quantity,
+                                'compare_at_price' => ($request->product_compare_at_price == 'null') ? 0 : $request->product_compare_at_price,
+                                'sku' => ($request->product_sku == 'null' ? '' : $request->product_sku),
+                                'barcode' => ($request->barcode == 'null' ? '' : $request->barcode),
+                                'taxable' => $request->taxable,
+                                'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+                                'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+                                'weight_unit' => $request->weight_unit,
+                                'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
+                                'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
+                            ]);
+                        }
+                }else{
+                        if ($variant->title != 'Default Title') {
 
-                        array_push($variants_array, [
-                            'price' => $request->product_price,
-                            'inventory_quantity' => $request->product_quantity,
-                            'compare_at_price' => ($request->product_compare_at_price=='null') ? 0 : $request->product_compare_at_price,
-                            'sku' => ($request->product_sku=='null' ?'' :$request->product_sku),
-                            'barcode' =>($request->barcode=='null' ?'' :$request->barcode),
-                            'taxable' => $request->taxable,
-                            'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
-                            'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
-                            'weight_unit' => $request->weight_unit,
-                            'inventory_management'=>(($request->inventory_management=="true")) ? 'shopify' : null,
-                            'inventory_policy'=>(($request->inventory_policy=="true")) ? 'continue' : 'deny',
-                        ]);
+                            array_push($variants_array, [
+                                'title' => $variant->title,
+                                'sku' => $variant->sku,
+                                'option1' => $variant_option1,
+                                'option2' => $variant_option2,
+                                'option3' => $variant_option3,
+                                'inventory_quantity' => (isset($variant->quantity)) ? $variant->quantity : 0,
+//                "fulfillment_service" => common::getInventoryManager(),
+//                'inventory_management' => common::getInventoryManager(),
+                                'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+                                'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+                                'weight_unit' => $request->weight_unit,
+                                'barcode' => $request->barcode,
+                                'taxable' => $request->taxable,
+                                'price' => ($variant->price == "") ? 0 : number_format($variant->price, 2),
+                                'compare_at_price' => ($variant->compare_at_price == "") ? 0 : number_format($variant->compare_at_price, 2),
+                                'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
+                                'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
+                                'barcode' => (isset($variant->barcode)) ? $variant->barcode : ''
+
+
+                            ]);
+                        } else {
+
+                            array_push($variants_array, [
+                                'price' => $request->product_price,
+                                'inventory_quantity' => $request->product_quantity,
+                                'compare_at_price' => ($request->product_compare_at_price == 'null') ? 0 : $request->product_compare_at_price,
+                                'sku' => ($request->product_sku == 'null' ? '' : $request->product_sku),
+                                'barcode' => ($request->barcode == 'null' ? '' : $request->barcode),
+                                'taxable' => $request->taxable,
+                                'grams' => (is_null($request->weight)) ? 0.0 : $request->weight * 1000,
+                                'weight' => (is_null($request->weight)) ? 0.0 : $request->weight,
+                                'weight_unit' => $request->weight_unit,
+                                'inventory_management' => (($request->inventory_management == "true")) ? 'shopify' : null,
+                                'inventory_policy' => (($request->inventory_policy == "true")) ? 'continue' : 'deny',
+                            ]);
+                        }
                     }
                 }
             }
@@ -784,6 +827,8 @@ class ProductController extends Controller
             $productdata = [
                 "product" => [
                     "title" => $request->product_name,
+                    'metafields_global_title_tag'=>$request->search_engine_title,
+                    'metafields_global_description_tag'=>$request->search_engine_meta_description,
                     "body_html" => $request->description,
                     "vendor" => $request->vendor,
                     "tags" => $tags,
@@ -799,7 +844,8 @@ class ProductController extends Controller
                 "product" => [
                     "title" => $request->product_name,
                     "body_html" => $request->description,
-//                "metafields_global_description_tag" => $product->metafields_global_description_tag,
+                    'metafields_global_title_tag'=>$request->search_engine_title,
+                    'metafields_global_description_tag'=>$request->search_engine_meta_description,
                     "vendor" => $request->vendor,
                     "tags" => $tags,
                     "product_type" => $request->product_type,
@@ -1147,6 +1193,11 @@ class ProductController extends Controller
             ];
 
             return response()->json($data);
+        }else{
+
+            return response()->json([
+                'message' =>$assignImagetoProducts['errors']['image'][0] ,
+            ], 422);
         }
     }
 
