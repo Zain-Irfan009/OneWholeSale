@@ -8,6 +8,7 @@ use App\Models\Collection;
 use App\Models\CommissionLog;
 use App\Models\Order;
 use App\Models\OrderSeller;
+use App\Models\LineItem;
 use App\Models\Product;
 use App\Models\Session;
 use App\Models\User;
@@ -35,11 +36,18 @@ class DashboardController extends Controller
 
             $order=Order::find($order_seller->order_id);
             if($order) {
+                $line_items=LineItem::where('shopify_order_id',$order->shopify_order_id)->where('user_id',$user->id)->get();
+                $total=0;
+                foreach ($line_items as $line_item){
+                    $total += $line_item->quantity * $line_item->price;
+                }
+                $formatted_total = number_format($total, 2);
+
                 $data['id'] = $order->id;
                 $data['shopify_order_id'] = $order->shopify_order_id;
                 $data['order_number'] = $order->order_number;
                 $data['user_name'] = $user->name;
-                $data['total_price'] = $order->total_price;
+                $data['total_price'] =$formatted_total;
                 $data['financial_status'] = $order->financial_status;
                 $data['created_at'] = $order->created_at;
                 array_push($orders, $data);
@@ -72,6 +80,7 @@ class DashboardController extends Controller
             $value = $record[$monthNumber] ?? 0;
             $result[$monthNumber] = ['name' => $monthName, 'uv' => $value];
         }
+
         return response()->json($result);
     }
     public function TopSoldProduct(Request $request){
