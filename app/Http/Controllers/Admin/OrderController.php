@@ -56,6 +56,26 @@ class OrderController extends Controller
         ];
         return response($data);
     }
+    public function SyncOrderCronJob( $next = null)
+    {
+        $session=Session::where('shop','onetradingltd.myshopify.com')->first();
+        $shop = new Rest($session->shop, $session->access_token);
+        $result = $shop->get('orders', [], ['limit' => 250, 'status'=>"any"]);
+        $orders = $result->getDecodedBody();
+
+        foreach ($orders['orders'] as $order) {
+            $order = json_decode(json_encode($order));
+
+            $this->singleOrder($order, $session->shop);
+        }
+dd('done');
+        $data = [
+            'message' => "Order Sync Successfully",
+            'data' => $orders
+
+        ];
+        return response($data);
+    }
 
     public function singleOrder($order, $shop)
     {
