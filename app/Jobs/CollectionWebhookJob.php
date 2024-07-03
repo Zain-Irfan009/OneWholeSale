@@ -20,7 +20,7 @@ class CollectionWebhookJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 100000;
+    public $timeout = 10000000000;
     protected $collection;
     protected $shop_name;
     protected $webhook_log_id;

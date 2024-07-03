@@ -27,7 +27,7 @@ class ProductUpdateJob implements ShouldQueue
 
     public $data;
     public $shop;
-    public $timeout = 100000;
+    public $timeout = 10000000000;
     protected $webhook_log_id;
     /**
      * Create a new job instance.

@@ -24,7 +24,7 @@ class ProductPushJob implements ShouldQueue
 
     public $data;
     public $shop;
-    public $timeout = 3600;
+    public $timeout = 10000000000;
     /**
      * Create a new job instance.
      *

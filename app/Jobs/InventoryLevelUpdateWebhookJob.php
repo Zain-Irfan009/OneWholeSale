@@ -19,7 +19,7 @@ class InventoryLevelUpdateWebhookJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 100000;
+    public $timeout = 10000000000;
     protected $data;
 
 

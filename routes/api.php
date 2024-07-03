@@ -255,13 +255,13 @@ Route::get('/testing', function() {
 
     $response = $client->get('/webhooks.json');
     dd($response->getDecodedBody());
-//
+
         $webhook_create = $client->post( '/webhooks.json', [
 
         "webhook" => array(
-            "topic" => "orders/updated",
+            "topic" => "orders/create",
             "format" => "json",
-            "address" => "https://marketplace.onewholesale.ca/api/webhooks/order-update"
+            "address" => "https://marketplace.onewholesale.ca/api/webhooks/order-create"
         )
     ]);
     dd($webhook_create->getDecodedBody());
@@ -325,12 +325,13 @@ Route::post('/webhooks/collection-create', function (Request $request) {
         $shop=Session::where('shop',$shop)->first();
         \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop,$webhook_log->id);
 
-
+        return true;
     } catch (\Exception $e) {
 
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
+        return true;
     }
 });
 
@@ -346,12 +347,12 @@ Route::post('/webhooks/collection-update', function (Request $request) {
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
         \App\Jobs\CollectionWebhookJob::dispatch($collection,$shop->shop,$webhook_log->id);
-
+        return true;
     } catch (\Exception $e) {
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
-
+        return true;
     }
 });
 
@@ -367,12 +368,13 @@ Route::post('/webhooks/collection-delete', function (Request $request) {
        \App\Models\Collection::where('shopify_id',$collection->id)->delete();
         $webhook_log->status='Complete';
         $webhook_log->save();
-
+        return true;
     } catch (\Exception $e) {
 
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
+        return true;
     }
 });
 
@@ -388,6 +390,7 @@ Route::post('/webhooks/order-create', function (Request $request) {
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
         \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop,$webhook_log->id);
+        return true;
 //        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
 //        $ordercontroller->singleOrder($order,$shop->shop);
 
@@ -395,6 +398,7 @@ Route::post('/webhooks/order-create', function (Request $request) {
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
+        return true;
     }
 });
 
@@ -412,6 +416,7 @@ Route::post('/webhooks/order-update', function (Request $request) {
         $shop=Session::where('shop',$shop)->first();
 
         \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop,$webhook_log->id);
+        return true;
 //        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
 //        $ordercontroller->singleOrder($order,$shop->shop);
 
@@ -420,7 +425,7 @@ Route::post('/webhooks/order-update', function (Request $request) {
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
-
+        return true;
     }
 });
 
@@ -438,12 +443,13 @@ Route::post('/webhooks/product-create', function (Request $request) {
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
         \App\Jobs\ProductCreateWebhookJob::dispatch($product,$shop->shop,$webhook_log->id);
-
+        return true;
     } catch (\Exception $e) {
 
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
+        return true;
     }
 });
 Route::post('/webhooks/product-update', function (Request $request) {
@@ -462,11 +468,13 @@ Route::post('/webhooks/product-update', function (Request $request) {
         \App\Jobs\ProductUpdateJob::dispatch($product,$shop->shop,$webhook_log->id);
 //        $productcontroller->createShopifyProducts($product,$shop->shop);
 
+        return true;
     } catch (\Exception $e) {
 
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
+        return true;
     }
 });
 Route::post('/webhooks/product-delete', function (Request $request) {
@@ -481,13 +489,14 @@ Route::post('/webhooks/product-delete', function (Request $request) {
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
         \App\Jobs\ProductDeleteWebhookJob::dispatch($product,$shop->shop,$webhook_log->id);
-
+        return true;
 
     } catch (\Exception $e) {
 
         $webhook_log->status='Failed';
         $webhook_log->failed_reason=  $e->getMessage();
         $webhook_log->save();
+        return true;
     }
 });
 
@@ -503,6 +512,7 @@ Route::post('/webhooks/inventory-update', function (Request $request) {
         $data = json_decode($data);
 
         \App\Jobs\InventoryLevelUpdateWebhookJob::dispatch($data);
+        return true;
 
     } catch (\Exception $e) {
 
@@ -510,5 +520,6 @@ Route::post('/webhooks/inventory-update', function (Request $request) {
         $error_log->log = json_encode($e->getMessage());
         $error_log->verify = 'inventory update res catch';
         $error_log->save();
+        return true;
     }
 });
