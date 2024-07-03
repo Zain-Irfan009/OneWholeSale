@@ -687,23 +687,30 @@ export function Shipment() {
                 <IndexTable.Cell>{tracking_number != null ? tracking_number : "---"}</IndexTable.Cell>
 
 
-                {status === 'Updated' ? (
-                    <IndexTable.Cell className="fulfilled">
-                        {/*<CustomBadge value={fulfillment_status=='' ? 'UNFULFILLED' : fulfillment_status} type="orders" variant={"fulfillment"} />*/}
-                        <Badge progress='complete'>{status === 'Updated' ? 'Updated' : ''}</Badge>
+                {
+                    status === 'Updated' ? (
+                        <IndexTable.Cell className="fulfilled">
+                            <Badge progress="complete">Updated</Badge>
+                        </IndexTable.Cell>
+                    ) : status === 'Received' ? (
+                        <IndexTable.Cell className="partial">
+                            <Badge progress="complete">Received</Badge>
+                        </IndexTable.Cell>
+                    ) : status === 'Partially received' ? (
+                        <IndexTable.Cell className="voided">
+                            <Badge progress="complete">Partially received</Badge>
+                        </IndexTable.Cell>
+                    ) : status === 'Partially Updated' ? (
+                        <IndexTable.Cell className="complete">
+                            <Badge progress="complete">Partially Updated</Badge>
+                        </IndexTable.Cell>
+                    ) : (
+                        <IndexTable.Cell className="unfulfilled">
+                            <Badge progress="complete">{status == null ? 'In-transit' : status}</Badge>
+                        </IndexTable.Cell>
+                    )
+                }
 
-
-                    </IndexTable.Cell>
-                ) : status === 'Received' ? (
-                    <IndexTable.Cell className="partial">
-                        <Badge progress='complete'>{status === 'Received' ? 'Received' : ''}</Badge>
-                    </IndexTable.Cell>
-                ) : (
-                    <IndexTable.Cell className="unfulfilled">
-                        <Badge progress='complete'>{status==null ? 'In-transit' : status}</Badge>
-
-                    </IndexTable.Cell>
-                )}
 
 
                 <IndexTable.Cell>
@@ -1082,6 +1089,8 @@ export function Shipment() {
                         options={[
                             { value: 'Updated', label: 'Updated' },
                             { value: 'Received', label: 'Received' },
+                            { value: 'Partially Updated', label: 'Partially Updated' },
+                            { value: 'Partially received', label: 'Partially received' },
                         ]}
                         placeholder="Select Status"
                         value={selectedStatus}
@@ -1272,6 +1281,8 @@ export function Shipment() {
                                                                 { value: 'In-transit', label: 'In-transit' },
                                                                 { value: 'Updated', label: 'Updated' },
                                                                 { value: 'Received', label: 'Received' },
+                                                                { value: 'Partially Updated', label: 'Partially Updated' },
+                                                                { value: 'Partially received', label: 'Partially received' },
                                                             ]}
                                                             placeholder="Select Status"
                                                             value={selectedStatus}

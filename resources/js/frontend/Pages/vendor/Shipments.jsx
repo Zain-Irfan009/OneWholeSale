@@ -837,10 +837,20 @@ export function Shipments() {
                 </IndexTable.Cell>
 
                 <IndexTable.Cell>{tracking_number != null ? tracking_number : "---"}</IndexTable.Cell>
+                {status === 'Partially received' ? (
+                    <IndexTable.Cell className="voided">
+                        <Badge progress='complete'>{status != null ? status : "---"}</Badge>
+                    </IndexTable.Cell>
+                ) : status === 'Partially Updated' ? (
+                    <IndexTable.Cell className="complete">
+                        <Badge progress='complete'>{status != null ? status : "---"}</Badge>
+                    </IndexTable.Cell>
+                ) : (
+                    <IndexTable.Cell className="fulfilled">
+                        <Badge progress='complete'>{status != null ? status : "---"}</Badge>
+                    </IndexTable.Cell>
+                )}
 
-                <IndexTable.Cell className="fulfilled">
-                    <Badge progress='complete'>{status != null ? status : "---"}</Badge>
-                </IndexTable.Cell>
 
                 <IndexTable.Cell>{file != null ? 'Yes' : "No"}</IndexTable.Cell>
 
@@ -1466,6 +1476,8 @@ export function Shipments() {
                                                                 { value: 'In-transit', label: 'In-transit' },
                                                                 { value: 'Updated', label: 'Updated' },
                                                                 { value: 'Received', label: 'Received' },
+                                                                { value: 'Partially Updated', label: 'Partially Updated' },
+                                                                { value: 'Partially received', label: 'Partially received' },
                                                             ]}
                                                             placeholder="Select Status"
                                                             value={selectedStatus}
