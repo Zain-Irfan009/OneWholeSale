@@ -704,7 +704,11 @@ export function Shipment() {
                         <IndexTable.Cell className="complete">
                             <Badge progress="complete">Partially Updated</Badge>
                         </IndexTable.Cell>
-                    ) : (
+                    ) : status === 'Canceled' ? (
+                            <IndexTable.Cell className="canceled">
+                                <Badge progress="complete">Canceled</Badge>
+                            </IndexTable.Cell>
+                        ) : (
                         <IndexTable.Cell className="unfulfilled">
                             <Badge progress="complete">{status == null ? 'In-transit' : status}</Badge>
                         </IndexTable.Cell>
@@ -1091,6 +1095,7 @@ export function Shipment() {
                             { value: 'Received', label: 'Received' },
                             { value: 'Partially Updated', label: 'Partially Updated' },
                             { value: 'Partially received', label: 'Partially received' },
+                            { value: 'Canceled', label: 'Canceled' },
                         ]}
                         placeholder="Select Status"
                         value={selectedStatus}
@@ -1283,6 +1288,7 @@ export function Shipment() {
                                                                 { value: 'Received', label: 'Received' },
                                                                 { value: 'Partially Updated', label: 'Partially Updated' },
                                                                 { value: 'Partially received', label: 'Partially received' },
+                                                                { value: 'Canceled', label: 'Canceled' },
                                                             ]}
                                                             placeholder="Select Status"
                                                             value={selectedStatus}

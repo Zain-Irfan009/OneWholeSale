@@ -244,6 +244,9 @@
 .voided .Polaris-Badge{
     background:lightskyblue;
 }
+.canceled .Polaris-Badge{
+    background:lightsalmon;
+}
 
 
 
