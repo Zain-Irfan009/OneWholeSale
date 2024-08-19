@@ -873,6 +873,7 @@ export function ProductsListing() {
                 collect_id,
                 has_variants_count,
                 product_status,
+                archived
             },
             index
         ) => (
@@ -937,6 +938,12 @@ export function ProductsListing() {
                     </IndexTable.Cell>
 
                 )}
+
+                <IndexTable.Cell className="approved">
+                    {archived == 1 && (
+                        <CustomBadge value="Archived" type="products" />
+                    )}
+                </IndexTable.Cell>
                 <IndexTable.Cell>
                     <Popover
                         active={active[id]}
@@ -1647,6 +1654,7 @@ export function ProductsListing() {
                                                 { title: "Quantity" },
                                                 { title: "Assigned" },
                                                 { title: "Status" },
+                                                { title: 'Archived' },
                                                 { title: "Action" },
                                             ]}
 

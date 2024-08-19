@@ -87,7 +87,7 @@ export function AddShipment() {
     );
     const [openFileDialog, setOpenFileDialog] = useState(false);
     const [pendingTrackingNumber, setPendingTrackingNumber] = useState("");
-    const [newTrackingNumber, setNewTrackingNumber] = useState([]);
+        const [newTrackingNumber, setNewTrackingNumber] = useState([]);
 
     const addNewTrackingNumber = (trackingNumber) => {
         const trackingNumberSet = new Set(newTrackingNumber);

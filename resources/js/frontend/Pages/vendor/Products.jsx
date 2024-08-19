@@ -219,6 +219,80 @@ export function Products() {
         setDeleteProductModal(false);
     };
 
+    const handleArchiveProducts=async () => {
+
+
+        setLoading(true)
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/seller/archive-products?ids=${selectedResources}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            getData()
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+
+    const handleUnArchiveProducts=async () => {
+
+
+        setLoading(true)
+        setBtnLoading(true)
+        const sessionToken = getAccessToken();
+
+        try {
+            const response = await axios.get(`${apiUrl}/seller/unarchive-products?ids=${selectedResources}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + sessionToken
+                    }
+                })
+            getData()
+            setToastMsg(response?.data?.message)
+            setSucessToast(true)
+            setBtnLoading(false)
+
+            setLoading(false)
+
+
+        } catch (error) {
+            console.log('error',error)
+            setToastMsg(error?.response?.data?.message)
+            setErrorToast(true)
+            setBtnLoading(false)
+        }
+    }
+    const bulkActions = [
+        {
+
+            content:  "Archive Products" ,
+            onAction: () => handleArchiveProducts(),
+        },
+
+        {
+
+            content:  "Un-Archive Products" ,
+            onAction: () => handleUnArchiveProducts(),
+        },
+
+    ];
+
     const deleteProduct  = async () => {
         setDeleteBtnLoading(true)
         // setSkeleton(true)
@@ -344,7 +418,7 @@ console.log(error)
         useIndexResourceState(products);
 
     const rowMarkup = products ? products?.map(
-        ({ id, product_id,featured_image,product_status,product_name,type,price,quantity,status,has_variants_count  }, index) => (
+        ({ id, product_id,featured_image,product_status,product_name,type,price,quantity,status,has_variants_count,archived  }, index) => (
 
             <IndexTable.Row
                 id={id}
@@ -397,6 +471,16 @@ console.log(error)
                     </IndexTable.Cell>
 
                 )}
+
+
+
+                <IndexTable.Cell className="approved">
+                    {archived == 1 && (
+                        <CustomBadge value="Archived" type="products" />
+                    )}
+                </IndexTable.Cell>
+
+
 
 
                 <IndexTable.Cell>
@@ -645,10 +729,11 @@ console.log(error)
                                     resourceName={resourceName}
                                     itemCount={products?.length}
                                     hasMoreItems
-                                    selectable={false}
+                                    selectable={true}
                                     selectedItemsCount={
                                         allResourcesSelected ? 'All' : selectedResources?.length
                                     }
+                                    bulkActions={bulkActions}
                                     onSelectionChange={handleSelectionChange}
                                     loading={customersLoading}
                                     // emptyState={emptyStateMarkup}
@@ -660,6 +745,7 @@ console.log(error)
                                         { title: 'Price' },
                                         { title: 'Quantity' },
                                         { title: 'Status' },
+                                        { title: 'Archived' },
                                         { title: 'Action' },
                                     ]}
                                 >
