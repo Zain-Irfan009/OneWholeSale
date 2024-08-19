@@ -1867,20 +1867,22 @@ $search_engine_meta_description=strip_tags($product->body_html);
     public function ShopifyDeleteProduct($product,$shop){
         $shop = Session::where('shop', $shop)->first();
         $dellproduct = Product::where('shopify_id',$product->id)->first();
-        $product_id = $product->id;
-        $productvarients = Variant::where('shopify_product_id',$product_id)->get();
-        foreach ($productvarients as $varient){
-            $varient->delete();
+        if($dellproduct) {
+            $product_id = $product->id;
+            $productvarients = Variant::where('shopify_product_id', $product_id)->get();
+            foreach ($productvarients as $varient) {
+                $varient->delete();
+            }
+            $productoptions = Option::where('shopify_product_id', $product_id)->get();
+            foreach ($productoptions as $option) {
+                $option->delete();
+            }
+            $productimages = ProductImage::where('shopify_product_id', $product_id)->get();
+            foreach ($productimages as $image) {
+                $image->delete();
+            }
+            $dellproduct->delete();
         }
-        $productoptions = Option::where('shopify_product_id',$product_id)->get();
-        foreach ($productoptions as $option){
-            $option->delete();
-        }
-        $productimages = ProductImage::where('shopify_product_id',$product_id)->get();
-        foreach ($productimages as $image){
-            $image->delete();
-        }
-        $dellproduct->delete();
     }
 
     public function AssignMultipleImportProducts(Request $request){
