@@ -183,6 +183,10 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::post('add-product-image',[\App\Http\Controllers\Seller\ProductController::class,'AddProductImage']);
         Route::get('drag-image',[\App\Http\Controllers\Seller\ProductController::class,'DragImage']);
         Route::get('remove-img',[\App\Http\Controllers\Seller\ProductController::class,'RemoveImage']);
+        Route::get('archive-products',[\App\Http\Controllers\Seller\ProductController::class,'ArchiveProducts']);
+        Route::get('unarchive-products',[\App\Http\Controllers\Seller\ProductController::class,'UnArchiveProducts']);
+
+
         //orders
         Route::get('orders',[\App\Http\Controllers\Seller\OrderController::class,'Orders']);
         Route::get('view-order/{id}',[\App\Http\Controllers\Seller\OrderController::class,'ViewOrder']);
@@ -415,7 +419,7 @@ Route::post('/webhooks/order-update', function (Request $request) {
         $shop=$request->header('x-shopify-shop-domain');
         $shop=Session::where('shop',$shop)->first();
 
-        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop,$webhook_log->id);
+        \App\Jobs\OrderWebhookJob::dispatch($order,$shop->shop,$webhook_log->id)->delay(now()->addMinutes(1));
         return true;
 //        $ordercontroller = new \App\Http\Controllers\Admin\OrderController();
 //        $ordercontroller->singleOrder($order,$shop->shop);

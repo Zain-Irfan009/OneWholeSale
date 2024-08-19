@@ -1262,4 +1262,70 @@ class ProductController extends Controller
     }
 
 
+    public function ArchiveProducts(Request $request){
+        $user=auth()->user();
+        $session=Session::where('id',$user->shop_id)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        $ids=explode(',',$request->ids);
+        foreach ($ids as $id) {
+            $product_get=Product::find($id);
+            if($product_get->shopify_id) {
+                $productdata = [
+                    "product" => [
+                        "status" => 'archived'
+                    ]
+                ];
+                $response = $client->put('/products/' . $product_get->shopify_id . '.json', $productdata);
+
+                $response=$response->getDecodedBody();
+
+                $response=$response['product'];
+
+                $response=json_decode(json_encode($response));
+
+                $product_get->archived=1;
+                $product_get->save();
+
+            }
+        }
+        $data = [
+            'message' => 'Product Archived Successfully',
+        ];
+        return response()->json($data);
+
+    }
+
+    public function UnArchiveProducts(Request $request){
+        $user=auth()->user();
+        $session=Session::where('id',$user->shop_id)->first();
+        $client = new Rest($session->shop, $session->access_token);
+        $ids=explode(',',$request->ids);
+        foreach ($ids as $id) {
+            $product_get=Product::find($id);
+            if($product_get->shopify_id) {
+                $productdata = [
+                    "product" => [
+                        "status" => 'draft'
+                    ]
+                ];
+                $response = $client->put('/products/' . $product_get->shopify_id . '.json', $productdata);
+
+                $response=$response->getDecodedBody();
+
+                $response=$response['product'];
+
+                $response=json_decode(json_encode($response));
+
+                $product_get->archived=0;
+                $product_get->save();
+
+            }
+        }
+        $data = [
+            'message' => 'Product UnArchived Successfully',
+        ];
+        return response()->json($data);
+
+    }
+
 }
